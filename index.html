@@ -1,0 +1,1902 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plate & Pin</title>
+<link rel="icon" href="icon-512.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c1432a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Plate & Pin">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Karla:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#eeeae0; --surface:#fbf9f3; --surface-2:#f2eee2;
+  --ink:#2a2420; --ink-soft:#6d6255; --ink-faint:#9a8f7f;
+  --line:#ddd4c1; --line-soft:#e6dfcf;
+  --accent:#c1432a; --accent-ink:#fff6ef; --accent-soft:#f3ded6;
+  --olive:#4d6640; --olive-soft:#dfe6d5;
+  --gold:#b3811f; --gold-soft:#f0e2c2;
+  --shadow: 0 1px 2px rgba(42,36,32,.06), 0 8px 24px -12px rgba(42,36,32,.18);
+  --radius: 14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1c1712; --surface:#241e18; --surface-2:#2b2419;
+    --ink:#f2e9db; --ink-soft:#c2b6a2; --ink-faint:#8a7d6b;
+    --line:#3c3325; --line-soft:#332b20;
+    --accent:#e2724f; --accent-ink:#241108; --accent-soft:#3c2419;
+    --olive:#8fae7c; --olive-soft:#2a331f;
+    --gold:#dcb15c; --gold-soft:#3a2f18;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1c1712; --surface:#241e18; --surface-2:#2b2419;
+  --ink:#f2e9db; --ink-soft:#c2b6a2; --ink-faint:#8a7d6b;
+  --line:#3c3325; --line-soft:#332b20;
+  --accent:#e2724f; --accent-ink:#241108; --accent-soft:#3c2419;
+  --olive:#8fae7c; --olive-soft:#2a331f;
+  --gold:#dcb15c; --gold-soft:#3a2f18;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;}
+html,body{background:var(--bg);}
+body{background:var(--bg); color:var(--ink); font-family:'Karla',system-ui,sans-serif; margin:0; min-height:100vh;}
+h1,h2,h3,h4{font-family:'Fraunces',Georgia,serif; margin:0; text-wrap:balance;}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
+a{color:inherit;}
+button{font-family:inherit; cursor:pointer;}
+::selection{background:var(--accent-soft);}
+.app{display:flex; min-height:100vh;}
+
+/* Sidebar */
+.sidebar{width:230px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--line); display:flex; flex-direction:column; padding:20px 14px; gap:18px; position:sticky; top:0; height:100vh; overflow-y:auto;}
+.brand{display:flex; align-items:center; gap:10px; padding:0 6px; width:100%;}
+.brand:hover .brand-name{color:var(--accent);}
+.brand-mark{width:34px; height:34px; border-radius:10px; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:700; font-size:18px; flex-shrink:0;}
+.brand-name{font-family:'Fraunces',serif; font-weight:600; font-size:19px; line-height:1.1;}
+.brand-sub{font-size:11px; color:var(--ink-faint); letter-spacing:.04em;}
+.nav{display:flex; flex-direction:column; gap:2px;}
+.nav-btn{display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:9px; border:none; background:transparent; color:var(--ink-soft); font-size:14.5px; font-weight:600; text-align:left;}
+.nav-btn:hover{background:var(--surface-2); color:var(--ink);}
+.nav-btn.active{background:var(--accent-soft); color:var(--accent);}
+.nav-btn .ic{width:18px; text-align:center; font-size:15px;}
+.nav-sep{height:1px; background:var(--line-soft); margin:8px 4px;}
+.sidebar-foot{margin-top:auto; display:flex; flex-direction:column; gap:8px;}
+.profile-switch{display:flex; gap:6px; background:var(--surface-2); border-radius:10px; padding:4px;}
+.profile-pill{flex:1; text-align:center; padding:7px 4px; border-radius:7px; border:none; background:transparent; font-size:12.5px; font-weight:700; color:var(--ink-faint);}
+.profile-pill.active{background:var(--surface); color:var(--accent); box-shadow:var(--shadow);}
+.icon-btn{border:1px solid var(--line); background:var(--surface); border-radius:9px; padding:8px; color:var(--ink-soft); font-size:13px;}
+.icon-btn:hover{color:var(--ink); border-color:var(--ink-faint);}
+
+/* Main */
+.main{flex:1; min-width:0; padding:26px 34px 60px;}
+.page-head{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap;}
+.page-head h1{font-size:28px;}
+.page-head .sub{color:var(--ink-soft); font-size:14px; margin-top:4px;}
+.btn{display:inline-flex; align-items:center; gap:7px; padding:10px 16px; border-radius:10px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-weight:700; font-size:13.5px; white-space:nowrap;}
+.btn:hover{border-color:var(--ink-faint);}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink);}
+.btn.primary:hover{filter:brightness(1.06);}
+.btn.ghost{background:transparent; border-color:transparent; color:var(--ink-soft);}
+.btn.small{padding:6px 11px; font-size:12.5px; border-radius:8px;}
+.btn.danger{color:#b3281a;}
+.btn:disabled{opacity:.6; cursor:default;}
+
+/* toggle */
+.viewtoggle{display:inline-flex; background:var(--surface-2); border-radius:10px; padding:4px; gap:4px;}
+.viewtoggle button{padding:8px 16px; border-radius:7px; border:none; background:transparent; font-weight:700; font-size:13.5px; color:var(--ink-soft);}
+.viewtoggle button.active{background:var(--surface); color:var(--accent); box-shadow:var(--shadow);}
+
+/* toolbar */
+.toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px;}
+.search-box{flex:1; min-width:180px; position:relative;}
+.search-box input{width:100%; padding:10px 12px 10px 34px; border-radius:10px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:16px;}
+.search-box .sicon{position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--ink-faint); font-size:13px;}
+select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:16px; font-weight:600;}
+.chiprow{display:flex; gap:7px; flex-wrap:wrap; margin:0 0 16px;}
+.chip{padding:5px 11px; border-radius:99px; background:var(--surface-2); border:1px solid var(--line-soft); font-size:12px; font-weight:700; color:var(--ink-soft); display:inline-flex; align-items:center; gap:6px;}
+.chip.on{background:var(--accent-soft); color:var(--accent); border-color:transparent;}
+.chip button{background:none; border:none; color:inherit; font-size:12px; padding:0; line-height:1;}
+.filter-panel{display:flex; flex-wrap:wrap; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:16px;}
+.filter-panel label{display:flex; flex-direction:column; gap:5px; font-size:11px; font-weight:700; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.03em;}
+
+/* cards / list */
+.grid-cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px;}
+.rcard{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; cursor:pointer;}
+.rcard:hover{border-color:var(--ink-faint);}
+.rcard .photo{height:150px; background:var(--surface-2); position:relative; overflow:hidden;}
+.rcard .photo img{width:100%; height:100%; object-fit:cover; display:block;}
+.rcard .photo .noimg{width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:28px;}
+.fav-badge{position:absolute; top:8px; right:8px; width:27px; height:27px; border-radius:50%; background:var(--surface); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:13px;}
+.del-badge{position:absolute; top:8px; left:8px; width:27px; height:27px; border-radius:50%; background:var(--surface); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:13px; border:none; padding:0; z-index:2;}
+.del-badge:hover{background:var(--accent-soft); color:var(--accent);}
+.fav-heart{color:var(--accent);}
+.rcard .body{padding:12px 13px 14px; display:flex; flex-direction:column; gap:6px;}
+.rcard .name{font-family:'Fraunces',serif; font-weight:600; font-size:16.5px; line-height:1.2;}
+.rcard .meta{font-size:12px; color:var(--ink-soft);}
+.badge{font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; padding:3px 7px; border-radius:6px;}
+.badge.yes{background:var(--olive-soft); color:var(--olive);}
+.badge.maybe{background:var(--gold-soft); color:var(--gold);}
+.badge.no{background:var(--accent-soft); color:var(--accent);}
+.tagrow{display:flex; gap:5px; flex-wrap:wrap;}
+.tag{font-size:10.5px; font-weight:700; color:var(--ink-soft); background:var(--surface-2); padding:3px 7px; border-radius:6px;}
+
+.listrow{display:flex; align-items:center; gap:14px; padding:12px 14px; background:var(--surface); border:1px solid var(--line); border-radius:12px; margin-bottom:9px; cursor:pointer;}
+.listrow:hover{border-color:var(--ink-faint);}
+.listrow .thumb{width:54px; height:54px; border-radius:9px; background:var(--surface-2); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--ink-faint);}
+.listrow .thumb img{width:100%; height:100%; object-fit:cover;}
+.listrow .main-col{flex:1; min-width:0;}
+.listrow .name{font-family:'Fraunces',serif; font-weight:600; font-size:15.5px;}
+.listrow .meta{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+.listrow .right-col{display:flex; align-items:center; gap:14px; flex-shrink:0;}
+
+/* stars */
+.stars{display:inline-flex; gap:2px; vertical-align:middle;}
+.star{position:relative; display:inline-block; flex-shrink:0;}
+.star svg{position:absolute; top:0; left:0; display:block;}
+.star .fill{overflow:hidden; position:absolute; top:0; left:0; height:100%;}
+.stareditor{display:inline-flex; gap:3px; vertical-align:middle;}
+.stareditor .star{cursor:pointer;}
+.stareditor .star .hitl,.stareditor .star .hitr{position:absolute; top:0; width:50%; height:100%; z-index:2; background:none; border:none; padding:0; margin:0; -webkit-appearance:none; appearance:none;}
+.stareditor .star .hitl{left:0;} .stareditor .star .hitr{right:0;}
+
+/* empty state */
+.empty{text-align:center; padding:70px 20px; color:var(--ink-soft);}
+.empty .emoji{font-size:38px; margin-bottom:10px;}
+.empty h3{font-size:19px; margin-bottom:6px; color:var(--ink);}
+
+/* stat tiles */
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-bottom:24px;}
+.stat-tile{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow);}
+.stat-tile .lbl{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); margin-bottom:8px;}
+.stat-tile .val{font-family:'Fraunces',serif; font-size:26px; font-weight:600; line-height:1.1;}
+.stat-tile .sub{font-size:12px; color:var(--ink-soft); margin-top:4px;}
+
+/* map */
+.mapwrap{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:0; overflow:hidden; box-shadow:var(--shadow);}
+.mapnote{padding:10px 16px; font-size:12px; color:var(--ink-faint); border-bottom:1px solid var(--line-soft); background:var(--surface-2);}
+#leafletMap{height:560px; width:100%; background:var(--surface-2); position:relative; z-index:0; isolation:isolate;}
+.pp-marker{width:26px; height:26px; border-radius:50% 50% 50% 0; background:var(--accent); transform:rotate(-45deg); border:2px solid var(--surface); box-shadow:var(--shadow); cursor:pointer;}
+.pp-marker.want{background:var(--gold);}
+.maplibregl-map{font-family:'Karla',system-ui,sans-serif;}
+.maplibregl-popup-content{background:var(--surface); color:var(--ink); border-radius:12px; box-shadow:var(--shadow); padding:0;}
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:var(--surface);}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:var(--surface);}
+.maplibregl-popup-close-button{color:var(--ink-faint); font-size:18px; padding:2px 8px 0 0;}
+.maplibregl-ctrl-group{background:var(--surface) !important; border-radius:10px !important; box-shadow:var(--shadow) !important; overflow:hidden; border:none !important;}
+.maplibregl-ctrl-group button{background:var(--surface) !important; width:30px !important; height:30px !important;}
+.maplibregl-ctrl-group button:hover{background:var(--surface-2) !important;}
+.maplibregl-ctrl-group button + button{border-top:1px solid var(--line-soft) !important;}
+.maplibregl-ctrl-attrib{background:var(--surface) !important; color:var(--ink-faint) !important; opacity:.82; border-radius:6px 0 0 0 !important; font-size:10px !important;}
+.maplibregl-ctrl-attrib a{color:var(--ink-soft) !important;}
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl{margin:0 6px 6px 0;}
+.geo-search-wrap{position:relative;}
+.geo-suggestions{position:absolute; top:100%; left:0; right:0; margin-top:4px; background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); z-index:5; max-height:240px; overflow-y:auto; display:none;}
+.geo-suggestions.open{display:block;}
+.geo-suggestion-item{display:block; width:100%; text-align:left; padding:9px 12px; border:none; border-bottom:1px solid var(--line-soft); background:var(--surface); color:var(--ink); cursor:pointer;}
+.geo-suggestion-item:last-child{border-bottom:none;}
+.geo-suggestion-item:hover, .geo-suggestion-item:focus{background:var(--surface-2);}
+.geo-suggestion-item .gs-name{font-weight:700; font-size:13px;}
+.geo-suggestion-item .gs-addr{font-size:11px; color:var(--ink-faint); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.geo-suggestion-empty{padding:10px 12px; font-size:12px; color:var(--ink-faint);}
+#pickerMap{height:220px; border-radius:12px; overflow:hidden; margin-top:8px; border:1px solid var(--line); background:var(--surface-2); position:relative; z-index:0; isolation:isolate;}
+.geo-hint{font-size:11.5px; color:var(--ink-faint); margin-top:6px;}
+
+/* modal */
+.overlay{position:fixed; inset:0; background:rgba(20,16,12,.5); display:flex; align-items:flex-start; justify-content:center; padding:calc(40px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left)); overflow-y:auto; z-index:100;}
+.modal{background:var(--surface); border-radius:18px; max-width:640px; width:100%; box-shadow:var(--shadow); border:1px solid var(--line); margin-bottom:40px;}
+.modal-head{display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--line-soft);}
+.modal-head h2{font-size:19px;}
+.modal-body{padding:20px 22px; display:flex; flex-direction:column; gap:16px; max-height:70vh; overflow-y:auto;}
+.modal-foot{padding:16px 22px; border-top:1px solid var(--line-soft); display:flex; justify-content:flex-end; gap:10px;}
+.field{display:flex; flex-direction:column; gap:6px;}
+.field label{font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-faint);}
+.field input[type=text], .field input[type=date], .field input[type=number], .field textarea, .field select{padding:10px 11px; border-radius:9px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); font-size:16px; font-family:inherit; width:100%;}
+.field textarea{resize:vertical; min-height:60px;}
+.field-row{display:flex; gap:12px; flex-wrap:wrap;}
+.quick-add-option{display:flex; align-items:center; gap:14px; width:100%; text-align:left; padding:16px; border-radius:12px; border:1px solid var(--line); background:var(--surface-2); cursor:pointer;}
+.quick-add-option:hover{border-color:var(--accent); background:var(--accent-soft);}
+.quick-add-option .qa-icon{font-size:26px; flex-shrink:0; line-height:1;}
+.quick-add-option .qa-text{display:flex; flex-direction:column; gap:2px;}
+.quick-add-option .qa-title{font-family:'Fraunces',serif; font-weight:600; font-size:16px; color:var(--ink);}
+.quick-add-option .qa-sub{font-size:12.5px; color:var(--ink-soft);}
+.field-row .field{flex:1; min-width:140px;}
+.chip-select{display:flex; flex-wrap:wrap; gap:6px;}
+.chip-select button{padding:6px 11px; border-radius:99px; border:1px solid var(--line); background:var(--surface-2); font-size:12px; font-weight:700; color:var(--ink-soft);}
+.chip-select button.on{background:var(--accent-soft); color:var(--accent); border-color:transparent; font-weight:800;}
+.rate-row{display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface-2); padding:10px 12px; border-radius:10px;}
+.rate-row .who{font-size:13px; font-weight:700;}
+.photo-row{display:flex; gap:10px; flex-wrap:wrap;}
+.photo-thumb{width:76px; height:76px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--line);}
+.photo-thumb img{width:100%; height:100%; object-fit:cover;}
+.photo-thumb .rm{position:absolute; top:2px; right:2px; background:rgba(0,0,0,.55); color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:11px; line-height:1;}
+.addphoto-btn{width:76px; height:76px; border-radius:10px; border:1.5px dashed var(--line); background:var(--surface-2); color:var(--ink-faint); font-size:20px; display:flex; align-items:center; justify-content:center;}
+.wr-row{display:flex; gap:8px;}
+.wr-row button{flex:1; padding:9px; border-radius:9px; border:1px solid var(--line); background:var(--surface-2); font-weight:700; font-size:12.5px; color:var(--ink-soft);}
+.wr-row button.on-yes{background:var(--olive-soft); color:var(--olive); border-color:transparent;}
+.wr-row button.on-maybe{background:var(--gold-soft); color:var(--gold); border-color:transparent;}
+.wr-row button.on-no{background:var(--accent-soft); color:var(--accent); border-color:transparent;}
+
+/* detail drawer */
+.detail-hero{position:relative; height:220px; background:var(--surface-2);}
+.detail-hero img{width:100%; height:100%; object-fit:cover;}
+.visit-item{border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px; background:var(--surface);}
+.visit-item .vhead{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;}
+.visit-item .vdate{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-faint);}
+.visit-photos{display:flex; gap:6px; margin-top:8px;}
+.visit-photos img{width:64px; height:64px; object-fit:cover; border-radius:8px; cursor:zoom-in;}
+
+/* wrapped */
+.wrap-slide{background:linear-gradient(160deg, var(--accent), var(--gold)); color:var(--accent-ink); border-radius:22px; padding:44px 36px; min-height:320px; display:flex; flex-direction:column; justify-content:center; gap:10px; box-shadow:var(--shadow);}
+.wrap-slide .k{font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; opacity:.85;}
+.wrap-slide .big{font-family:'Fraunces',serif; font-size:42px; font-weight:600; line-height:1.08;}
+.wrap-slide .foot{font-size:14px; opacity:.9;}
+.wrap-nav{display:flex; justify-content:center; gap:10px; margin-top:16px;}
+.wrap-dot{width:8px; height:8px; border-radius:50%; background:var(--line); border:none;}
+.wrap-dot.on{background:var(--accent);}
+
+.section-title{font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:26px 0 12px;}
+.section-title:first-child{margin-top:0;}
+.shelf{display:flex; gap:14px; overflow-x:auto; padding-bottom:6px;}
+.shelf .rcard{min-width:210px;}
+
+@media (max-width:860px){
+  .sidebar{position:fixed; z-index:50; transform:translateX(-100%); transition:transform .2s; box-shadow:var(--shadow); padding-top:calc(20px + env(safe-area-inset-top)); padding-bottom:calc(20px + env(safe-area-inset-bottom));}
+  .sidebar.open{transform:translateX(0);}
+  .main{padding:calc(18px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));}
+  .mobile-topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .sidebar-backdrop{position:fixed; inset:0; background:rgba(15,12,9,.45); z-index:49; opacity:0; pointer-events:none; transition:opacity .2s;}
+  .sidebar-backdrop.open{opacity:1; pointer-events:auto;}
+}
+@media (min-width:861px){ .mobile-topbar{display:none;} }
+@media (max-width:560px){
+  .listrow{flex-wrap:wrap; row-gap:8px;}
+  .listrow .thumb{width:44px; height:44px;}
+  .listrow .main-col{flex-basis:0;}
+  .listrow .right-col{flex-basis:100%; flex-wrap:wrap; justify-content:flex-start; margin-left:58px;}
+  #leafletMap{height:70vh; min-height:320px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar" id="sidebar">
+    <button class="brand" id="btnHome" type="button" style="border:none; background:transparent; cursor:pointer; text-align:left;">
+      <div class="brand-mark">P·P</div>
+      <div>
+        <div class="brand-name">Plate & Pin</div>
+        <div class="brand-sub">a two-person food log</div>
+      </div>
+    </button>
+    <div class="nav" id="nav"></div>
+    <div class="nav-sep"></div>
+    <button class="btn primary" id="btnAddVisit" style="justify-content:center;">+ Add</button>
+    <div class="sidebar-foot">
+      <div class="profile-switch" id="profileSwitch"></div>
+      <button class="icon-btn" id="btnSettings" style="text-align:left;">⚙ Settings</button>
+      <div id="syncState" style="font-size:11px; color:var(--ink-faint); padding:2px 4px;"></div>
+    </div>
+  </nav>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <main class="main">
+    <div class="mobile-topbar">
+      <button class="icon-btn" id="btnMenu">☰</button>
+      <button class="brand-name" id="btnHomeMobile" type="button" style="border:none; background:transparent; cursor:pointer; font:inherit; color:inherit;">Plate & Pin</button>
+      <button class="btn small primary" id="btnAddVisitMobile">+ Add</button>
+    </div>
+    <div id="view"></div>
+  </main>
+</div>
+<div id="modalRoot"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* =======================================================================
+   FIREBASE SETUP — paste your project's config below.
+   1. console.firebase.google.com -> Create project (free "Spark" plan)
+   2. Build -> Firestore Database -> Create database (start in production mode)
+   3. Build -> Authentication -> Sign-in method -> enable "Anonymous"
+   4. Project settings (gear icon) -> General -> Your apps -> Add app -> Web (</>)
+   5. Copy the firebaseConfig object it gives you and paste the values below.
+   6. In Firestore -> Rules, paste:
+        rules_version = '2';
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            match /{document=**} { allow read, write: if request.auth != null; }
+          }
+        }
+   Until you fill this in, the app runs in local demo mode (nothing syncs
+   or saves between page loads) so you can still preview it.
+   ======================================================================= */
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAJ3bBAj55oSqvwtZ2iwgAZI2R8YiDwZiU",
+  authDomain: "plateandpin.firebaseapp.com",
+  projectId: "plateandpin",
+  storageBucket: "plateandpin.firebasestorage.app",
+  messagingSenderId: "990440904687",
+  appId: "1:990440904687:web:26433c1c4d4f0fa49b081a"
+};
+
+/* ---------- constants ---------- */
+var CUISINES = ["Vietnamese","Japanese","Thai","Chinese","Korean","Indian","Italian","French","Mexican","American","Western","Mediterranean","Middle Eastern","Ethiopian","Filipino","Spanish","Greek","Caribbean","Fusion"];
+var TAGS = ["Brunch","Bakery","Fine Dining","Hidden Gem","Date Night","Late Night","Takeout","Patio","Casual","Coffee Shop","Dessert","Cocktail Bar","Vegetarian-Friendly","Group-Friendly","Quick Bite","Food Truck"];
+var FAV_CATS = ["Dessert","Cocktail Bar","Coffee Shop","Bakery","Fine Dining","Brunch"];
+var PRICE_LABELS = {1:"$",2:"$$",3:"$$$",4:"$$$$"};
+var MAX_PHOTOS = 3;
+
+/* ---------- tiny utils ---------- */
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];}); }
+function fmtDate(d){ if(!d) return ""; var dt=new Date(d+"T00:00:00"); if(isNaN(dt)) return d; return dt.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }
+function monthKey(d){ return d ? d.slice(0,7) : ""; }
+function todayStr(){ var d=new Date(); return d.toISOString().slice(0,10); }
+function clamp(n,a,b){ return Math.max(a,Math.min(b,n)); }
+function avg(arr){ arr=arr.filter(function(v){return typeof v==="number";}); if(!arr.length) return null; return arr.reduce(function(a,b){return a+b;},0)/arr.length; }
+function debounce(fn,ms){ var t; return function(){ var a=arguments; clearTimeout(t); t=setTimeout(function(){fn.apply(null,a);},ms); }; }
+function hasLoc(r){ return r && typeof r.lat==="number" && typeof r.lng==="number"; }
+var MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
+function newMap(containerId, center, zoom){
+  return new maplibregl.Map({
+    container: containerId,
+    style: MAP_STYLE_URL,
+    center: center, zoom: zoom,
+    attributionControl: {compact:true}
+  });
+}
+function ppMarkerEl(cls){
+  var el = document.createElement("div");
+  el.className = cls;
+  return el;
+}
+
+/* ---------- star rendering ---------- */
+var STAR_PATH = "M12 2.5l2.9 6.06 6.6.77-4.87 4.55 1.28 6.6L12 17.6l-5.91 3.38 1.28-6.6L2.5 9.33l6.6-.77z";
+function starSvg(color, px){ return '<svg viewBox="0 0 24 24" width="'+px+'" height="'+px+'"><path d="'+STAR_PATH+'" fill="'+color+'"/></svg>'; }
+function renderStarsDisplay(value, size){
+  value = value==null ? 0 : value;
+  var px = size==="lg" ? 22 : 15;
+  var out = '<span class="stars">';
+  for(var i=1;i<=5;i++){
+    var frac = clamp(value-(i-1),0,1);
+    out += '<span class="star" style="width:'+px+'px;height:'+px+'px;">'+starSvg("var(--line)",px)+
+      '<span class="fill" style="width:'+(frac*100)+'%">'+starSvg("var(--accent)",px)+'</span></span>';
+  }
+  out += '</span>';
+  return out;
+}
+function renderStarEditor2(name, value){
+  value = value==null ? 0 : value;
+  var px = 26;
+  var out = '<span class="stareditor" data-star-editor="'+name+'">';
+  for(var i=1;i<=5;i++){
+    var frac = clamp(value-(i-1),0,1);
+    out += '<span class="star" style="width:'+px+'px;height:'+px+'px;">'+
+      starSvg("var(--line)",px)+
+      '<span class="fill" style="width:'+(frac*100)+'%">'+starSvg("var(--accent)",px)+'</span>'+
+      '<button type="button" class="hitl" data-star-set="'+name+'" data-star-val="'+(i-0.5)+'"></button>'+
+      '<button type="button" class="hitr" data-star-set="'+name+'" data-star-val="'+i+'"></button>'+
+      '</span>';
+  }
+  out += '</span>';
+  return out;
+}
+
+/* ---------- image compression ---------- */
+function compressImage(file){
+  return new Promise(function(resolve,reject){
+    var reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = function(){
+      var img = new Image();
+      img.onerror = reject;
+      img.onload = function(){
+        try{
+          function tryQuality(maxDim, quality){
+            var w=img.width, h=img.height;
+            var scale = Math.min(1, maxDim/Math.max(w,h));
+            var cw = Math.round(w*scale), ch = Math.round(h*scale);
+            var canvas = document.createElement("canvas");
+            canvas.width=cw; canvas.height=ch;
+            var ctx = canvas.getContext("2d");
+            ctx.drawImage(img,0,0,cw,ch);
+            return canvas.toDataURL("image/jpeg", quality);
+          }
+          var attempts = [[1280,.72],[1100,.62],[950,.5],[800,.4],[650,.32]];
+          var result = null;
+          for(var i=0;i<attempts.length;i++){
+            var d = tryQuality(attempts[i][0], attempts[i][1]);
+            if(d.length < 260000){ result = d; break; }
+            result = d;
+          }
+          resolve(result);
+        }catch(e){ reject(e); }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ---------- state ---------- */
+var state = {
+  restaurants: {}, visits: {}, lists: {}, trips: {},
+  profiles: {A:"Kat", B:"Albie"},
+  me: localStorage.getItem("pp_me") || null,
+  theme: localStorage.getItem("pp_theme") || "system",
+  route: "browse",
+  browseMode: "list",
+  search: "",
+  sort: "date",
+  filters: {city:"", neighborhood:"", cuisine:"", tag:"", wouldReturn:"", price:""},
+  filtersOpen: false,
+  activeTripId: null,
+  activeListId: null,
+  wrappedYear: null,
+  db: null, dbReady:false
+};
+var lastBrowseList = [];
+
+function visitsFor(rid){
+  return Object.keys(state.visits).map(function(k){return state.visits[k];}).filter(function(v){return v.restaurantId===rid;});
+}
+function restaurantScore(rid){
+  var vs = visitsFor(rid);
+  if(!vs.length) return null;
+  var perVisit = vs.map(function(v){ return avg([v.ratingA,v.ratingB]); }).filter(function(v){return v!=null;});
+  return avg(perVisit);
+}
+function lastVisitDate(rid){
+  var vs = visitsFor(rid);
+  if(!vs.length) return null;
+  return vs.map(function(v){return v.date;}).filter(Boolean).sort().slice(-1)[0] || null;
+}
+function firstPhotoFor(rid){
+  var vs = visitsFor(rid).slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");});
+  for(var i=0;i<vs.length;i++){ if(vs[i].photos && vs[i].photos.length) return vs[i].photos[0]; }
+  return null;
+}
+function allRestaurants(){ return Object.keys(state.restaurants).map(function(k){return state.restaurants[k];}); }
+function allVisits(){ return Object.keys(state.visits).map(function(k){return state.visits[k];}); }
+
+/* ---------- db wiring (Firebase Firestore) ---------- */
+function initDb(){
+  if(!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.indexOf("YOUR_")===0 || !window.firebase){
+    state.dbReady=false; renderSync(); return;
+  }
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+  }catch(e){ console.error("Firebase init failed", e); state.dbReady=false; renderSync(); return; }
+  var fs = firebase.firestore();
+  firebase.auth().signInAnonymously().catch(function(err){ console.error("Anonymous sign-in failed", err); });
+  firebase.auth().onAuthStateChanged(function(user){
+    if(!user) return;
+    state.db = fs; state.dbReady = true; renderSync();
+    fs.collection("restaurants").onSnapshot(function(snap){
+      var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
+      state.restaurants=m; scheduleRender();
+    }, function(err){ console.error(err); });
+    fs.collection("visits").onSnapshot(function(snap){
+      var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
+      state.visits=m; scheduleRender();
+    }, function(err){ console.error(err); });
+    fs.collection("lists").onSnapshot(function(snap){
+      var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
+      state.lists=m; scheduleRender();
+    }, function(err){ console.error(err); });
+    fs.collection("trips").onSnapshot(function(snap){
+      var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
+      state.trips=m; scheduleRender();
+    }, function(err){ console.error(err); });
+    fs.doc("settings/profiles").onSnapshot(function(snap){
+      if(snap.exists){ state.profiles = Object.assign({A:"Kat",B:"Albie"}, snap.data()); }
+      scheduleRender();
+    }, function(err){ console.error(err); });
+  });
+}
+function renderSync(){
+  var el = document.getElementById("syncState");
+  if(!el) return;
+  el.textContent = state.dbReady ? "● synced" : "○ local demo (add Firebase config to sync)";
+  el.style.color = state.dbReady ? "var(--olive)" : "var(--ink-faint)";
+}
+
+/* local fallback so the page previews sensibly before Firebase is configured */
+function seedLocalDemo(){
+  if(state.dbReady) return;
+  if(Object.keys(state.restaurants).length) return;
+  var r1="demo1", r2="demo2", r3="demo3";
+  state.restaurants[r1]={id:r1,name:"Anh's Kitchen (example)",city:"Edmonton",neighborhood:"Chinatown",lat:53.5461,lng:-113.4938,cuisines:["Vietnamese"],tags:["Hidden Gem","Casual"],priceRange:2,favorite:true,notes:"",tripId:null,createdBy:"A",createdAt:new Date().toISOString()};
+  state.restaurants[r2]={id:r2,name:"Nord (example)",city:"Edmonton",neighborhood:"Oliver",lat:53.5432,lng:-113.5203,cuisines:["French"],tags:["Date Night","Fine Dining"],priceRange:4,favorite:false,notes:"",tripId:null,createdBy:"B",createdAt:new Date().toISOString()};
+  state.restaurants[r3]={id:r3,name:"Little Brick Cafe (example)",city:"Edmonton",neighborhood:"Old Strathcona",lat:53.5175,lng:-113.4993,cuisines:["American"],tags:["Brunch","Coffee Shop"],priceRange:1,favorite:false,notes:"",tripId:null,createdBy:"A",createdAt:new Date().toISOString()};
+  var v1="dv1", v2="dv2";
+  state.visits[v1]={id:v1,restaurantId:r1,date:"2026-08-14",ratingA:4.5,ratingB:5,wouldReturn:"yes",dishes:["Bun bo hue"],favDishA:"Bun bo hue",favDishB:"Bun bo hue",notes:"Broth was incredible.",price:34,photos:[],loggedBy:"A",createdAt:new Date().toISOString()};
+  state.visits[v2]={id:v2,restaurantId:r2,date:"2026-07-02",ratingA:4,ratingB:4.5,wouldReturn:"yes",dishes:["Duck confit"],favDishA:"Duck confit",favDishB:"Steak frites",notes:"Splurge night.",price:180,photos:[],loggedBy:"B",createdAt:new Date().toISOString()};
+  scheduleRender();
+}
+
+/* ---------- write helpers ---------- */
+function saveRestaurant(data, id){
+  if(state.dbReady){
+    var ref = state.db.collection("restaurants").doc(id || undefined);
+    var payload = id ? data : Object.assign({createdBy: state.me||"A", createdAt: new Date().toISOString()}, data);
+    return ref.set(payload, id?{merge:true}:{}).then(function(){ return ref.id; });
+  } else {
+    var rid = id || uid();
+    state.restaurants[rid] = Object.assign({id:rid, createdBy: state.me||"A", createdAt:new Date().toISOString()}, state.restaurants[rid]||{}, data);
+    scheduleRender();
+    return Promise.resolve(rid);
+  }
+}
+function updateRestaurant(id, patch){
+  if(state.dbReady){ return state.db.doc("restaurants/"+id).update(patch); }
+  state.restaurants[id] = Object.assign({}, state.restaurants[id], patch); scheduleRender(); return Promise.resolve();
+}
+function deleteRestaurant(id){
+  visitsFor(id).forEach(function(v){ deleteVisit(v.id); });
+  if(state.dbReady){ return state.db.doc("restaurants/"+id).delete(); }
+  delete state.restaurants[id]; scheduleRender(); return Promise.resolve();
+}
+function saveVisit(data, id){
+  if(state.dbReady){
+    var ref = state.db.collection("visits").doc(id || undefined);
+    var payload = id ? data : Object.assign({loggedBy: state.me||"A", createdAt:new Date().toISOString()}, data);
+    return ref.set(payload, id?{merge:true}:{}).then(function(){ return ref.id; });
+  } else {
+    var vid = id || uid();
+    state.visits[vid] = Object.assign({id:vid, loggedBy: state.me||"A", createdAt:new Date().toISOString()}, state.visits[vid]||{}, data);
+    scheduleRender(); return Promise.resolve(vid);
+  }
+}
+function deleteVisit(id){
+  if(state.dbReady){ return state.db.doc("visits/"+id).delete(); }
+  delete state.visits[id]; scheduleRender(); return Promise.resolve();
+}
+function saveList(data, id){
+  if(state.dbReady){
+    var ref = state.db.collection("lists").doc(id||undefined);
+    var payload = id ? data : Object.assign({createdBy:state.me||"A", createdAt:new Date().toISOString(), restaurantIds:[], votes:{}}, data);
+    return ref.set(payload, id?{merge:true}:{}).then(function(){return ref.id;});
+  } else {
+    var lid = id || uid();
+    state.lists[lid] = Object.assign({id:lid, createdBy:state.me||"A", createdAt:new Date().toISOString(), restaurantIds:[], votes:{}}, state.lists[lid]||{}, data);
+    scheduleRender(); return Promise.resolve(lid);
+  }
+}
+function updateList(id, patch){
+  if(state.dbReady) return state.db.doc("lists/"+id).update(patch);
+  state.lists[id] = Object.assign({}, state.lists[id], patch); scheduleRender(); return Promise.resolve();
+}
+function deleteList(id){
+  if(state.dbReady) return state.db.doc("lists/"+id).delete();
+  delete state.lists[id]; scheduleRender(); return Promise.resolve();
+}
+function saveTrip(data, id){
+  if(state.dbReady){
+    var ref = state.db.collection("trips").doc(id||undefined);
+    var payload = id ? data : Object.assign({createdBy:state.me||"A", createdAt:new Date().toISOString()}, data);
+    return ref.set(payload, id?{merge:true}:{}).then(function(){return ref.id;});
+  } else {
+    var tid = id || uid();
+    state.trips[tid] = Object.assign({id:tid, createdBy:state.me||"A", createdAt:new Date().toISOString()}, state.trips[tid]||{}, data);
+    scheduleRender(); return Promise.resolve(tid);
+  }
+}
+function updateTrip(id, patch){
+  if(state.dbReady) return state.db.doc("trips/"+id).update(patch);
+  state.trips[id] = Object.assign({}, state.trips[id], patch); scheduleRender(); return Promise.resolve();
+}
+function deleteTrip(id){
+  allRestaurants().forEach(function(r){ if(r.tripId===id) updateRestaurant(r.id,{tripId:null}); });
+  if(state.dbReady) return state.db.doc("trips/"+id).delete();
+  delete state.trips[id]; scheduleRender(); return Promise.resolve();
+}
+function saveProfiles(p){
+  if(state.dbReady) return state.db.doc("settings/profiles").set(p);
+  state.profiles = p; scheduleRender(); return Promise.resolve();
+}
+
+/* ---------- render scheduling ---------- */
+var renderScheduled=false;
+function scheduleRender(){
+  if(renderScheduled) return;
+  renderScheduled=true;
+  requestAnimationFrame(function(){ renderScheduled=false; renderAll(); });
+}
+
+/* ---------- nav ---------- */
+var NAV = [
+  {id:"browse", label:"Browse", ic:"◎"},
+  {id:"favorites", label:"Favorites", ic:"♥"},
+  {id:"wanttotry", label:"Saved Places", ic:"☆"},
+  {id:"lists", label:"Lists", ic:"☰"},
+  {id:"trips", label:"Trips", ic:"✈"},
+  {id:"stats", label:"Stats", ic:"◫"},
+  {id:"wrapped", label:"Wrapped", ic:"✦"}
+];
+function toggleSidebar(){
+  var isOpen = document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebarBackdrop").classList.toggle("open", isOpen);
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarBackdrop").classList.remove("open");
+}
+function renderNav(){
+  var el = document.getElementById("nav");
+  el.innerHTML = NAV.map(function(n){
+    return '<button class="nav-btn'+(state.route===n.id?' active':'')+'" data-route="'+n.id+'"><span class="ic">'+n.ic+'</span>'+n.label+'</button>';
+  }).join("");
+}
+function renderProfileSwitch(){
+  var el = document.getElementById("profileSwitch");
+  el.innerHTML = ["A","B"].map(function(k){
+    return '<button class="profile-pill'+(state.me===k?' active':'')+'" data-me="'+k+'">'+esc(state.profiles[k]||("Person "+k))+'</button>';
+  }).join("");
+}
+
+/* ---------- filtering / sorting helpers for browse ---------- */
+function matchesSearch(r, q){
+  if(!q) return true;
+  q = q.toLowerCase();
+  var hay = [r.name, r.neighborhood, r.city].concat(r.cuisines||[]).concat(r.tags||[]).join(" ").toLowerCase();
+  if(hay.indexOf(q)>=0) return true;
+  var vs = visitsFor(r.id);
+  return vs.some(function(v){
+    return ((v.favDishA||"")+" "+(v.favDishB||"")+" "+(v.favDish||"")+" "+(v.dishes||[]).join(" ")+" "+(v.notes||"")).toLowerCase().indexOf(q)>=0;
+  });
+}
+function passesFilters(r){
+  var f = state.filters;
+  if(f.city && r.city!==f.city) return false;
+  if(f.neighborhood && r.neighborhood!==f.neighborhood) return false;
+  if(f.cuisine && (r.cuisines||[]).indexOf(f.cuisine)<0) return false;
+  if(f.tag && (r.tags||[]).indexOf(f.tag)<0) return false;
+  if(f.price && String(r.priceRange)!==f.price) return false;
+  if(f.wouldReturn){
+    var vs = visitsFor(r.id);
+    if(!vs.some(function(v){return v.wouldReturn===f.wouldReturn;})) return false;
+  }
+  return true;
+}
+function sortRestaurants(list){
+  var s = state.sort;
+  list = list.slice();
+  if(s==="rating"){
+    list.sort(function(a,b){ var sa=restaurantScore(a.id), sb=restaurantScore(b.id); if(sa==null&&sb==null) return 0; if(sa==null) return 1; if(sb==null) return -1; return sb-sa; });
+  } else if(s==="alpha"){
+    list.sort(function(a,b){ return a.name.localeCompare(b.name); });
+  } else {
+    list.sort(function(a,b){
+      var da = lastVisitDate(a.id) || a.createdAt || "";
+      var db_ = lastVisitDate(b.id) || b.createdAt || "";
+      return String(db_).localeCompare(String(da));
+    });
+  }
+  return list;
+}
+function distinctNeighborhoods(cityFilter){
+  var set = {};
+  allRestaurants().forEach(function(r){ if(r.neighborhood && (!cityFilter || r.city===cityFilter)) set[r.neighborhood]=1; });
+  return Object.keys(set).sort();
+}
+function distinctCities(){
+  var set = {};
+  allRestaurants().forEach(function(r){ if(r.city) set[r.city]=1; });
+  return Object.keys(set).sort();
+}
+
+/* ---------- card / row templates ---------- */
+function wrBadge(rid){
+  var vs = visitsFor(rid).slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");});
+  if(!vs.length || !vs[0].wouldReturn) return "";
+  var wr = vs[0].wouldReturn;
+  var label = wr==="yes"?"Would return":wr==="maybe"?"Maybe return":"Wouldn't return";
+  return '<span class="badge '+wr+'">'+label+'</span>';
+}
+function restaurantCard(r, opts){
+  opts = opts || {};
+  var photo = firstPhotoFor(r.id);
+  var score = restaurantScore(r.id);
+  var vs = visitsFor(r.id);
+  return '<div class="rcard" data-open-restaurant="'+r.id+'">'+
+    '<div class="photo">'+(photo? '<img src="'+photo+'" loading="lazy">' : '<div class="noimg">🍽</div>')+(r.favorite?'<span class="fav-badge">♥</span>':'')+
+      (opts.quickDelete?'<button type="button" class="del-badge" data-delete-restaurant="'+r.id+'" title="Remove">✕</button>':'')+
+    '</div>'+
+    '<div class="body">'+
+      '<div class="name">'+esc(r.name)+(r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
+      '<div class="meta">'+esc(r.neighborhood||r.city||"")+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+(vs.length? ' · '+vs.length+' visit'+(vs.length>1?'s':'') : ' · not yet visited')+'</div>'+
+      (score!=null ? renderStarsDisplay(score) : '<span style="font-size:12px;color:var(--ink-faint);">no ratings yet</span>')+
+      '<div class="tagrow">'+(r.cuisines||[]).slice(0,1).map(function(c){return '<span class="tag">'+esc(c)+'</span>';}).join('')+(r.tags||[]).slice(0,2).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('')+'</div>'+
+      wrBadge(r.id)+
+    '</div></div>';
+}
+function restaurantRow(r){
+  var photo = firstPhotoFor(r.id);
+  var score = restaurantScore(r.id);
+  var vs = visitsFor(r.id);
+  return '<div class="listrow" data-open-restaurant="'+r.id+'">'+
+    '<div class="thumb">'+(photo?'<img src="'+photo+'">':'🍽')+'</div>'+
+    '<div class="main-col">'+
+      '<div class="name">'+esc(r.name)+(r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
+      '<div class="meta">'+esc(r.neighborhood||r.city||"")+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+' · '+(r.cuisines||[]).join(", ")+'</div>'+
+    '</div>'+
+    '<div class="right-col">'+
+      wrBadge(r.id)+
+      '<span style="font-size:12px;color:var(--ink-soft);">'+(vs.length?vs.length+' visit'+(vs.length>1?'s':''):'saved')+'</span>'+
+      (score!=null?renderStarsDisplay(score):'')+
+    '</div></div>';
+}
+
+/* ---------- BROWSE view ---------- */
+function viewBrowse(){
+  var list = allRestaurants().filter(function(r){ return matchesSearch(r,state.search) && passesFilters(r); });
+  list = sortRestaurants(list);
+  lastBrowseList = list;
+  var cities = distinctCities();
+  var nbhds = distinctNeighborhoods(state.filters.city);
+  var html = '';
+  html += '<div class="page-head"><div><h1>Browse</h1><div class="sub">'+list.length+' place'+(list.length!==1?'s':'')+' logged together</div></div>'+
+    '<div class="viewtoggle"><button data-browse-mode="list" class="'+(state.browseMode==="list"?"active":"")+'">☰ List</button><button data-browse-mode="map" class="'+(state.browseMode==="map"?"active":"")+'">◎ Map</button></div></div>';
+
+  html += '<div class="toolbar">'+
+    '<div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search restaurants, dishes, cuisines, neighbourhoods…" value="'+esc(state.search)+'"></div>'+
+    (state.browseMode==="list" ? '<select id="sortSelect"><option value="date"'+(state.sort==="date"?" selected":"")+'>Sort: Recent</option><option value="rating"'+(state.sort==="rating"?" selected":"")+'>Sort: Rating</option><option value="alpha"'+(state.sort==="alpha"?" selected":"")+'>Sort: A–Z</option></select>' : '')+
+    '<button class="btn small" id="btnToggleFilters">'+(state.filtersOpen?"Hide filters":"Filters")+'</button>'+
+    '</div>';
+
+  if(state.filtersOpen){
+    html += '<div class="filter-panel">'+
+      selectField("filterCity","City",["",...cities],state.filters.city)+
+      selectField("filterNeighborhood","Neighbourhood",["",...nbhds],state.filters.neighborhood)+
+      selectField("filterCuisine","Cuisine",[""].concat(CUISINES),state.filters.cuisine)+
+      selectField("filterTag","Tag",[""].concat(TAGS),state.filters.tag)+
+      selectField("filterPrice","Price",["","1","2","3","4"],state.filters.price,function(v){return v?PRICE_LABELS[v]:"Any";})+
+      selectField("filterWouldReturn","Would return",["","yes","maybe","no"],state.filters.wouldReturn,function(v){return v?({yes:"Yes",maybe:"Maybe",no:"No"})[v]:"Any";})+
+      '<div class="field" style="justify-content:flex-end;"><label>&nbsp;</label><button class="btn small ghost" id="btnClearFilters">Clear all</button></div>'+
+      '</div>';
+  }
+
+  var activeChips = [];
+  Object.keys(state.filters).forEach(function(k){ if(state.filters[k]) activeChips.push({k:k, v:state.filters[k]}); });
+  if(activeChips.length){
+    html += '<div class="chiprow">'+activeChips.map(function(c){
+      return '<span class="chip on">'+esc(c.v)+'<button data-clear-filter="'+c.k+'">✕</button></span>';
+    }).join('')+'</div>';
+  }
+
+  if(!list.length){
+    html += emptyState("🍜","Nothing here yet","Log your first visit or add a place you want to try.");
+  } else if(state.browseMode==="list"){
+    html += '<div>'+list.map(restaurantRow).join('')+'</div>';
+  } else {
+    html += mapView(list);
+  }
+  return html;
+}
+function selectField(id,label,options,value,fmt){
+  return '<div class="field"><label>'+label+'</label><select id="'+id+'">'+options.map(function(o){
+    return '<option value="'+esc(o)+'"'+(o===value?" selected":"")+'>'+esc(fmt?fmt(o):(o||"Any"))+'</option>';
+  }).join('')+'</select></div>';
+}
+function emptyState(emoji,title,body){
+  return '<div class="empty"><div class="emoji">'+emoji+'</div><h3>'+title+'</h3><p>'+body+'</p></div>';
+}
+
+/* ---------- MAP view (real vector map: MapLibre + OpenFreeMap) ---------- */
+function mapView(list){
+  var withLoc = list.filter(hasLoc);
+  var withoutLoc = list.filter(function(r){return !hasLoc(r);});
+  var html = '<div class="mapwrap"><div class="mapnote">'+withLoc.length+' of '+list.length+' pinned · tap a pin for photos & details</div>'+
+    '<div id="leafletMap"></div></div>';
+  if(withoutLoc.length){
+    html += '<div class="section-title">No location set yet</div><div>'+withoutLoc.map(restaurantRow).join('')+'</div>';
+  }
+  return html;
+}
+function renderLeafletBrowseMap(list){
+  var container = document.getElementById("leafletMap");
+  if(!container || !window.maplibregl) return;
+  if(window._ppBrowseMap){ window._ppBrowseMap.remove(); window._ppBrowseMap=null; }
+  var withLoc = list.filter(hasLoc);
+  var map = newMap("leafletMap", [0,20], 1);
+  map.addControl(new maplibregl.NavigationControl({showCompass:false}), "top-right");
+  window._ppBrowseMap = map;
+  if(withLoc.length){
+    var bounds = new maplibregl.LngLatBounds();
+    withLoc.forEach(function(r){
+      var vs = visitsFor(r.id);
+      var el = ppMarkerEl("pp-marker"+(vs.length?"":" want"));
+      var marker = new maplibregl.Marker({element:el, anchor:"bottom"}).setLngLat([r.lng,r.lat]).addTo(map);
+      var photo = firstPhotoFor(r.id);
+      var score = restaurantScore(r.id);
+      var popupHtml = '<div style="width:200px;">'+
+        (photo?'<img src="'+photo+'" style="width:100%;height:100px;object-fit:cover;border-radius:12px 12px 0 0;display:block;">':'')+
+        '<div style="padding:10px 12px;">'+
+        '<div style="font-family:Fraunces,serif;font-weight:600;font-size:14.5px;">'+esc(r.name)+'</div>'+
+        '<div style="font-size:11.5px;color:var(--ink-soft);margin:2px 0 6px;">'+esc(r.neighborhood||"")+'</div>'+
+        (score!=null?renderStarsDisplay(score):'<span style="font-size:11px;color:var(--ink-faint);">saved</span>')+
+        '<div style="margin-top:9px;"><button class="btn small primary" style="width:100%;justify-content:center;" data-open-restaurant="'+r.id+'">View details</button></div>'+
+        '</div></div>';
+      marker.setPopup(new maplibregl.Popup({offset:25, maxWidth:"220px"}).setHTML(popupHtml));
+      bounds.extend([r.lng,r.lat]);
+    });
+    map.on("load", function(){ map.fitBounds(bounds, {padding:48, maxZoom:15, duration:0}); });
+  }
+}
+
+/* ---------- FAVORITES ---------- */
+function viewFavorites(){
+  var pinned = allRestaurants().filter(function(r){return r.favorite && matchesSearch(r,state.search);});
+  var scored = allRestaurants().map(function(r){return {r:r, s:restaurantScore(r.id)};}).filter(function(x){return x.s!=null && matchesSearch(x.r,state.search);}).sort(function(a,b){return b.s-a.s;});
+  var html = '<div class="page-head"><div><h1>Favorites</h1><div class="sub">Your top spots, dishes and cuisines</div></div></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search favourites…" value="'+esc(state.search)+'"></div></div>';
+
+  html += '<div class="section-title">Our favourites</div>';
+  html += pinned.length ? '<div class="grid-cards">'+pinned.map(restaurantCard).join('')+'</div>' : emptyState("♥","No pinned favourites yet","Open a restaurant's details and tap ♥ to pin it here.");
+
+  html += '<div class="section-title">Top rated overall</div>';
+  html += scored.length ? '<div class="shelf">'+scored.slice(0,8).map(function(x){return restaurantCard(x.r);}).join('')+'</div>' : emptyState("⭐","Nothing rated yet","Log a visit with a rating to see your top spots.");
+
+  html += '<div class="section-title">Best by category</div>';
+  var catCards = FAV_CATS.map(function(cat){
+    var inCat = scored.filter(function(x){ return (x.r.tags||[]).indexOf(cat)>=0; });
+    if(!inCat.length) return null;
+    var top = inCat[0];
+    return {cat:cat, r:top.r, s:top.s};
+  }).filter(Boolean);
+  html += catCards.length ? '<div class="grid-cards">'+catCards.map(function(c){
+    return '<div class="rcard" data-open-restaurant="'+c.r.id+'"><div class="photo">'+(firstPhotoFor(c.r.id)?'<img src="'+firstPhotoFor(c.r.id)+'">':'<div class="noimg">🍽</div>')+'</div>'+
+      '<div class="body"><div class="tag" style="align-self:flex-start;">Best '+esc(c.cat)+'</div><div class="name">'+esc(c.r.name)+'</div>'+renderStarsDisplay(c.s)+'</div></div>';
+  }).join('')+'</div>' : emptyState("🏷","No category leaders yet","Tag a few places (Dessert, Coffee Shop, Cocktail Bar…) and rate your visits.");
+
+  html += '<div class="section-title">Top dishes</div>';
+  var dishes = [];
+  allVisits().forEach(function(v){
+    var r = state.restaurants[v.restaurantId];
+    var restName = r?r.name:"?";
+    var combined = avg([v.ratingA,v.ratingB]);
+    if(v.favDishA){ dishes.push({dish:v.favDishA, rest:restName, rating:(v.ratingA!=null?v.ratingA:combined), rid:v.restaurantId, who:state.profiles.A}); }
+    if(v.favDishB){ dishes.push({dish:v.favDishB, rest:restName, rating:(v.ratingB!=null?v.ratingB:combined), rid:v.restaurantId, who:state.profiles.B}); }
+    if(!v.favDishA && !v.favDishB){
+      var legacy = v.favDish || (v.dishes&&v.dishes[0]);
+      if(legacy) dishes.push({dish:legacy, rest:restName, rating:combined, rid:v.restaurantId, who:null});
+    }
+  });
+  dishes = dishes.filter(function(d){return d.rating!=null;});
+  if(state.search){
+    var qLower = state.search.toLowerCase();
+    dishes = dishes.filter(function(d){ return (d.dish+" "+d.rest).toLowerCase().indexOf(qLower)>=0; });
+  }
+  dishes = dishes.sort(function(a,b){return b.rating-a.rating;}).slice(0,6);
+  html += dishes.length ? '<div>'+dishes.map(function(d){
+    return '<div class="listrow" data-open-restaurant="'+d.rid+'"><div class="thumb">🍴</div><div class="main-col"><div class="name">'+esc(d.dish)+'</div><div class="meta">at '+esc(d.rest)+(d.who?' · '+esc(d.who)+'\'s pick':'')+'</div></div><div class="right-col">'+renderStarsDisplay(d.rating)+'</div></div>';
+  }).join('')+'</div>' : emptyState("🍴","No favourite dishes logged","Add a favourite dish next time you log a visit.");
+
+  return html;
+}
+
+/* ---------- WANT TO TRY ---------- */
+function viewWantToTry(){
+  var list = allRestaurants().filter(function(r){ return visitsFor(r.id).length===0 && matchesSearch(r,state.search); });
+  list = sortRestaurants(list);
+  var html = '<div class="page-head"><div><h1>Saved Places</h1><div class="sub">'+list.length+' saved for later</div></div><button class="btn primary" id="btnAddWant">+ Save a place</button></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search…" value="'+esc(state.search)+'"></div></div>';
+  if(!list.length){
+    html += emptyState("☆","Nothing saved yet","Add a restaurant or dish you both want to try.");
+    return html;
+  }
+  var byCity = {}, cityOrder = [];
+  list.forEach(function(r){
+    var city = r.city || "No city set";
+    if(!byCity[city]){ byCity[city]=[]; cityOrder.push(city); }
+    byCity[city].push(r);
+  });
+  cityOrder.sort(function(a,b){
+    if(a==="No city set") return 1;
+    if(b==="No city set") return -1;
+    return a.localeCompare(b);
+  });
+  cityOrder.forEach(function(city){
+    html += '<div class="section-title">'+esc(city)+' ('+byCity[city].length+')</div>';
+    html += '<div class="grid-cards">'+byCity[city].map(function(r){return restaurantCard(r,{quickDelete:true});}).join('')+'</div>';
+  });
+  return html;
+}
+
+/* ---------- LISTS ---------- */
+function viewLists(){
+  if(state.activeListId && state.lists[state.activeListId]) return viewListDetail(state.lists[state.activeListId]);
+  var lists = Object.keys(state.lists).map(function(k){return state.lists[k];}).sort(function(a,b){return (b.createdAt||"").localeCompare(a.createdAt||"");});
+  if(state.search){
+    var qLists = state.search.toLowerCase();
+    lists = lists.filter(function(l){ return ((l.name||"")+" "+(l.description||"")).toLowerCase().indexOf(qLists)>=0; });
+  }
+  var html = '<div class="page-head"><div><h1>Lists</h1><div class="sub">Curated collections you build together</div></div><button class="btn primary" id="btnNewList">+ New list</button></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search lists…" value="'+esc(state.search)+'"></div></div>';
+  html += lists.length ? '<div class="grid-cards">'+lists.map(function(l){
+    var count = (l.restaurantIds||[]).length;
+    var covers = (l.restaurantIds||[]).slice(0,1).map(function(rid){return firstPhotoFor(rid);}).filter(Boolean);
+    return '<div class="rcard" data-open-list="'+l.id+'"><div class="photo">'+(covers[0]?'<img src="'+covers[0]+'">':'<div class="noimg">☰</div>')+'</div>'+
+      '<div class="body"><div class="name">'+esc(l.name)+'</div><div class="meta">'+count+' place'+(count!==1?'s':'')+'</div>'+
+      (l.description?'<div class="meta">'+esc(l.description)+'</div>':'')+'</div></div>';
+  }).join('')+'</div>' : emptyState("☰","No lists yet",'Try "Best ramen", "Birthday restaurants", or "Places to take my parents."');
+  return html;
+}
+function viewListDetail(l){
+  var items = (l.restaurantIds||[]).map(function(id){return state.restaurants[id];}).filter(Boolean);
+  if(state.search) items = items.filter(function(r){ return matchesSearch(r,state.search); });
+  var html = '<div class="page-head"><div>'+
+    '<button class="btn ghost small" data-back-lists="1">← All lists</button>'+
+    '<h1 style="margin-top:6px;">'+esc(l.name)+'</h1><div class="sub">'+esc(l.description||"")+'</div></div>'+
+    '<div style="display:flex;gap:8px;"><button class="btn small" data-add-to-list="'+l.id+'">+ Add place</button><button class="btn small danger" data-delete-list="'+l.id+'">Delete list</button></div></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search this list…" value="'+esc(state.search)+'"></div></div>';
+  html += items.length ? '<div>'+items.map(function(r){
+    var votes = (l.votes&&l.votes[r.id])||[];
+    var myVote = votes.indexOf(state.me)>=0;
+    return '<div class="listrow"><div class="thumb" data-open-restaurant="'+r.id+'">'+(firstPhotoFor(r.id)?'<img src="'+firstPhotoFor(r.id)+'">':'🍽')+'</div>'+
+      '<div class="main-col" data-open-restaurant="'+r.id+'"><div class="name">'+esc(r.name)+'</div><div class="meta">'+esc(r.neighborhood||"")+'</div></div>'+
+      '<div class="right-col">'+
+      '<button class="btn small'+(myVote?' primary':'')+'" data-vote-list="'+l.id+'" data-vote-rest="'+r.id+'">♥ '+votes.length+'</button>'+
+      '<button class="btn small ghost" data-remove-from-list="'+l.id+'" data-remove-rest="'+r.id+'">Remove</button>'+
+      '</div></div>';
+  }).join('')+'</div>' : emptyState("☰","Empty list","Add a restaurant to get started.");
+  return html;
+}
+
+/* ---------- TRIPS (travel mode) ---------- */
+function viewTrips(){
+  if(state.activeTripId && state.trips[state.activeTripId]) return viewTripDetail(state.trips[state.activeTripId]);
+  var trips = Object.keys(state.trips).map(function(k){return state.trips[k];}).sort(function(a,b){return (b.startDate||"").localeCompare(a.startDate||"");});
+  if(state.search){
+    var qTrips = state.search.toLowerCase();
+    trips = trips.filter(function(t){ return ((t.destination||"")+" "+(t.notes||"")).toLowerCase().indexOf(qTrips)>=0; });
+  }
+  var html = '<div class="page-head"><div><h1>Trips</h1><div class="sub">Plan food itineraries by destination</div></div><button class="btn primary" id="btnNewTrip">+ New trip</button></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search trips…" value="'+esc(state.search)+'"></div></div>';
+  html += trips.length ? '<div class="grid-cards">'+trips.map(function(t){
+    var items = allRestaurants().filter(function(r){return r.tripId===t.id;});
+    var visited = items.filter(function(r){return visitsFor(r.id).length>0;}).length;
+    return '<div class="rcard" data-open-trip="'+t.id+'"><div class="body">'+
+      '<div class="name">✈ '+esc(t.destination)+'</div>'+
+      '<div class="meta">'+(t.startDate?fmtDate(t.startDate):"")+(t.endDate?' – '+fmtDate(t.endDate):"")+'</div>'+
+      '<div class="meta">'+items.length+' spot'+(items.length!==1?'s':'')+' · '+visited+' visited</div>'+
+      '</div></div>';
+  }).join('')+'</div>' : emptyState("✈","No trips yet","Plan a food itinerary before your next trip.");
+  return html;
+}
+function viewTripDetail(t){
+  var items = allRestaurants().filter(function(r){return r.tripId===t.id;});
+  if(state.search) items = items.filter(function(r){ return matchesSearch(r,state.search); });
+  var toTry = items.filter(function(r){return visitsFor(r.id).length===0;});
+  var visited = items.filter(function(r){return visitsFor(r.id).length>0;});
+  var html = '<div class="page-head"><div>'+
+    '<button class="btn ghost small" data-back-trips="1">← All trips</button>'+
+    '<h1 style="margin-top:6px;">✈ '+esc(t.destination)+'</h1>'+
+    '<div class="sub">'+(t.startDate?fmtDate(t.startDate):"")+(t.endDate?' – '+fmtDate(t.endDate):"")+(t.notes?' · '+esc(t.notes):"")+'</div></div>'+
+    '<div style="display:flex;gap:8px;"><button class="btn small" data-add-to-trip="'+t.id+'">+ Add spot</button><button class="btn small danger" data-delete-trip="'+t.id+'">Delete trip</button></div></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search this trip…" value="'+esc(state.search)+'"></div></div>';
+  html += '<div class="section-title">Itinerary — to visit ('+toTry.length+')</div>';
+  html += toTry.length ? '<div class="grid-cards">'+toTry.map(restaurantCard).join('')+'</div>' : emptyState("☆","Nothing queued yet","Add places you want to visit on this trip.");
+  html += '<div class="section-title">Visited on this trip ('+visited.length+')</div>';
+  html += visited.length ? '<div class="grid-cards">'+visited.map(restaurantCard).join('')+'</div>' : emptyState("🍽","Not yet visited","Log a visit once you've been.");
+  return html;
+}
+
+/* ---------- STATS ---------- */
+function computeStats(filterYear){
+  var visits = allVisits().filter(function(v){ return !filterYear || (v.date||"").slice(0,4)===filterYear; });
+  var visitedRids = {}; visits.forEach(function(v){visitedRids[v.restaurantId]=1;});
+  var restaurantCount = Object.keys(visitedRids).length;
+  var cuisineCount = {}, neighborhoodCount = {}, restCount = {};
+  visits.forEach(function(v){
+    var r = state.restaurants[v.restaurantId]; if(!r) return;
+    (r.cuisines||[]).forEach(function(c){ cuisineCount[c]=(cuisineCount[c]||0)+1; });
+    if(r.neighborhood) neighborhoodCount[r.neighborhood]=(neighborhoodCount[r.neighborhood]||0)+1;
+    restCount[r.id]=(restCount[r.id]||0)+1;
+  });
+  function top(obj){ var k=Object.keys(obj); if(!k.length) return null; k.sort(function(a,b){return obj[b]-obj[a];}); return {key:k[0], count:obj[k[0]]}; }
+  var ratings = visits.map(function(v){return avg([v.ratingA,v.ratingB]);}).filter(function(v){return v!=null;});
+  var spendByMonth = {};
+  visits.forEach(function(v){ if(typeof v.price==="number"){ var mk=monthKey(v.date); spendByMonth[mk]=(spendByMonth[mk]||0)+v.price; } });
+  var totalPhotos = 0; visits.forEach(function(v){ totalPhotos += (v.photos||[]).length; });
+  var topRest = top(restCount);
+  return {
+    restaurantCount: restaurantCount,
+    cuisineCount: Object.keys(cuisineCount).length,
+    avgRating: avg(ratings),
+    topCuisine: top(cuisineCount),
+    topRestaurant: topRest ? state.restaurants[topRest.key] : null,
+    topRestaurantCount: topRest ? topRest.count : 0,
+    topNeighborhood: top(neighborhoodCount),
+    totalVisits: visits.length,
+    totalPhotos: totalPhotos,
+    spendByMonth: spendByMonth
+  };
+}
+function viewStats(){
+  var s = computeStats(null);
+  var html = '<div class="page-head"><div><h1>Stats</h1><div class="sub">Your foodie footprint so far</div></div></div>';
+  html += '<div class="stat-grid">'+
+    statTile("Restaurants visited", s.restaurantCount) +
+    statTile("Visits logged", s.totalVisits) +
+    statTile("Cuisines tried", s.cuisineCount) +
+    statTile("Average rating", s.avgRating!=null ? s.avgRating.toFixed(1)+" ★" : "—") +
+    statTile("Most visited", s.topRestaurant ? s.topRestaurant.name : "—", s.topRestaurant ? s.topRestaurantCount+" visits" : "") +
+    statTile("Most ordered cuisine", s.topCuisine ? s.topCuisine.key : "—", s.topCuisine ? s.topCuisine.count+" visits" : "") +
+    statTile("Favourite neighbourhood", s.topNeighborhood ? s.topNeighborhood.key : "—") +
+    statTile("Photos captured", s.totalPhotos) +
+  '</div>';
+
+  var months = Object.keys(s.spendByMonth).sort();
+  if(months.length){
+    var max = Math.max.apply(null, months.map(function(m){return s.spendByMonth[m];}));
+    html += '<div class="section-title">Monthly dining spend</div>';
+    html += '<div style="display:flex; align-items:flex-end; gap:8px; height:160px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:var(--shadow);">'+
+      months.map(function(m){
+        var h = Math.max(6, Math.round((s.spendByMonth[m]/max)*120));
+        return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">'+
+          '<div class="mono" style="font-size:10.5px;color:var(--ink-soft);">$'+Math.round(s.spendByMonth[m])+'</div>'+
+          '<div style="width:100%;max-width:34px;height:'+h+'px;background:var(--accent);border-radius:5px 5px 0 0;"></div>'+
+          '<div class="mono" style="font-size:10px;color:var(--ink-faint);">'+m.slice(5)+'/'+m.slice(2,4)+'</div>'+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }
+  return html;
+}
+function statTile(label, val, sub){
+  return '<div class="stat-tile"><div class="lbl">'+esc(label)+'</div><div class="val">'+esc(val)+'</div>'+(sub?'<div class="sub">'+esc(sub)+'</div>':'')+'</div>';
+}
+
+/* ---------- WRAPPED ---------- */
+var wrappedSlideIdx = 0;
+function availableYears(){
+  var set={};
+  allVisits().forEach(function(v){ if(v.date) set[v.date.slice(0,4)]=1; });
+  var y = Object.keys(set).sort().reverse();
+  return y.length ? y : [String(new Date().getFullYear())];
+}
+function viewWrapped(){
+  var years = availableYears();
+  if(!state.wrappedYear || years.indexOf(state.wrappedYear)<0) state.wrappedYear = years[0];
+  var s = computeStats(state.wrappedYear);
+  var html = '<div class="page-head"><div><h1>'+state.wrappedYear+' Wrapped</h1><div class="sub">Your year in meals</div></div>'+
+    '<select id="wrappedYearSelect">'+years.map(function(y){return '<option value="'+y+'"'+(y===state.wrappedYear?" selected":"")+'>'+y+'</option>';}).join('')+'</select></div>';
+
+  var slides = [];
+  slides.push({k:"Meals logged together", big:String(s.totalVisits), foot:s.restaurantCount+" different restaurants"});
+  if(s.topRestaurant) slides.push({k:"Most visited", big:s.topRestaurant.name, foot:s.topRestaurantCount+" visits this year"});
+  if(s.topCuisine) slides.push({k:"Top cuisine", big:s.topCuisine.key, foot:s.topCuisine.count+" meals"});
+  if(s.avgRating!=null) slides.push({k:"Average rating", big:s.avgRating.toFixed(1)+" ★", foot:"across every visit logged"});
+  if(s.topNeighborhood) slides.push({k:"Favourite neighbourhood", big:s.topNeighborhood.key, foot:s.topNeighborhood.count+" visits there"});
+  slides.push({k:"Photos captured", big:String(s.totalPhotos), foot:"memories saved"});
+
+  if(!s.totalVisits){
+    html += emptyState("✦","No meals logged in "+state.wrappedYear,"Log a few visits this year to unlock your wrapped.");
+    return html;
+  }
+
+  wrappedSlideIdx = clamp(wrappedSlideIdx,0,slides.length-1);
+  var sl = slides[wrappedSlideIdx];
+  html += '<div class="wrap-slide"><div class="k">'+esc(sl.k)+'</div><div class="big">'+esc(sl.big)+'</div><div class="foot">'+esc(sl.foot)+'</div></div>';
+  html += '<div class="wrap-nav">'+
+    '<button class="btn small" data-wrap-prev="1">‹ Prev</button>'+
+    slides.map(function(_,i){return '<button class="wrap-dot'+(i===wrappedSlideIdx?' on':'')+'" data-wrap-dot="'+i+'"></button>';}).join('')+
+    '<button class="btn small" data-wrap-next="1">Next ›</button>'+
+  '</div>';
+  return html;
+}
+
+/* ---------- RESTAURANT DETAIL ---------- */
+function renderRestaurantDetail(rid){
+  var r = state.restaurants[rid]; if(!r) return "";
+  var vs = visitsFor(rid).slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");});
+  var score = restaurantScore(rid);
+  var hero = firstPhotoFor(rid);
+  var body = '<div class="detail-hero">'+(hero?'<img src="'+hero+'">':'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:44px;color:var(--ink-faint);">🍽</div>')+'</div>'+
+    '<div class="modal-body">'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">'+
+      '<div><h2 style="font-size:22px;">'+esc(r.name)+'</h2><div class="sub" style="color:var(--ink-soft);font-size:13px;margin-top:3px;">'+esc(r.neighborhood||"")+(r.city?', '+esc(r.city):'')+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+'</div>'+(r.address?'<div class="sub" style="color:var(--ink-faint);font-size:12px;margin-top:2px;">'+esc(r.address)+'</div>':'')+'</div>'+
+      '<button class="btn small" data-toggle-fav="'+rid+'">'+(r.favorite?'♥ Favourited':'♡ Favourite')+'</button>'+
+    '</div>'+
+    (score!=null? '<div>'+renderStarsDisplay(score,"lg")+' <span class="mono" style="font-size:13px;color:var(--ink-soft);">'+score.toFixed(1)+'</span></div>' : '')+
+    '<div class="tagrow">'+(r.cuisines||[]).map(function(c){return '<span class="tag">'+esc(c)+'</span>';}).join('')+(r.tags||[]).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('')+'</div>'+
+    (r.notes?'<p style="font-size:13.5px;color:var(--ink-soft);">'+esc(r.notes)+'</p>':'')+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
+      '<button class="btn small primary" data-log-visit-for="'+rid+'">+ Log a visit</button>'+
+      '<button class="btn small" data-edit-restaurant="'+rid+'">Edit details</button>'+
+      '<button class="btn small" data-addto-list-for="'+rid+'">Add to list</button>'+
+      (r.tripId ? '<span class="chip">On trip: '+esc((state.trips[r.tripId]||{}).destination||"")+'</span>' : '<button class="btn small" data-assign-trip="'+rid+'">Assign to trip</button>')+
+      '<button class="btn small danger" data-delete-restaurant="'+rid+'">Delete restaurant</button>'+
+    '</div>'+
+    '<div class="section-title" style="margin-top:6px;">Visits ('+vs.length+')</div>'+
+    (vs.length ? vs.map(visitItemHtml).join('') : '<p style="font-size:13px;color:var(--ink-faint);">No visits logged yet — this is on your want-to-try list.</p>')+
+    '</div>';
+  return body;
+}
+function visitItemHtml(v){
+  var wrLabel = v.wouldReturn ? ({yes:"Would return",maybe:"Maybe return",no:"Wouldn't return"})[v.wouldReturn] : "";
+  return '<div class="visit-item">'+
+    '<div class="vhead"><span class="vdate">'+fmtDate(v.date)+'</span>'+(v.loggedBy?'<span style="font-size:11px;color:var(--ink-faint);">logged by '+esc(state.profiles[v.loggedBy]||v.loggedBy)+'</span>':'')+(wrLabel?'<span class="badge '+v.wouldReturn+'">'+wrLabel+'</span>':'')+
+      '<span style="margin-left:auto;display:flex;gap:6px;"><button class="btn small ghost" data-edit-visit="'+v.id+'">Edit</button><button class="btn small ghost" data-delete-visit="'+v.id+'">Delete</button></span></div>'+
+    '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:6px;">'+
+      '<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">'+esc(state.profiles.A)+'</div>'+(v.ratingA!=null?renderStarsDisplay(v.ratingA):'<span style="font-size:12px;color:var(--ink-faint);">—</span>')+'</div>'+
+      '<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">'+esc(state.profiles.B)+'</div>'+(v.ratingB!=null?renderStarsDisplay(v.ratingB):'<span style="font-size:12px;color:var(--ink-faint);">—</span>')+'</div>'+
+      (v.price!=null?'<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">Spent</div><div class="mono">$'+v.price+'</div></div>':'')+
+    '</div>'+
+    (v.favDishA? '<div style="font-size:13px;"><b>'+esc(state.profiles.A)+'\'s favourite dish:</b> '+esc(v.favDishA)+'</div>' : '')+
+    (v.favDishB? '<div style="font-size:13px;"><b>'+esc(state.profiles.B)+'\'s favourite dish:</b> '+esc(v.favDishB)+'</div>' : '')+
+    (!v.favDishA && !v.favDishB && v.favDish? '<div style="font-size:13px;"><b>Favourite dish:</b> '+esc(v.favDish)+'</div>' : '')+
+    ((v.dishes&&v.dishes.length)? '<div class="tagrow" style="margin-top:4px;">'+v.dishes.map(function(d){return '<span class="tag">'+esc(d)+'</span>';}).join('')+'</div>' : '')+
+    (v.notes? '<p style="font-size:13px;color:var(--ink-soft);margin:6px 0 0;">'+esc(v.notes)+'</p>' : '')+
+    ((v.photos&&v.photos.length)? '<div class="visit-photos">'+v.photos.map(function(p){return '<img src="'+p+'" data-zoom-photo="'+encodeURIComponent(p)+'">';}).join('')+'</div>' : '')+
+    '</div>';
+}
+
+/* ---------- MODALS ---------- */
+var pickerMapInstance = null, pickerMarker = null;
+function openModal(html){
+  document.getElementById("modalRoot").innerHTML = '<div class="overlay" id="overlay">'+html+'</div>';
+}
+function closeModal(){
+  if(pickerMapInstance){ pickerMapInstance.remove(); pickerMapInstance=null; pickerMarker=null; }
+  document.getElementById("modalRoot").innerHTML = "";
+}
+function finishSave(promise, onOk){
+  return promise.then(function(r){ closeModal(); if(onOk) onOk(r); return r; })
+    .catch(function(err){ console.error(err); alert("Couldn't save — check your connection and try again."); closeModal(); });
+}
+
+function modalRestaurantDetail(rid){
+  openModal('<div class="modal">'+
+    '<div class="modal-head"><h2>Details</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    renderRestaurantDetail(rid)+
+  '</div>');
+}
+
+var editingRestaurant = null; // {id, tags:[], cuisines:[], lat, lng}
+function modalEditRestaurant(existing, prefill){
+  editingRestaurant = existing ? Object.assign({}, existing, {cuisines:(existing.cuisines||[]).slice(), tags:(existing.tags||[]).slice()}) : Object.assign({cuisines:[],tags:[],priceRange:null,favorite:false,lat:null,lng:null}, prefill||{});
+  var e = editingRestaurant;
+  var html = '<div class="modal">'+
+    '<div class="modal-head"><h2>'+(existing?"Edit place":"Add a place")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body">'+
+      field("Place name", '<div class="geo-search-wrap"><input type="text" id="f_name" value="'+esc(e.name||"")+'" placeholder="Start typing a name or address…" autocomplete="off"><div id="geoSuggestions" class="geo-suggestions"></div></div>'+
+        '<div id="pickerMap"></div>'+
+        '<div class="geo-hint" id="geoHint"></div>')+
+      field("Address (optional)",'<div class="geo-search-wrap"><input type="text" id="f_address" value="'+esc(e.address||"")+'" placeholder="Type an address — we\'ll try to find the place name" autocomplete="off"><div id="geoSuggestionsAddr" class="geo-suggestions"></div></div>')+
+      '<div class="field-row">'+
+        field("City",'<input type="text" id="f_city" value="'+esc(e.city||"")+'" placeholder="Edmonton">')+
+        field("Neighbourhood",'<input type="text" id="f_nbhd" value="'+esc(e.neighborhood||"")+'" placeholder="Chinatown">')+
+      '</div>'+
+      field("Cuisine", '<div class="chip-select" id="f_cuisines">'+CUISINES.map(function(c){return '<button type="button" data-toggle-chip="cuisine" data-val="'+c+'" class="'+(e.cuisines.indexOf(c)>=0?"on":"")+'">'+c+'</button>';}).join('')+'</div>')+
+      field("Tags", '<div class="chip-select" id="f_tags">'+TAGS.map(function(t){return '<button type="button" data-toggle-chip="tag" data-val="'+t+'" class="'+(e.tags.indexOf(t)>=0?"on":"")+'">'+t+'</button>';}).join('')+'</div>')+
+      field("Price range", '<div class="chip-select">'+[1,2,3,4].map(function(p){return '<button type="button" data-set-price="'+p+'" class="'+(e.priceRange===p?"on":"")+'">'+PRICE_LABELS[p]+'</button>';}).join('')+'</div>')+
+      field("Notes",'<textarea id="f_notes" placeholder="Anything worth remembering about this place…">'+esc(e.notes||"")+'</textarea>')+
+    '</div>'+
+    '<div class="modal-foot">'+(existing?'<button class="btn danger" data-delete-restaurant="'+existing.id+'">Delete</button>':'')+'<button class="btn primary" id="btnSaveRestaurant">Save</button></div>'+
+  '</div>';
+  openModal(html);
+  initPickerMap(); updateGeoHint();
+}
+function field(label, inner){ return '<div class="field"><label>'+label+'</label>'+inner+'</div>'; }
+
+function initPickerMap(){
+  var container = document.getElementById("pickerMap");
+  if(!container || !window.maplibregl) return;
+  if(pickerMapInstance){ pickerMapInstance.remove(); pickerMapInstance=null; pickerMarker=null; }
+  var loc = hasLoc(editingRestaurant);
+  var startLat = loc ? editingRestaurant.lat : 20, startLng = loc ? editingRestaurant.lng : 0;
+  var startZoom = loc ? 15 : 1;
+  pickerMapInstance = newMap("pickerMap", [startLng,startLat], startZoom);
+  pickerMapInstance.addControl(new maplibregl.NavigationControl({showCompass:false}), "top-right");
+  if(loc){ placeSelectedMarker(startLat, startLng); }
+  pickerMapInstance.on("click", function(ev){
+    editingRestaurant.lat = ev.lngLat.lat; editingRestaurant.lng = ev.lngLat.lng;
+    placeSelectedMarker(ev.lngLat.lat, ev.lngLat.lng);
+    updateGeoHint();
+  });
+}
+function placeSelectedMarker(lat,lng){
+  if(!pickerMapInstance) return;
+  if(pickerMarker){ pickerMarker.remove(); pickerMarker=null; }
+  pickerMarker = new maplibregl.Marker({element:ppMarkerEl("pp-marker"), anchor:"bottom"}).setLngLat([lng,lat]).addTo(pickerMapInstance);
+}
+function updateGeoHint(){
+  var el = document.getElementById("geoHint");
+  if(!el) return;
+  el.textContent = hasLoc(editingRestaurant) ? ("Pinned at "+editingRestaurant.lat.toFixed(4)+", "+editingRestaurant.lng.toFixed(4)) : "Can't find it? Just type the name as-is, add the address below, and tap the map to drop a pin yourself.";
+}
+var GEO_FIELDS = {
+  name: {input:"f_name", suggestions:"geoSuggestions"},
+  address: {input:"f_address", suggestions:"geoSuggestionsAddr"}
+};
+function hideGeoSuggestions(which){
+  var ids = which ? [GEO_FIELDS[which].suggestions] : [GEO_FIELDS.name.suggestions, GEO_FIELDS.address.suggestions];
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.classList.remove("open");
+    el.innerHTML = "";
+  });
+}
+function renderGeoSuggestions(results, which){
+  var el = document.getElementById(GEO_FIELDS[which].suggestions);
+  if(!el) return;
+  if(!results.length){
+    el.innerHTML = '<div class="geo-suggestion-empty">No matches — try refining, or tap the map.</div>';
+    el.classList.add("open");
+    return;
+  }
+  window.__geoResults = window.__geoResults || {};
+  window.__geoResults[which] = results;
+  el.innerHTML = results.map(function(res, i){
+    var primary = (res.namedetails && res.namedetails.name) || res.display_name.split(",")[0];
+    return '<button type="button" class="geo-suggestion-item" data-geo-idx="'+i+'" data-geo-which="'+which+'">'+
+      '<div class="gs-name">'+esc(primary)+'</div>'+
+      '<div class="gs-addr">'+esc(res.display_name)+'</div>'+
+      '</button>';
+  }).join("");
+  el.classList.add("open");
+}
+var geoSearchTokens = {name:0, address:0};
+function doGeoSearch(which){
+  var input = document.getElementById(GEO_FIELDS[which].input);
+  var q = input ? input.value.trim() : "";
+  if(q.length < 3){ hideGeoSuggestions(which); return; }
+  var myToken = ++geoSearchTokens[which];
+  fetch("https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&namedetails=1&limit=6&q="+encodeURIComponent(q))
+    .then(function(r){ return r.json(); })
+    .then(function(results){
+      if(myToken !== geoSearchTokens[which]) return;
+      renderGeoSuggestions(results || [], which);
+    })
+    .catch(function(){
+      if(myToken !== geoSearchTokens[which]) return;
+      var el = document.getElementById(GEO_FIELDS[which].suggestions);
+      if(el){ el.innerHTML = '<div class="geo-suggestion-empty">Search failed — check your connection.</div>'; el.classList.add("open"); }
+    });
+}
+var debouncedGeoSearchName = debounce(function(){ doGeoSearch("name"); }, 400);
+var debouncedGeoSearchAddress = debounce(function(){ doGeoSearch("address"); }, 400);
+function selectGeoCandidateFromResult(res, which){
+  which = which || "name";
+  var lat = parseFloat(res.lat), lng = parseFloat(res.lon);
+  editingRestaurant.lat = lat; editingRestaurant.lng = lng;
+  applyGeoResultToFields(res, which);
+  updateGeoHint();
+  hideGeoSuggestions(which);
+  try{
+    placeSelectedMarker(lat, lng);
+    if(pickerMapInstance) pickerMapInstance.flyTo({center:[lng,lat], zoom:16});
+  }catch(err){ console.error("Map pin update failed", err); }
+  var srcField = document.getElementById(GEO_FIELDS[which].input);
+  if(srcField) srcField.blur();
+}
+function applyGeoResultToFields(res, which){
+  var addr = res.address || {};
+  var city = addr.city || addr.town || addr.village || addr.municipality || addr.county || "";
+  var nbhd = addr.neighbourhood || addr.quarter || addr.suburb || addr.city_district || addr.borough || "";
+  var poiClasses = {amenity:1, shop:1, tourism:1, leisure:1, craft:1, office:1, building:1};
+  var isPoi = poiClasses[res.class];
+  var placeName = (isPoi && res.namedetails && res.namedetails.name) || "";
+  var fName = document.getElementById("f_name");
+  var fAddress = document.getElementById("f_address");
+  var fCity = document.getElementById("f_city");
+  var fNbhd = document.getElementById("f_nbhd");
+  if(which==="address"){
+    if(fAddress) fAddress.value = res.display_name || (fAddress.value||"");
+    if(fName && placeName && !fName.value.trim()) fName.value = placeName;
+  } else {
+    if(fName && placeName) fName.value = placeName;
+  }
+  if(fCity && city) fCity.value = city;
+  if(fNbhd && nbhd) fNbhd.value = nbhd;
+}
+
+var editingVisit = null;
+function modalLogVisit(restaurantId, existingVisit){
+  editingVisit = existingVisit ? Object.assign({}, existingVisit, {dishes:(existingVisit.dishes||[]).slice(), photos:(existingVisit.photos||[]).slice()}) : {restaurantId: restaurantId||null, date: todayStr(), ratingA:null, ratingB:null, wouldReturn:null, dishes:[], favDishA:"", favDishB:"", notes:"", price:null, photos:[]};
+  if(!restaurantId && !existingVisit){ editingRestaurant = {cuisines:[], tags:[], priceRange:null, favorite:false, lat:null, lng:null}; }
+  var restaurantOptions = allRestaurants().sort(function(a,b){return a.name.localeCompare(b.name);});
+  var html = '<div class="modal">'+
+    '<div class="modal-head"><h2>'+(existingVisit?"Edit visit":"Log a visit")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body">'+
+    (!restaurantId && !existingVisit ? field("Place", '<select id="f_visit_restaurant">'+
+        '<option value="__new__">+ Add a new place…</option>'+
+        restaurantOptions.map(function(r){return '<option value="'+r.id+'">'+esc(r.name)+'</option>';}).join('')+
+      '</select>') : '<div style="font-family:Fraunces,serif;font-weight:600;font-size:18px;">'+esc((state.restaurants[editingVisit.restaurantId]||{}).name||"New place")+'</div>')+
+    '<div id="newRestaurantFields" style="display:none;">'+
+      field("Place name", '<div class="geo-search-wrap"><input type="text" id="f_name" placeholder="Start typing a name or address…" autocomplete="off"><div id="geoSuggestions" class="geo-suggestions"></div></div>'+
+        '<div id="pickerMap"></div>'+
+        '<div class="geo-hint" id="geoHint"></div>')+
+      field("Address (optional)",'<div class="geo-search-wrap"><input type="text" id="f_address" placeholder="Type an address — we\'ll try to find the place name" autocomplete="off"><div id="geoSuggestionsAddr" class="geo-suggestions"></div></div>')+
+      '<div class="field-row">'+field("City",'<input type="text" id="f_city" placeholder="Edmonton">')+field("Neighbourhood",'<input type="text" id="f_nbhd" placeholder="Chinatown">')+'</div>'+
+    '</div>'+
+    '<div class="field-row">'+
+      field("Date",'<input type="date" id="f_date" value="'+esc(editingVisit.date||todayStr())+'">')+
+      field("Amount spent (optional)",'<input type="number" id="f_price" min="0" step="1" value="'+(editingVisit.price!=null?editingVisit.price:"")+'" placeholder="$">')+
+    '</div>'+
+    '<div class="rate-row"><span class="who">'+esc(state.profiles.A)+'\'s rating</span>'+renderStarEditor2("ratingA", editingVisit.ratingA)+'</div>'+
+    '<div class="rate-row"><span class="who">'+esc(state.profiles.B)+'\'s rating</span>'+renderStarEditor2("ratingB", editingVisit.ratingB)+'</div>'+
+    field("Would return?", '<div class="wr-row">'+
+      ['yes','maybe','no'].map(function(w){return '<button type="button" data-set-wr="'+w+'" class="'+(editingVisit.wouldReturn===w?"on-"+w:"")+'">'+({yes:"Yes",maybe:"Maybe",no:"No"})[w]+'</button>';}).join('')+
+    '</div>')+
+    field("Dishes tried (comma separated)",'<input type="text" id="f_dishes" value="'+esc((editingVisit.dishes||[]).join(", "))+'" placeholder="Pho, spring rolls…">')+
+    '<div class="field-row">'+
+      field(esc(state.profiles.A)+"'s favourite dish",'<input type="text" id="f_favdishA" value="'+esc(editingVisit.favDishA||editingVisit.favDish||"")+'" placeholder="The one they\'d order again">')+
+      field(esc(state.profiles.B)+"'s favourite dish",'<input type="text" id="f_favdishB" value="'+esc(editingVisit.favDishB||"")+'" placeholder="The one they\'d order again">')+
+    '</div>'+
+    field("Notes",'<textarea id="f_visitnotes" placeholder="How was it? Anything memorable?">'+esc(editingVisit.notes||"")+'</textarea>')+
+    field("Photos (up to "+MAX_PHOTOS+")", '<div class="photo-row" id="photoRow">'+photoRowHtml()+'</div><input type="file" id="f_photoInput" accept="image/*" style="display:none;">')+
+    '</div>'+
+    '<div class="modal-foot">'+(existingVisit?'<button class="btn danger" data-delete-visit="'+existingVisit.id+'">Delete visit</button>':'')+'<button class="btn primary" id="btnSaveVisit">Save visit</button></div>'+
+  '</div>';
+  openModal(html);
+  if(!restaurantId && !existingVisit){
+    var sel = document.getElementById("f_visit_restaurant");
+    sel.addEventListener("change", function(){
+      var isNew = sel.value==="__new__";
+      document.getElementById("newRestaurantFields").style.display = isNew ? "block":"none";
+      if(isNew) initPickerMap();
+    });
+    sel.value = "__new__"; sel.dispatchEvent(new Event("change"));
+    updateGeoHint();
+  }
+}
+function photoRowHtml(){
+  var photos = editingVisit.photos||[];
+  var html = photos.map(function(p,i){return '<div class="photo-thumb"><img src="'+p+'"><button class="rm" data-rm-photo="'+i+'">✕</button></div>';}).join('');
+  if(photos.length<MAX_PHOTOS) html += '<button type="button" class="addphoto-btn" id="btnAddPhoto">+</button>';
+  return html;
+}
+
+function modalQuickAdd(){
+  var html = '<div class="modal" style="max-width:420px;">'+
+    '<div class="modal-head"><h2>What would you like to do?</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body">'+
+      '<button type="button" class="quick-add-option" id="btnQuickLogVisit">'+
+        '<span class="qa-icon">🍽</span>'+
+        '<span class="qa-text"><span class="qa-title">Log a visit</span><span class="qa-sub">You\'ve been — rate it, add photos & notes</span></span>'+
+      '</button>'+
+      '<button type="button" class="quick-add-option" id="btnQuickSaveLater">'+
+        '<span class="qa-icon">☆</span>'+
+        '<span class="qa-text"><span class="qa-title">Save for later</span><span class="qa-sub">Want to try — no visit yet</span></span>'+
+      '</button>'+
+    '</div></div>';
+  openModal(html);
+}
+function modalListForm(existing){
+  var html = '<div class="modal"><div class="modal-head"><h2>'+(existing?"Edit list":"New list")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body">'+field("Name",'<input type="text" id="f_listname" value="'+esc(existing?existing.name:"")+'" placeholder="Best ramen in town">')+
+    field("Description",'<textarea id="f_listdesc" placeholder="What is this list for?">'+esc(existing?existing.description||"":"")+'</textarea>')+
+    '</div><div class="modal-foot"><button class="btn primary" id="btnSaveList" data-list-id="'+(existing?existing.id:"")+'">Save</button></div></div>';
+  openModal(html);
+}
+function modalTripForm(existing){
+  var html = '<div class="modal"><div class="modal-head"><h2>'+(existing?"Edit trip":"New trip")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body">'+field("Destination",'<input type="text" id="f_tripdest" value="'+esc(existing?existing.destination:"")+'" placeholder="Vancouver">')+
+    '<div class="field-row">'+field("Start date",'<input type="date" id="f_tripstart" value="'+esc(existing&&existing.startDate||"")+'">')+field("End date",'<input type="date" id="f_tripend" value="'+esc(existing&&existing.endDate||"")+'">')+'</div>'+
+    field("Notes",'<textarea id="f_tripnotes">'+esc(existing&&existing.notes||"")+'</textarea>')+
+    '</div><div class="modal-foot"><button class="btn primary" id="btnSaveTrip" data-trip-id="'+(existing?existing.id:"")+'">Save</button></div></div>';
+  openModal(html);
+}
+function modalAddExistingToCollection(kind, collectionId){
+  var restaurants = allRestaurants().sort(function(a,b){return a.name.localeCompare(b.name);});
+  var existingOptions = '<option value="">— select —</option>'+restaurants.map(function(r){return '<option value="'+r.id+'">'+esc(r.name)+'</option>';}).join('');
+  if(kind==="trip"){
+    editingRestaurant = {cuisines:[], tags:[], priceRange:null, favorite:false, lat:null, lng:null};
+    var html = '<div class="modal"><div class="modal-head"><h2>Add a spot to this trip</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+      '<div class="modal-body">'+
+      field("Choose existing", '<select id="f_pick_existing">'+existingOptions+'</select>')+
+      '<div style="text-align:center;color:var(--ink-faint);font-size:12px;">— or add a new place —</div>'+
+      field("Place name", '<div class="geo-search-wrap"><input type="text" id="f_name" placeholder="Start typing a name or address…" autocomplete="off"><div id="geoSuggestions" class="geo-suggestions"></div></div>'+
+        '<div id="pickerMap"></div>'+
+        '<div class="geo-hint" id="geoHint"></div>')+
+      field("Address (optional)",'<div class="geo-search-wrap"><input type="text" id="f_address" placeholder="Type an address — we\'ll try to find the place name" autocomplete="off"><div id="geoSuggestionsAddr" class="geo-suggestions"></div></div>')+
+      '<div class="field-row">'+field("City",'<input type="text" id="f_city" placeholder="Edmonton">')+field("Neighbourhood",'<input type="text" id="f_nbhd" placeholder="Chinatown">')+'</div>'+
+      '</div><div class="modal-foot"><button class="btn primary" id="btnConfirmAddToCollection" data-kind="'+kind+'" data-cid="'+collectionId+'">Add</button></div></div>';
+    openModal(html);
+    initPickerMap(); updateGeoHint();
+    return;
+  }
+  var html = '<div class="modal"><div class="modal-head"><h2>Add a place</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body">'+
+    field("Choose existing", '<select id="f_pick_existing">'+existingOptions+'</select>')+
+    '<div style="text-align:center;color:var(--ink-faint);font-size:12px;">— or —</div>'+
+    field("Add a new place", '<input type="text" id="f_pick_new" placeholder="New restaurant name">')+
+    '</div><div class="modal-foot"><button class="btn primary" id="btnConfirmAddToCollection" data-kind="'+kind+'" data-cid="'+collectionId+'">Add</button></div></div>';
+  openModal(html);
+}
+function findDuplicateRestaurant(name, excludeId){
+  var norm = (name||"").trim().toLowerCase();
+  if(!norm) return null;
+  var match = null;
+  allRestaurants().forEach(function(r){
+    if(r.id!==excludeId && (r.name||"").trim().toLowerCase()===norm) match = r;
+  });
+  return match;
+}
+function modalPickCollection(kind, restaurantId){
+  var isList = kind==="list";
+  var items = isList ? Object.keys(state.lists).map(function(k){return state.lists[k];}) : Object.keys(state.trips).map(function(k){return state.trips[k];});
+  items.sort(function(a,b){ return (isList?a.name:a.destination).localeCompare(isList?b.name:b.destination); });
+  var label = isList ? "list" : "trip";
+  var html = '<div class="modal"><div class="modal-head"><h2>'+(isList?"Add to list":"Assign to trip")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body">'+
+    field("Choose "+label, '<select id="f_pick_collection">'+
+      (items.length? '<option value="">— select —</option>' : '')+
+      items.map(function(i){return '<option value="'+i.id+'">'+esc(isList?i.name:i.destination)+'</option>';}).join('')+
+      '<option value="__new__">+ Create new '+label+'…</option>'+
+      '</select>')+
+    '<div id="newCollectionField" style="display:'+(items.length?'none':'block')+';">'+
+      (isList ? field("List name",'<input type="text" id="f_new_collection_name" placeholder="Best ramen in town">') : field("Destination",'<input type="text" id="f_new_collection_name" placeholder="Vancouver">'))+
+    '</div>'+
+    '</div><div class="modal-foot"><button class="btn primary" id="btnConfirmPickCollection" data-kind="'+kind+'" data-rid="'+restaurantId+'">Save</button></div></div>';
+  openModal(html);
+  var sel = document.getElementById("f_pick_collection");
+  if(!items.length) sel.value = "__new__";
+  sel.addEventListener("change", function(){ document.getElementById("newCollectionField").style.display = sel.value==="__new__" ? "block":"none"; });
+}
+function modalSettings(){
+  var html = '<div class="modal"><div class="modal-head"><h2>Settings</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body">'+
+    field("Appearance", '<div class="chip-select" id="themeToggle">'+
+      ['system','light','dark'].map(function(t){
+        return '<button type="button" data-set-theme="'+t+'" class="'+(state.theme===t?"on":"")+'">'+({system:"System",light:"Light",dark:"Dark"})[t]+'</button>';
+      }).join('')+
+    '</div>')+
+    field("Profile A name",'<input type="text" id="f_profA" value="'+esc(state.profiles.A)+'">')+
+    field("Profile B name",'<input type="text" id="f_profB" value="'+esc(state.profiles.B)+'">')+
+    '<p style="font-size:12px;color:var(--ink-faint);">Use the switcher in the sidebar to say who\'s logging each entry — it\'s remembered per device.</p>'+
+    field("Your data", '<button type="button" class="btn small" id="btnExportData">⭳ Download a backup (JSON)</button>')+
+    '</div><div class="modal-foot"><button class="btn primary" id="btnSaveProfiles">Save</button></div></div>';
+  openModal(html);
+}
+function applyTheme(theme){
+  if(theme==="light" || theme==="dark"){ document.documentElement.setAttribute("data-theme", theme); }
+  else { document.documentElement.removeAttribute("data-theme"); }
+}
+function exportAllData(){
+  var payload = {
+    exportedAt: new Date().toISOString(),
+    profiles: state.profiles,
+    restaurants: state.restaurants,
+    visits: state.visits,
+    lists: state.lists,
+    trips: state.trips
+  };
+  var blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = "plate-and-pin-backup-"+todayStr()+".json";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+function modalPhotoZoom(url){
+  openModal('<div class="modal" style="max-width:min(90vw,700px);"><div class="modal-head"><h2>Photo</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div style="padding:14px;"><img src="'+url+'" style="width:100%;border-radius:10px;display:block;"></div></div>');
+}
+
+/* ---------- main render ---------- */
+function renderAll(){
+  renderNav(); renderProfileSwitch(); renderSync();
+  var el = document.getElementById("view");
+  var html;
+  switch(state.route){
+    case "favorites": html = viewFavorites(); break;
+    case "wanttotry": html = viewWantToTry(); break;
+    case "lists": html = viewLists(); break;
+    case "trips": html = viewTrips(); break;
+    case "stats": html = viewStats(); break;
+    case "wrapped": html = viewWrapped(); break;
+    default: html = viewBrowse();
+  }
+  el.innerHTML = html;
+  if(state.route==="browse" && state.browseMode==="map"){
+    renderLeafletBrowseMap(lastBrowseList);
+  } else if(window._ppBrowseMap){
+    window._ppBrowseMap.remove(); window._ppBrowseMap = null;
+  }
+}
+
+/* ---------- event delegation ---------- */
+document.addEventListener("click", function(e){
+  var t = e.target;
+
+  // nav
+  var routeBtn = t.closest("[data-route]");
+  if(routeBtn){ state.route = routeBtn.getAttribute("data-route"); state.search=""; state.activeListId=null; state.activeTripId=null; closeSidebar(); renderAll(); return; }
+
+  if(t.closest("#btnMenu")){ toggleSidebar(); return; }
+  if(t.closest("#sidebarBackdrop")){ closeSidebar(); return; }
+  if(t.closest("#btnHome") || t.closest("#btnHomeMobile")){ state.route="browse"; state.search=""; state.activeListId=null; state.activeTripId=null; closeSidebar(); renderAll(); return; }
+
+  var meBtn = t.closest("[data-me]");
+  if(meBtn){ state.me = meBtn.getAttribute("data-me"); localStorage.setItem("pp_me", state.me); renderAll(); return; }
+
+  if(t.closest("#btnSettings")){ modalSettings(); return; }
+  var themeBtn = t.closest("[data-set-theme]");
+  if(themeBtn){
+    state.theme = themeBtn.getAttribute("data-set-theme");
+    localStorage.setItem("pp_theme", state.theme);
+    applyTheme(state.theme);
+    document.querySelectorAll("[data-set-theme]").forEach(function(b){ b.className = b.getAttribute("data-set-theme")===state.theme ? "on" : ""; });
+    return;
+  }
+  if(t.closest("#btnExportData")){ exportAllData(); return; }
+  if(t.closest("#btnAddVisit") || t.closest("#btnAddVisitMobile")){ modalQuickAdd(); return; }
+  if(t.closest("#btnQuickLogVisit")){ closeModal(); modalLogVisit(null,null); return; }
+  if(t.closest("#btnQuickSaveLater")){ closeModal(); modalEditRestaurant(null,null); return; }
+  if(t.closest("#btnAddWant")){ modalEditRestaurant(null,null); return; }
+
+  var bm = t.closest("[data-browse-mode]");
+  if(bm){ state.browseMode = bm.getAttribute("data-browse-mode"); renderAll(); return; }
+
+  if(t.closest("#btnToggleFilters")){ state.filtersOpen = !state.filtersOpen; renderAll(); return; }
+  if(t.closest("#btnClearFilters")){ state.filters = {city:"",neighborhood:"",cuisine:"",tag:"",wouldReturn:"",price:""}; renderAll(); return; }
+  var clearF = t.closest("[data-clear-filter]");
+  if(clearF){ state.filters[clearF.getAttribute("data-clear-filter")] = ""; renderAll(); return; }
+
+  var geoSug = t.closest("[data-geo-idx]");
+  if(geoSug){
+    var geoWhich = geoSug.getAttribute("data-geo-which");
+    var geoIdx = parseInt(geoSug.getAttribute("data-geo-idx"),10);
+    var geoRes = (window.__geoResults && window.__geoResults[geoWhich]) ? window.__geoResults[geoWhich][geoIdx] : null;
+    if(geoRes) selectGeoCandidateFromResult(geoRes, geoWhich);
+    return;
+  }
+
+  // restaurant open/edit/delete
+  var openR = t.closest("[data-open-restaurant]");
+  if(openR && !t.closest("button[data-log-visit-for]") && !t.closest("button[data-delete-restaurant]") ){ modalRestaurantDetail(openR.getAttribute("data-open-restaurant")); return; }
+  var editR = t.closest("[data-edit-restaurant]");
+  if(editR){ modalEditRestaurant(state.restaurants[editR.getAttribute("data-edit-restaurant")]); return; }
+  var delR = t.closest("[data-delete-restaurant]");
+  if(delR){ if(confirm("Delete this restaurant and all its visits?")){ deleteRestaurant(delR.getAttribute("data-delete-restaurant")); closeModal(); } return; }
+  var favR = t.closest("[data-toggle-fav]");
+  if(favR){
+    var rid=favR.getAttribute("data-toggle-fav");
+    var newFav = !state.restaurants[rid].favorite;
+    state.restaurants[rid] = Object.assign({}, state.restaurants[rid], {favorite:newFav});
+    updateRestaurant(rid,{favorite:newFav});
+    modalRestaurantDetail(rid);
+    return;
+  }
+  var logFor = t.closest("[data-log-visit-for]");
+  if(logFor){ modalLogVisit(logFor.getAttribute("data-log-visit-for"), null); return; }
+  var editV = t.closest("[data-edit-visit]");
+  if(editV){ var v = state.visits[editV.getAttribute("data-edit-visit")]; modalLogVisit(v.restaurantId, v); return; }
+  var delV = t.closest("[data-delete-visit]");
+  if(delV){ if(confirm("Delete this visit?")){ var vid=delV.getAttribute("data-delete-visit"); var v2=state.visits[vid]; deleteVisit(vid); if(v2) modalRestaurantDetail(v2.restaurantId); } return; }
+  var assignTrip = t.closest("[data-assign-trip]");
+  if(assignTrip){ modalPickCollection("trip", assignTrip.getAttribute("data-assign-trip")); return; }
+
+  // star editors
+  var starSet = t.closest("[data-star-set]");
+  if(starSet){
+    var name = starSet.getAttribute("data-star-set");
+    var val = parseFloat(starSet.getAttribute("data-star-val"));
+    if(editingVisit) editingVisit[name] = val;
+    var wrap = document.querySelector('[data-star-editor="'+name+'"]');
+    if(wrap) wrap.outerHTML = renderStarEditor2(name, val);
+    return;
+  }
+  var wrBtn = t.closest("[data-set-wr]");
+  if(wrBtn){ editingVisit.wouldReturn = wrBtn.getAttribute("data-set-wr"); refreshWrRow(); return; }
+  var priceBtn = t.closest("[data-set-price]");
+  if(priceBtn){ editingRestaurant.priceRange = parseInt(priceBtn.getAttribute("data-set-price"),10); refreshChipUI(); return; }
+  var chipBtn = t.closest("[data-toggle-chip]");
+  if(chipBtn){
+    var kind = chipBtn.getAttribute("data-toggle-chip"), val2 = chipBtn.getAttribute("data-val");
+    var arr = kind==="cuisine" ? editingRestaurant.cuisines : editingRestaurant.tags;
+    var idx2 = arr.indexOf(val2);
+    if(idx2>=0) arr.splice(idx2,1); else arr.push(val2);
+    refreshChipUI();
+    return;
+  }
+
+  if(t.closest("#btnAddPhoto")){ document.getElementById("f_photoInput").click(); return; }
+  var rmPhoto = t.closest("[data-rm-photo]");
+  if(rmPhoto){ editingVisit.photos.splice(parseInt(rmPhoto.getAttribute("data-rm-photo"),10),1); document.getElementById("photoRow").innerHTML = photoRowHtml(); return; }
+
+  if(t.closest("#btnSaveRestaurant")){ doSaveRestaurantFromForm(); return; }
+  if(t.closest("#btnSaveVisit")){ doSaveVisitFromForm(); return; }
+  if(t.closest("#btnSaveProfiles")){
+    saveProfiles({A: document.getElementById("f_profA").value.trim()||"Kat", B: document.getElementById("f_profB").value.trim()||"Albie"});
+    closeModal(); return;
+  }
+
+  if(t.closest("#btnNewList")){ modalListForm(null); return; }
+  if(t.closest("#btnSaveList")){
+    var lid = t.closest("#btnSaveList").getAttribute("data-list-id");
+    var name = document.getElementById("f_listname").value.trim(); if(!name) return;
+    var desc = document.getElementById("f_listdesc").value.trim();
+    finishSave(saveList({name:name, description:desc}, lid||undefined));
+    return;
+  }
+  var openList = t.closest("[data-open-list]");
+  if(openList){ state.activeListId = openList.getAttribute("data-open-list"); state.search=""; renderAll(); return; }
+  if(t.closest("[data-back-lists]")){ state.activeListId = null; state.search=""; renderAll(); return; }
+  var delList = t.closest("[data-delete-list]");
+  if(delList){ if(confirm("Delete this list?")){ deleteList(delList.getAttribute("data-delete-list")); state.activeListId=null; renderAll(); } return; }
+  var addToList = t.closest("[data-add-to-list]");
+  if(addToList){ modalAddExistingToCollection("list", addToList.getAttribute("data-add-to-list")); return; }
+  var addToListFromDetail = t.closest("[data-addto-list-for]");
+  if(addToListFromDetail){ modalPickCollection("list", addToListFromDetail.getAttribute("data-addto-list-for")); return; }
+  var confirmPick = t.closest("#btnConfirmPickCollection");
+  if(confirmPick){
+    var kind4 = confirmPick.getAttribute("data-kind"), ridPick = confirmPick.getAttribute("data-rid");
+    var selPick = document.getElementById("f_pick_collection");
+    var chosen = selPick.value;
+    function finishPick(cid){
+      if(kind4==="list"){
+        var l = state.lists[cid]; var ids5 = (l.restaurantIds||[]).slice();
+        if(ids5.indexOf(ridPick)<0) ids5.push(ridPick);
+        updateList(cid, {restaurantIds:ids5});
+      } else {
+        updateRestaurant(ridPick, {tripId: cid});
+      }
+      closeModal(); modalRestaurantDetail(ridPick);
+    }
+    if(chosen==="__new__"){
+      var newCollectionName = document.getElementById("f_new_collection_name").value.trim();
+      if(!newCollectionName) return;
+      if(kind4==="list"){ saveList({name:newCollectionName, restaurantIds:[ridPick]}).then(function(){ closeModal(); modalRestaurantDetail(ridPick); }); }
+      else { saveTrip({destination:newCollectionName}).then(function(tid2){ updateRestaurant(ridPick,{tripId:tid2}); closeModal(); modalRestaurantDetail(ridPick); }); }
+    } else if(chosen){
+      finishPick(chosen);
+    }
+    return;
+  }
+  var voteList = t.closest("[data-vote-list]");
+  if(voteList){
+    var lid2 = voteList.getAttribute("data-vote-list"), rid4 = voteList.getAttribute("data-vote-rest");
+    var l = state.lists[lid2]; var votes = Object.assign({}, l.votes||{});
+    var arr2 = (votes[rid4]||[]).slice();
+    var mi = arr2.indexOf(state.me);
+    if(mi>=0) arr2.splice(mi,1); else arr2.push(state.me);
+    votes[rid4] = arr2;
+    updateList(lid2, {votes:votes});
+    return;
+  }
+  var rmFromList = t.closest("[data-remove-from-list]");
+  if(rmFromList){
+    var lid3 = rmFromList.getAttribute("data-remove-from-list"), rid5 = rmFromList.getAttribute("data-remove-rest");
+    var ids2 = (state.lists[lid3].restaurantIds||[]).filter(function(x){return x!==rid5;});
+    updateList(lid3, {restaurantIds:ids2});
+    return;
+  }
+
+  if(t.closest("#btnNewTrip")){ modalTripForm(null); return; }
+  if(t.closest("#btnSaveTrip")){
+    var tid = t.closest("#btnSaveTrip").getAttribute("data-trip-id");
+    var dest = document.getElementById("f_tripdest").value.trim(); if(!dest) return;
+    finishSave(saveTrip({destination:dest, startDate:document.getElementById("f_tripstart").value, endDate:document.getElementById("f_tripend").value, notes:document.getElementById("f_tripnotes").value.trim()}, tid||undefined));
+    return;
+  }
+  var openTrip = t.closest("[data-open-trip]");
+  if(openTrip){ state.activeTripId = openTrip.getAttribute("data-open-trip"); state.search=""; renderAll(); return; }
+  if(t.closest("[data-back-trips]")){ state.activeTripId = null; state.search=""; renderAll(); return; }
+  var delTrip = t.closest("[data-delete-trip]");
+  if(delTrip){ if(confirm("Delete this trip?")){ deleteTrip(delTrip.getAttribute("data-delete-trip")); state.activeTripId=null; renderAll(); } return; }
+  var addToTrip = t.closest("[data-add-to-trip]");
+  if(addToTrip){ modalAddExistingToCollection("trip", addToTrip.getAttribute("data-add-to-trip")); return; }
+
+  var confirmAdd = t.closest("#btnConfirmAddToCollection");
+  if(confirmAdd){
+    var kind2 = confirmAdd.getAttribute("data-kind"), cid = confirmAdd.getAttribute("data-cid");
+    var existingId = document.getElementById("f_pick_existing").value;
+    var newNameField = document.getElementById(kind2==="trip" ? "f_name" : "f_pick_new");
+    var newName = newNameField ? newNameField.value.trim() : "";
+    function withRid(ridResolved){
+      if(kind2==="list"){
+        var l = state.lists[cid]; var ids3 = (l.restaurantIds||[]).slice();
+        if(ids3.indexOf(ridResolved)<0) ids3.push(ridResolved);
+        updateList(cid, {restaurantIds:ids3});
+      } else {
+        updateRestaurant(ridResolved, {tripId: cid});
+      }
+      closeModal(); renderAll();
+    }
+    if(existingId){ withRid(existingId); return; }
+    if(!newName) return;
+    var dup = findDuplicateRestaurant(newName);
+    if(dup){
+      alert('"'+newName+'" is already saved — opening the existing entry instead.');
+      closeModal(); modalRestaurantDetail(dup.id);
+      return;
+    }
+    var newData = {name:newName, cuisines:[], tags:[]};
+    if(kind2==="trip"){
+      newData.address = (document.getElementById("f_address")||{}).value || "";
+      newData.city = (document.getElementById("f_city")||{}).value || "";
+      newData.neighborhood = (document.getElementById("f_nbhd")||{}).value || "";
+      newData.lat = hasLoc(editingRestaurant) ? editingRestaurant.lat : null;
+      newData.lng = hasLoc(editingRestaurant) ? editingRestaurant.lng : null;
+    }
+    saveRestaurant(newData).then(withRid);
+    return;
+  }
+
+  var zoomPhoto = t.closest("[data-zoom-photo]");
+  if(zoomPhoto){ modalPhotoZoom(decodeURIComponent(zoomPhoto.getAttribute("data-zoom-photo"))); return; }
+
+  var wrapDot = t.closest("[data-wrap-dot]");
+  if(wrapDot){ wrappedSlideIdx = parseInt(wrapDot.getAttribute("data-wrap-dot"),10); renderAll(); return; }
+  if(t.closest("[data-wrap-prev]")){ wrappedSlideIdx = Math.max(0,wrappedSlideIdx-1); renderAll(); return; }
+  if(t.closest("[data-wrap-next]")){ wrappedSlideIdx = wrappedSlideIdx+1; renderAll(); return; }
+
+  if(t.id==="overlay"){ closeModal(); return; }
+  if(t.closest("[data-close-modal]")){ closeModal(); return; }
+});
+
+document.addEventListener("keydown", function(e){
+  if(!e.target) return;
+  if(e.target.id==="f_name" && document.getElementById("geoSuggestions") && e.key==="Enter"){
+    e.preventDefault();
+    var nameResults = window.__geoResults && window.__geoResults.name;
+    if(nameResults && nameResults.length){ selectGeoCandidateFromResult(nameResults[0], "name"); }
+  }
+  if(e.target.id==="f_address" && document.getElementById("geoSuggestionsAddr") && e.key==="Enter"){
+    e.preventDefault();
+    var addrResults = window.__geoResults && window.__geoResults.address;
+    if(addrResults && addrResults.length){ selectGeoCandidateFromResult(addrResults[0], "address"); }
+  }
+});
+document.addEventListener("focusout", function(e){
+  if(e.target && e.target.id==="f_name"){ setTimeout(function(){ hideGeoSuggestions("name"); }, 150); }
+  if(e.target && e.target.id==="f_address"){ setTimeout(function(){ hideGeoSuggestions("address"); }, 150); }
+});
+
+document.addEventListener("input", function(e){
+  if(e.target.id==="searchInput"){ state.search = e.target.value; debouncedRenderKeepFocus(); }
+  if(e.target.id==="f_name" && document.getElementById("geoSuggestions")){ debouncedGeoSearchName(); }
+  if(e.target.id==="f_address" && document.getElementById("geoSuggestionsAddr")){ debouncedGeoSearchAddress(); }
+});
+document.addEventListener("change", function(e){
+  if(e.target.id==="sortSelect"){ state.sort = e.target.value; renderAll(); }
+  if(e.target.id==="filterCity"){
+    state.filters.city = e.target.value;
+    if(state.filters.neighborhood && distinctNeighborhoods(state.filters.city).indexOf(state.filters.neighborhood)<0){ state.filters.neighborhood = ""; }
+    renderAll();
+  }
+  if(e.target.id==="filterNeighborhood"){ state.filters.neighborhood = e.target.value; renderAll(); }
+  if(e.target.id==="filterCuisine"){ state.filters.cuisine = e.target.value; renderAll(); }
+  if(e.target.id==="filterTag"){ state.filters.tag = e.target.value; renderAll(); }
+  if(e.target.id==="filterPrice"){ state.filters.price = e.target.value; renderAll(); }
+  if(e.target.id==="filterWouldReturn"){ state.filters.wouldReturn = e.target.value; renderAll(); }
+  if(e.target.id==="wrappedYearSelect"){ state.wrappedYear = e.target.value; wrappedSlideIdx=0; renderAll(); }
+  if(e.target.id==="f_photoInput"){
+    var file = e.target.files[0]; if(!file) return;
+    compressImage(file).then(function(dataUrl){
+      editingVisit.photos = editingVisit.photos||[];
+      editingVisit.photos.push(dataUrl);
+      document.getElementById("photoRow").innerHTML = photoRowHtml();
+    }).catch(function(){ alert("Couldn't process that photo — try a different file."); });
+  }
+});
+var debouncedRenderKeepFocus = debounce(function(){
+  var active = document.activeElement, id = active && active.id, selStart = active && active.selectionStart;
+  renderAll();
+  if(id){ var el = document.getElementById(id); if(el){ el.focus(); if(selStart!=null && el.setSelectionRange){ try{el.setSelectionRange(selStart,selStart);}catch(e){} } } }
+}, 180);
+
+function refreshWrRow(){
+  var row = document.querySelector(".wr-row"); if(!row) return;
+  var buttons = row.querySelectorAll("button");
+  buttons.forEach(function(b){
+    var w = b.getAttribute("data-set-wr");
+    b.className = editingVisit.wouldReturn===w ? "on-"+w : "";
+  });
+}
+function refreshChipUI(){
+  document.querySelectorAll("[data-toggle-chip]").forEach(function(b){
+    var kind=b.getAttribute("data-toggle-chip"), val=b.getAttribute("data-val");
+    var arr = kind==="cuisine"?editingRestaurant.cuisines:editingRestaurant.tags;
+    b.className = arr.indexOf(val)>=0 ? "on" : "";
+  });
+  document.querySelectorAll("[data-set-price]").forEach(function(b){
+    b.className = parseInt(b.getAttribute("data-set-price"),10)===editingRestaurant.priceRange ? "on" : "";
+  });
+}
+
+function doSaveRestaurantFromForm(){
+  var name = document.getElementById("f_name").value.trim();
+  if(!name){ alert("Give this place a name."); return; }
+  if(!editingRestaurant.id){
+    var dup = findDuplicateRestaurant(name);
+    if(dup){
+      alert('"'+name+'" is already saved — opening the existing entry instead.');
+      closeModal(); modalRestaurantDetail(dup.id);
+      return;
+    }
+  }
+  var data = {
+    name: name,
+    address: document.getElementById("f_address").value.trim(),
+    city: document.getElementById("f_city").value.trim(),
+    neighborhood: document.getElementById("f_nbhd").value.trim(),
+    lat: hasLoc(editingRestaurant) ? editingRestaurant.lat : null,
+    lng: hasLoc(editingRestaurant) ? editingRestaurant.lng : null,
+    cuisines: editingRestaurant.cuisines.slice(),
+    tags: editingRestaurant.tags.slice(),
+    priceRange: editingRestaurant.priceRange || null,
+    notes: document.getElementById("f_notes").value.trim(),
+    favorite: !!editingRestaurant.favorite,
+    tripId: editingRestaurant.tripId || null
+  };
+  finishSave(saveRestaurant(data, editingRestaurant.id));
+}
+function doSaveVisitFromForm(){
+  var restaurantId = editingVisit.restaurantId;
+  var isNewSelect = document.getElementById("f_visit_restaurant");
+  function proceed(rid){
+    var dishesStr = document.getElementById("f_dishes").value.trim();
+    var priceVal = document.getElementById("f_price").value;
+    var data = {
+      restaurantId: rid,
+      date: document.getElementById("f_date").value || todayStr(),
+      ratingA: editingVisit.ratingA, ratingB: editingVisit.ratingB,
+      wouldReturn: editingVisit.wouldReturn,
+      dishes: dishesStr ? dishesStr.split(",").map(function(s){return s.trim();}).filter(Boolean) : [],
+      favDishA: document.getElementById("f_favdishA").value.trim(),
+      favDishB: document.getElementById("f_favdishB").value.trim(),
+      notes: document.getElementById("f_visitnotes").value.trim(),
+      price: priceVal!=="" ? parseFloat(priceVal) : null,
+      photos: editingVisit.photos||[]
+    };
+    finishSave(saveVisit(data, editingVisit.id));
+  }
+  if(isNewSelect){
+    if(isNewSelect.value==="__new__"){
+      var newName = document.getElementById("f_name").value.trim();
+      if(!newName){ alert("Name the new place, or pick an existing one."); return; }
+      var dupVisit = findDuplicateRestaurant(newName);
+      if(dupVisit){
+        alert('"'+newName+'" is already saved — logging this visit against the existing entry.');
+        proceed(dupVisit.id);
+        return;
+      }
+      saveRestaurant({
+        name:newName,
+        address: (document.getElementById("f_address")||{}).value ? document.getElementById("f_address").value.trim() : "",
+        city:document.getElementById("f_city").value.trim(),
+        neighborhood:document.getElementById("f_nbhd").value.trim(),
+        lat: hasLoc(editingRestaurant) ? editingRestaurant.lat : null,
+        lng: hasLoc(editingRestaurant) ? editingRestaurant.lng : null,
+        cuisines:[], tags:[]
+      }).then(proceed);
+    } else {
+      proceed(isNewSelect.value);
+    }
+  } else {
+    proceed(restaurantId);
+  }
+}
+
+/* ---------- boot ---------- */
+if(!state.me){ state.me = "A"; localStorage.setItem("pp_me","A"); }
+applyTheme(state.theme);
+renderAll();
+initDb();
+setTimeout(function(){ if(!state.dbReady){ seedLocalDemo(); renderAll(); } }, 900);
+})();
+</script>
+</body>
+</html>

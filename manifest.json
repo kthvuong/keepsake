@@ -1,0 +1,13 @@
+{
+  "name": "Plate & Pin",
+  "short_name": "Plate & Pin",
+  "description": "A two-person food log",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#eeeae0",
+  "theme_color": "#c1432a",
+  "icons": [
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
