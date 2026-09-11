@@ -115,17 +115,32 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 .rcard{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; cursor:pointer; transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease, border-color .22s ease;}
 .rcard:hover{border-color:var(--accent); box-shadow:var(--shadow-lift); transform:translateY(-5px) scale(1.015);}
 .rcard:active{transform:translateY(-2px) scale(1.005); transition-duration:.08s;}
-.rcard .photo{height:150px; background:var(--surface-2); position:relative; overflow:hidden;}
+.rcard .photo{height:92px; background:var(--surface-2); position:relative; overflow:hidden;}
 .rcard .photo img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .35s ease;}
 .rcard:hover .photo img{transform:scale(1.08);}
-.rcard .photo .noimg{width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:28px; transition:transform .35s ease;}
+.rcard .photo .noimg{width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#fff6ef; font-size:26px; transition:transform .35s ease;}
 .rcard:hover .photo .noimg{transform:scale(1.12);}
+.cat-bg-food{background:linear-gradient(135deg,#e2724f,#a8342a);}
+.cat-bg-shopping{background:linear-gradient(135deg,#dd94c4,#95436f);}
+.cat-bg-experiences{background:linear-gradient(135deg,#f0c563,#c17f1f);}
+.cat-bg-outdoors{background:linear-gradient(135deg,#94c07c,#4d6640);}
+.cat-bg-other{background:linear-gradient(135deg,#b6a58f,#6d6255);}
+.cat-bg-list{background:linear-gradient(135deg,#c9b98f,#8a7350);}
+.cat-section{margin-bottom:6px;}
+.cat-header{display:flex; align-items:center; gap:12px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin:26px 0 16px; cursor:pointer; text-align:left; box-shadow:var(--shadow); transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;}
+.cat-section:first-child .cat-header{margin-top:0;}
+.cat-header:hover{border-color:var(--accent); box-shadow:var(--shadow-lift); transform:translateY(-1px);}
+.cat-header .ch-icon{width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; color:#fff6ef; box-shadow:var(--shadow);}
+.cat-header .ch-label{font-family:'Fraunces',serif; font-weight:700; font-size:19px; color:var(--ink); flex:1;}
+.cat-header .ch-count{font-size:12.5px; font-weight:700; color:var(--ink-soft); background:var(--surface-2); padding:4px 11px; border-radius:99px;}
+.cat-header .ch-chevron{font-size:14px; color:var(--ink-faint); transition:transform .22s ease; margin-left:2px;}
+.cat-header.collapsed .ch-chevron{transform:rotate(-90deg);}
 .fav-badge{position:absolute; top:8px; right:8px; width:27px; height:27px; border-radius:50%; background:var(--surface); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:13px;}
 .del-badge{position:absolute; top:8px; left:8px; width:27px; height:27px; border-radius:50%; background:var(--surface); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:13px; border:none; padding:0; z-index:2;}
 .del-badge:hover{background:var(--accent-soft); color:var(--accent);}
 .recent-badge{position:absolute; bottom:8px; left:8px; padding:3px 9px; border-radius:99px; background:rgba(20,16,12,.65); color:#fff6ef; font-size:10.5px; font-weight:700; letter-spacing:.02em; backdrop-filter:blur(2px);}
 .fav-heart{color:var(--accent);}
-.rcard .body{padding:12px 13px 14px; display:flex; flex-direction:column; gap:6px;}
+.rcard .body{padding:10px 13px 12px; display:flex; flex-direction:column; gap:5px;}
 .rcard .name{font-family:'Fraunces',serif; font-weight:600; font-size:16.5px; line-height:1.2;}
 .rcard .meta{font-size:12px; color:var(--ink-soft);}
 .badge{font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; padding:3px 7px; border-radius:6px;}
@@ -384,6 +399,22 @@ var CATEGORY_VISIT_FIELDS = {
   other: []
 };
 var NOTES_LABEL = {food:"Food notes", shopping:"Store notes", experiences:"Experience notes", outdoors:"Experience notes", other:"Notes"};
+function categoryNoimgHtml(r){
+  var c = categoryOf(r);
+  return '<div class="noimg cat-bg-'+c.id+'">'+c.icon+'</div>';
+}
+function categorySectionBlockHtml(cat, count, key, innerHtml){
+  var collapsed = !!state.collapsedCategories[key];
+  return '<div class="cat-section">'+
+    '<button type="button" class="cat-header'+(collapsed?' collapsed':'')+'" data-toggle-category="'+esc(key)+'">'+
+      '<span class="ch-icon cat-bg-'+cat.id+'">'+cat.icon+'</span>'+
+      '<span class="ch-label">'+esc(cat.label)+'</span>'+
+      '<span class="ch-count">'+count+'</span>'+
+      '<span class="ch-chevron">▾</span>'+
+    '</button>'+
+    (collapsed?'':innerHtml)+
+  '</div>';
+}
 function groupRestaurantsByCategory(list){
   var groups = {}; CATEGORIES.forEach(function(c){ groups[c.id]=[]; });
   list.forEach(function(r){ groups[categoryOf(r).id].push(r); });
@@ -532,6 +563,7 @@ var state = {
   sort: "date",
   filters: {city:"", neighborhood:"", cuisine:"", tag:"", wouldReturn:"", price:""},
   filtersOpen: false,
+  collapsedCategories: {},
   activeTripId: null,
   activeListId: null,
   wrappedYear: null,
@@ -802,7 +834,7 @@ function restaurantCard(r, opts){
   var score = restaurantScore(r.id);
   var vs = visitsFor(r.id);
   return '<div class="rcard" data-open-restaurant="'+r.id+'">'+
-    '<div class="photo">'+(photo? '<img src="'+photo+'" loading="lazy">' : '<div class="noimg">'+categoryOf(r).icon+'</div>')+(r.favorite?'<span class="fav-badge">♥</span>':'')+
+    '<div class="photo">'+(photo? '<img src="'+photo+'" loading="lazy">' : categoryNoimgHtml(r))+(r.favorite?'<span class="fav-badge">♥</span>':'')+
       (opts.quickDelete?'<button type="button" class="del-badge" data-delete-restaurant="'+r.id+'" title="Remove">✕</button>':'')+
       (opts.dateBadge?'<span class="recent-badge">'+esc(opts.dateBadge)+'</span>':'')+
     '</div>'+
@@ -873,8 +905,8 @@ function viewBrowse(){
   } else if(state.browseMode==="list"){
     html += recentLogsShelfHtml(list);
     groupRestaurantsByCategory(list).forEach(function(g){
-      html += '<div class="section-title">'+g.cat.icon+' '+esc(g.cat.label)+' ('+g.items.length+')</div>';
-      html += '<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+      var inner = '<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+      html += categorySectionBlockHtml(g.cat, g.items.length, "browse:"+g.cat.id, inner);
     });
   } else {
     html += mapView(list);
@@ -951,7 +983,8 @@ function viewFavorites(){
   html += '<div class="section-title">Our favourites</div>';
   if(!pinned.length){ html += emptyState("♥","No pinned favourites yet","Open a restaurant's details and tap ♥ to pin it here."); }
   else { groupRestaurantsByCategory(pinned).forEach(function(g){
-    html += categorySubheadHtml(g.cat, g.items.length)+'<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+    var inner = '<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+    html += categorySectionBlockHtml(g.cat, g.items.length, "fav:pinned:"+g.cat.id, inner);
   }); }
 
   html += '<div class="section-title">Top rated overall</div>';
@@ -961,7 +994,8 @@ function viewFavorites(){
     scored.forEach(function(x){ scoredByCat[categoryOf(x.r).id].push(x); });
     CATEGORIES.forEach(function(c){
       var arr = scoredByCat[c.id]; if(!arr.length) return;
-      html += categorySubheadHtml(c, arr.length)+'<div class="shelf">'+arr.slice(0,8).map(function(x){return restaurantCard(x.r);}).join('')+'</div>';
+      var inner = '<div class="shelf">'+arr.slice(0,8).map(function(x){return restaurantCard(x.r);}).join('')+'</div>';
+      html += categorySectionBlockHtml(c, arr.length, "fav:top:"+c.id, inner);
     });
   }
 
@@ -973,7 +1007,7 @@ function viewFavorites(){
     return {cat:cat, r:top.r, s:top.s};
   }).filter(Boolean);
   html += catCards.length ? '<div class="grid-cards">'+catCards.map(function(c){
-    return '<div class="rcard" data-open-restaurant="'+c.r.id+'"><div class="photo">'+(firstPhotoFor(c.r.id)?'<img src="'+firstPhotoFor(c.r.id)+'">':'<div class="noimg">'+categoryOf(c.r).icon+'</div>')+'</div>'+
+    return '<div class="rcard" data-open-restaurant="'+c.r.id+'"><div class="photo">'+(firstPhotoFor(c.r.id)?'<img src="'+firstPhotoFor(c.r.id)+'">':categoryNoimgHtml(c.r))+'</div>'+
       '<div class="body"><div class="tag" style="align-self:flex-start;">Best '+esc(c.cat)+'</div><div class="name">'+esc(c.r.name)+'</div>'+renderStarsDisplay(c.s)+'</div></div>';
   }).join('')+'</div>' : emptyState("🏷","No tag leaders yet","Tag a few places (Dessert, Coffee Shop, Cocktail Bar…) and rate your visits.");
 
@@ -1014,7 +1048,6 @@ function viewWantToTry(){
     return html;
   }
   groupRestaurantsByCategory(list).forEach(function(g){
-    html += '<div class="section-title">'+g.cat.icon+' '+esc(g.cat.label)+' ('+g.items.length+')</div>';
     var byCity = {}, cityOrder = [];
     g.items.forEach(function(r){
       var city = r.city || "No city set";
@@ -1026,10 +1059,12 @@ function viewWantToTry(){
       if(b==="No city set") return -1;
       return a.localeCompare(b);
     });
+    var inner = '';
     cityOrder.forEach(function(city){
-      html += '<div class="subsection-title">'+esc(city)+' ('+byCity[city].length+')</div>';
-      html += '<div class="grid-cards">'+byCity[city].map(function(r){return restaurantCard(r,{quickDelete:true});}).join('')+'</div>';
+      inner += '<div class="subsection-title">'+esc(city)+' ('+byCity[city].length+')</div>';
+      inner += '<div class="grid-cards">'+byCity[city].map(function(r){return restaurantCard(r,{quickDelete:true});}).join('')+'</div>';
     });
+    html += categorySectionBlockHtml(g.cat, g.items.length, "saved:"+g.cat.id, inner);
   });
   return html;
 }
@@ -1047,7 +1082,7 @@ function viewLists(){
   html += lists.length ? '<div class="grid-cards">'+lists.map(function(l){
     var count = (l.restaurantIds||[]).length;
     var covers = (l.restaurantIds||[]).slice(0,1).map(function(rid){return firstPhotoFor(rid);}).filter(Boolean);
-    return '<div class="rcard" data-open-list="'+l.id+'"><div class="photo">'+(covers[0]?'<img src="'+covers[0]+'">':'<div class="noimg">☰</div>')+'</div>'+
+    return '<div class="rcard" data-open-list="'+l.id+'"><div class="photo">'+(covers[0]?'<img src="'+covers[0]+'">':'<div class="noimg cat-bg-list">☰</div>')+'</div>'+
       '<div class="body"><div class="name">'+esc(l.name)+'</div><div class="meta">'+count+' place'+(count!==1?'s':'')+'</div>'+
       (l.description?'<div class="meta">'+esc(l.description)+'</div>':'')+'</div></div>';
   }).join('')+'</div>' : emptyState("☰","No lists yet",'Try "Best ramen", "Birthday restaurants", or "Places to take my parents."');
@@ -1109,12 +1144,14 @@ function viewTripDetail(t){
   html += '<div class="section-title">Itinerary — to visit ('+toTry.length+')</div>';
   if(!toTry.length){ html += emptyState("☆","Nothing queued yet","Add places you want to visit on this trip."); }
   else { groupRestaurantsByCategory(toTry).forEach(function(g){
-    html += categorySubheadHtml(g.cat, g.items.length)+'<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+    var inner = '<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+    html += categorySectionBlockHtml(g.cat, g.items.length, "trip:"+t.id+":tovisit:"+g.cat.id, inner);
   }); }
   html += '<div class="section-title">Visited on this trip ('+visited.length+')</div>';
   if(!visited.length){ html += emptyState("🍽","Not yet visited","Log a visit once you've been."); }
   else { groupRestaurantsByCategory(visited).forEach(function(g){
-    html += categorySubheadHtml(g.cat, g.items.length)+'<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+    var inner = '<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+    html += categorySectionBlockHtml(g.cat, g.items.length, "trip:"+t.id+":visited:"+g.cat.id, inner);
   }); }
   return html;
 }
@@ -1823,6 +1860,13 @@ document.addEventListener("click", function(e){
   }
 
   // restaurant open/edit/delete
+  var catToggle = t.closest("[data-toggle-category]");
+  if(catToggle){
+    var ckey = catToggle.getAttribute("data-toggle-category");
+    state.collapsedCategories[ckey] = !state.collapsedCategories[ckey];
+    renderAll();
+    return;
+  }
   var openR = t.closest("[data-open-restaurant]");
   if(openR && !t.closest("button[data-log-visit-for]") && !t.closest("button[data-delete-restaurant]") ){ modalRestaurantDetail(openR.getAttribute("data-open-restaurant")); return; }
   var editR = t.closest("[data-edit-restaurant]");
