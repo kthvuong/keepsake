@@ -1,6 +1,6 @@
 {
-  "name": "Plate & Pin",
-  "short_name": "Plate & Pin",
+  "name": "Keepsake",
+  "short_name": "Keepsake",
   "description": "A two-person food log",
   "start_url": "./index.html",
   "display": "standalone",

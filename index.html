@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Plate & Pin</title>
+<title>Keepsake</title>
 <link rel="icon" href="icon-512.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Plate & Pin">
+<meta name="apple-mobile-web-app-title" content="Keepsake">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Karla:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
@@ -271,9 +271,9 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 <div class="app">
   <nav class="sidebar" id="sidebar">
     <button class="brand" id="btnHome" type="button" style="border:none; background:transparent; cursor:pointer; text-align:left;">
-      <div class="brand-mark">P·P</div>
+      <div class="brand-mark">K</div>
       <div>
-        <div class="brand-name">Plate & Pin</div>
+        <div class="brand-name">Keepsake</div>
         <div class="brand-sub">a two-person food log</div>
       </div>
     </button>
@@ -290,7 +290,7 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
   <main class="main">
     <div class="mobile-topbar">
       <button class="icon-btn" id="btnMenu">☰</button>
-      <button class="brand-name" id="btnHomeMobile" type="button" style="border:none; background:transparent; cursor:pointer; font:inherit; color:inherit;">Plate & Pin</button>
+      <button class="brand-name" id="btnHomeMobile" type="button" style="border:none; background:transparent; cursor:pointer; font:inherit; color:inherit;">Keepsake</button>
       <button class="btn small primary" id="btnAddVisitMobile">+ Add</button>
     </div>
     <div id="view"></div>
@@ -1484,7 +1484,7 @@ function exportAllData(){
   var blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
   var url = URL.createObjectURL(blob);
   var a = document.createElement("a");
-  a.href = url; a.download = "plate-and-pin-backup-"+todayStr()+".json";
+  a.href = url; a.download = "keepsake-backup-"+todayStr()+".json";
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
 }
