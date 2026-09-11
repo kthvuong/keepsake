@@ -212,6 +212,12 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 .chip-select{display:flex; flex-wrap:wrap; gap:6px;}
 .chip-select button{padding:6px 11px; border-radius:99px; border:1px solid var(--line); background:var(--surface-2); font-size:12px; font-weight:700; color:var(--ink-soft);}
 .chip-select button.on{background:var(--accent-soft); color:var(--accent); border-color:transparent; font-weight:800;}
+.category-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.category-option{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:20px 10px; border-radius:12px; border:1px solid var(--line); background:var(--surface-2); cursor:pointer; text-align:center;}
+.category-option:hover{border-color:var(--accent); background:var(--accent-soft);}
+.category-option .cat-icon{font-size:28px; line-height:1;}
+.category-option .cat-label{font-family:'Fraunces',serif; font-weight:600; font-size:14px; color:var(--ink);}
+.wizard-back{margin-right:6px;}
 .rate-row{display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface-2); padding:10px 12px; border-radius:10px;}
 .rate-row .who{font-size:13px; font-weight:700;}
 .photo-row{display:flex; gap:10px; flex-wrap:wrap;}
@@ -338,6 +344,34 @@ var TAGS = ["Brunch","Bakery","Fine Dining","Hidden Gem","Date Night","Late Nigh
 var FAV_CATS = ["Dessert","Cocktail Bar","Coffee Shop","Bakery","Fine Dining","Brunch"];
 var PRICE_LABELS = {1:"$",2:"$$",3:"$$$",4:"$$$$"};
 var MAX_PHOTOS = 3;
+
+var CATEGORIES = [
+  {id:"food", label:"Food & Drink", icon:"🍽", types:["Restaurant","Café","Bakery","Dessert","Bar","Market","Food Truck"]},
+  {id:"shopping", label:"Shopping", icon:"🛍", types:["Stationery Store","Grocery Store","Specialty Goods","Bookstore","Boutique","Home & Lifestyle","Gift Shop","Other Store"]},
+  {id:"experiences", label:"Experiences", icon:"🎟", types:["Aquarium","Museum","Gallery","Attraction","Activity","Entertainment","Event","Other Experience"]},
+  {id:"outdoors", label:"Outdoors", icon:"🌳", types:["Park","Garden","Trail","Beach","Scenic Spot"]},
+  {id:"other", label:"Other", icon:"✦", types:[]}
+];
+function categoryById(id){
+  for(var i=0;i<CATEGORIES.length;i++){ if(CATEGORIES[i].id===id) return CATEGORIES[i]; }
+  return CATEGORIES[0];
+}
+function categoryOf(r){ return categoryById(r && r.category); }
+var CATEGORY_VISIT_FIELDS = {
+  food: [{key:"dishes", label:"Dishes ordered (comma separated)", list:true}],
+  shopping: [
+    {key:"itemsPurchased", label:"Items purchased (comma separated)", list:true},
+    {key:"favFinds", label:"Favourite finds"},
+    {key:"toLookFor", label:"Things to look for next time"}
+  ],
+  experiences: [
+    {key:"highlights", label:"Highlights"},
+    {key:"favExhibits", label:"Favourite exhibits"}
+  ],
+  outdoors: [{key:"highlights", label:"Highlights"}],
+  other: []
+};
+var NOTES_LABEL = {food:"Food notes", shopping:"Store notes", experiences:"Experience notes", outdoors:"Experience notes", other:"Notes"};
 
 /* ---------- tiny utils ---------- */
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
@@ -714,7 +748,7 @@ function restaurantCard(r, opts){
   var score = restaurantScore(r.id);
   var vs = visitsFor(r.id);
   return '<div class="rcard" data-open-restaurant="'+r.id+'">'+
-    '<div class="photo">'+(photo? '<img src="'+photo+'" loading="lazy">' : '<div class="noimg">🍽</div>')+(r.favorite?'<span class="fav-badge">♥</span>':'')+
+    '<div class="photo">'+(photo? '<img src="'+photo+'" loading="lazy">' : '<div class="noimg">'+categoryOf(r).icon+'</div>')+(r.favorite?'<span class="fav-badge">♥</span>':'')+
       (opts.quickDelete?'<button type="button" class="del-badge" data-delete-restaurant="'+r.id+'" title="Remove">✕</button>':'')+
     '</div>'+
     '<div class="body">'+
@@ -730,10 +764,10 @@ function restaurantRow(r){
   var score = restaurantScore(r.id);
   var vs = visitsFor(r.id);
   return '<div class="listrow" data-open-restaurant="'+r.id+'">'+
-    '<div class="thumb">'+(photo?'<img src="'+photo+'">':'🍽')+'</div>'+
+    '<div class="thumb">'+(photo?'<img src="'+photo+'">':categoryOf(r).icon)+'</div>'+
     '<div class="main-col">'+
       '<div class="name">'+esc(r.name)+(r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
-      '<div class="meta">'+esc(r.neighborhood||r.city||"")+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+' · '+(r.cuisines||[]).join(", ")+'</div>'+
+      '<div class="meta">'+esc(r.neighborhood||r.city||"")+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+' · '+((r.cuisines&&r.cuisines.length)?r.cuisines.join(", "):(r.placeType||""))+'</div>'+
     '</div>'+
     '<div class="right-col">'+
       wrBadge(r.id)+
@@ -860,7 +894,7 @@ function viewFavorites(){
     return {cat:cat, r:top.r, s:top.s};
   }).filter(Boolean);
   html += catCards.length ? '<div class="grid-cards">'+catCards.map(function(c){
-    return '<div class="rcard" data-open-restaurant="'+c.r.id+'"><div class="photo">'+(firstPhotoFor(c.r.id)?'<img src="'+firstPhotoFor(c.r.id)+'">':'<div class="noimg">🍽</div>')+'</div>'+
+    return '<div class="rcard" data-open-restaurant="'+c.r.id+'"><div class="photo">'+(firstPhotoFor(c.r.id)?'<img src="'+firstPhotoFor(c.r.id)+'">':'<div class="noimg">'+categoryOf(c.r).icon+'</div>')+'</div>'+
       '<div class="body"><div class="tag" style="align-self:flex-start;">Best '+esc(c.cat)+'</div><div class="name">'+esc(c.r.name)+'</div>'+renderStarsDisplay(c.s)+'</div></div>';
   }).join('')+'</div>' : emptyState("🏷","No category leaders yet","Tag a few places (Dessert, Coffee Shop, Cocktail Bar…) and rate your visits.");
 
@@ -948,7 +982,7 @@ function viewListDetail(l){
   html += items.length ? '<div>'+items.map(function(r){
     var votes = (l.votes&&l.votes[r.id])||[];
     var myVote = votes.indexOf(state.me)>=0;
-    return '<div class="listrow"><div class="thumb" data-open-restaurant="'+r.id+'">'+(firstPhotoFor(r.id)?'<img src="'+firstPhotoFor(r.id)+'">':'🍽')+'</div>'+
+    return '<div class="listrow"><div class="thumb" data-open-restaurant="'+r.id+'">'+(firstPhotoFor(r.id)?'<img src="'+firstPhotoFor(r.id)+'">':categoryOf(r).icon)+'</div>'+
       '<div class="main-col" data-open-restaurant="'+r.id+'"><div class="name">'+esc(r.name)+'</div><div class="meta">'+esc(r.neighborhood||"")+'</div></div>'+
       '<div class="right-col">'+
       '<button class="btn small'+(myVote?' primary':'')+'" data-vote-list="'+l.id+'" data-vote-rest="'+r.id+'">♥ '+votes.length+'</button>'+
@@ -1108,10 +1142,11 @@ function renderRestaurantDetail(rid){
   var vs = visitsFor(rid).slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");});
   var score = restaurantScore(rid);
   var hero = firstPhotoFor(rid);
-  var body = '<div class="detail-hero">'+(hero?'<img src="'+hero+'">':'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:44px;color:var(--ink-faint);">🍽</div>')+'</div>'+
+  var rcat = categoryOf(r);
+  var body = '<div class="detail-hero">'+(hero?'<img src="'+hero+'">':'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:44px;color:var(--ink-faint);">'+rcat.icon+'</div>')+'</div>'+
     '<div class="modal-body">'+
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">'+
-      '<div><h2 style="font-size:22px;">'+esc(r.name)+'</h2><div class="sub" style="color:var(--ink-soft);font-size:13px;margin-top:3px;">'+esc(r.neighborhood||"")+(r.city?', '+esc(r.city):'')+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+'</div>'+(r.address?'<div class="sub" style="color:var(--ink-faint);font-size:12px;margin-top:2px;">'+esc(r.address)+'</div>':'')+'</div>'+
+      '<div><h2 style="font-size:22px;">'+esc(r.name)+'</h2><div class="sub" style="color:var(--ink-soft);font-size:13px;margin-top:3px;">'+rcat.icon+' '+esc(r.placeType||rcat.label)+' · '+esc(r.neighborhood||"")+(r.city?', '+esc(r.city):'')+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+'</div>'+(r.address?'<div class="sub" style="color:var(--ink-faint);font-size:12px;margin-top:2px;">'+esc(r.address)+'</div>':'')+'</div>'+
       '<button class="btn small" data-toggle-fav="'+rid+'">'+(r.favorite?'♥ Favourited':'♡ Favourite')+'</button>'+
     '</div>'+
     (score!=null? '<div>'+renderStarsDisplay(score,"lg")+' <span class="mono" style="font-size:13px;color:var(--ink-soft);">'+score.toFixed(1)+'</span></div>' : '')+
@@ -1131,6 +1166,15 @@ function renderRestaurantDetail(rid){
 }
 function visitItemHtml(v){
   var wrLabel = v.wouldReturn ? ({yes:"Would return",maybe:"Maybe return",no:"Wouldn't return"})[v.wouldReturn] : "";
+  var vcat = categoryOf(state.restaurants[v.restaurantId]);
+  var extraFieldsHtml = (CATEGORY_VISIT_FIELDS[vcat.id]||[]).map(function(f){
+    var val = v[f.key];
+    var label = f.label.replace(/ \(comma separated\)$/,'');
+    if(f.list){
+      return (val&&val.length) ? '<div class="tagrow" style="margin-top:4px;">'+val.map(function(d){return '<span class="tag">'+esc(d)+'</span>';}).join('')+'</div>' : '';
+    }
+    return val ? '<div style="font-size:13px;"><b>'+esc(label)+':</b> '+esc(val)+'</div>' : '';
+  }).join('');
   return '<div class="visit-item">'+
     '<div class="vhead"><span class="vdate">'+fmtDate(v.date)+'</span>'+(v.loggedBy?'<span style="font-size:11px;color:var(--ink-faint);">logged by '+esc(state.profiles[v.loggedBy]||v.loggedBy)+'</span>':'')+(wrLabel?'<span class="badge '+v.wouldReturn+'">'+wrLabel+'</span>':'')+
       '<span style="margin-left:auto;display:flex;gap:6px;"><button class="btn small ghost" data-edit-visit="'+v.id+'">Edit</button><button class="btn small ghost" data-delete-visit="'+v.id+'">Delete</button></span></div>'+
@@ -1142,7 +1186,7 @@ function visitItemHtml(v){
     (v.favDishA? '<div style="font-size:13px;"><b>'+esc(state.profiles.A)+'\'s favourite dish:</b> '+esc(v.favDishA)+'</div>' : '')+
     (v.favDishB? '<div style="font-size:13px;"><b>'+esc(state.profiles.B)+'\'s favourite dish:</b> '+esc(v.favDishB)+'</div>' : '')+
     (!v.favDishA && !v.favDishB && v.favDish? '<div style="font-size:13px;"><b>Favourite dish:</b> '+esc(v.favDish)+'</div>' : '')+
-    ((v.dishes&&v.dishes.length)? '<div class="tagrow" style="margin-top:4px;">'+v.dishes.map(function(d){return '<span class="tag">'+esc(d)+'</span>';}).join('')+'</div>' : '')+
+    extraFieldsHtml+
     (v.notes? '<p style="font-size:13px;color:var(--ink-soft);margin:6px 0 0;">'+esc(v.notes)+'</p>' : '')+
     ((v.photos&&v.photos.length)? '<div class="visit-photos">'+v.photos.map(function(p){return '<img src="'+p+'" data-zoom-photo="'+encodeURIComponent(p)+'">';}).join('')+'</div>' : '')+
     '</div>';
@@ -1170,12 +1214,23 @@ function modalRestaurantDetail(rid){
 }
 
 var editingRestaurant = null; // {id, tags:[], cuisines:[], lat, lng}
+function placeTypeFieldHtml(cat, current){
+  if(cat.types.length){
+    return '<select id="f_placetype">'+cat.types.map(function(t){return '<option value="'+esc(t)+'" '+(t===current?"selected":"")+'>'+esc(t)+'</option>';}).join('')+'</select>';
+  }
+  return '<input type="text" id="f_placetype" value="'+esc(cat.id==="other"?(current||""):"")+'" placeholder="e.g. Photo booth, Pop-up event…">';
+}
 function modalEditRestaurant(existing, prefill){
-  editingRestaurant = existing ? Object.assign({}, existing, {cuisines:(existing.cuisines||[]).slice(), tags:(existing.tags||[]).slice()}) : Object.assign({cuisines:[],tags:[],priceRange:null,favorite:false,lat:null,lng:null}, prefill||{});
+  editingRestaurant = existing ? Object.assign({}, existing, {cuisines:(existing.cuisines||[]).slice(), tags:(existing.tags||[]).slice()}) : Object.assign({cuisines:[],tags:[],priceRange:null,favorite:false,lat:null,lng:null,category:"food",placeType:"Restaurant"}, prefill||{});
   var e = editingRestaurant;
+  var cat = categoryOf(e);
   var html = '<div class="modal">'+
     '<div class="modal-head"><h2>'+(existing?"Edit place":"Add a place")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
     '<div class="modal-body">'+
+      '<div class="field-row">'+
+        field("Category", '<select id="f_category">'+CATEGORIES.map(function(c){return '<option value="'+c.id+'" '+(c.id===cat.id?"selected":"")+'>'+esc(c.label)+'</option>';}).join('')+'</select>')+
+        field("Place type", placeTypeFieldHtml(cat, e.placeType))+
+      '</div>'+
       field("Place name", '<div class="geo-search-wrap"><input type="text" id="f_name" value="'+esc(e.name||"")+'" placeholder="Start typing a name or address…" autocomplete="off"><div id="geoSuggestions" class="geo-suggestions"></div></div>'+
         '<div id="pickerMap"></div>'+
         '<div class="geo-hint" id="geoHint"></div>')+
@@ -1184,15 +1239,24 @@ function modalEditRestaurant(existing, prefill){
         field("City",'<input type="text" id="f_city" value="'+esc(e.city||"")+'" placeholder="Edmonton">')+
         field("Neighbourhood",'<input type="text" id="f_nbhd" value="'+esc(e.neighborhood||"")+'" placeholder="Chinatown">')+
       '</div>'+
-      field("Cuisine", '<div class="chip-select" id="f_cuisines">'+CUISINES.map(function(c){return '<button type="button" data-toggle-chip="cuisine" data-val="'+c+'" class="'+(e.cuisines.indexOf(c)>=0?"on":"")+'">'+c+'</button>';}).join('')+'</div>')+
       field("Tags", '<div class="chip-select" id="f_tags">'+TAGS.map(function(t){return '<button type="button" data-toggle-chip="tag" data-val="'+t+'" class="'+(e.tags.indexOf(t)>=0?"on":"")+'">'+t+'</button>';}).join('')+'</div>')+
-      field("Price range", '<div class="chip-select">'+[1,2,3,4].map(function(p){return '<button type="button" data-set-price="'+p+'" class="'+(e.priceRange===p?"on":"")+'">'+PRICE_LABELS[p]+'</button>';}).join('')+'</div>')+
+      '<div id="foodOnlyFields" style="display:'+(cat.id==="food"?"block":"none")+';">'+
+        field("Cuisine", '<div class="chip-select" id="f_cuisines">'+CUISINES.map(function(c){return '<button type="button" data-toggle-chip="cuisine" data-val="'+c+'" class="'+(e.cuisines.indexOf(c)>=0?"on":"")+'">'+c+'</button>';}).join('')+'</div>')+
+        field("Price range", '<div class="chip-select">'+[1,2,3,4].map(function(p){return '<button type="button" data-set-price="'+p+'" class="'+(e.priceRange===p?"on":"")+'">'+PRICE_LABELS[p]+'</button>';}).join('')+'</div>')+
+      '</div>'+
       field("Notes",'<textarea id="f_notes" placeholder="Anything worth remembering about this place…">'+esc(e.notes||"")+'</textarea>')+
     '</div>'+
     '<div class="modal-foot">'+(existing?'<button class="btn danger" data-delete-restaurant="'+existing.id+'">Delete</button>':'')+'<button class="btn primary" id="btnSaveRestaurant">Save</button></div>'+
   '</div>';
   openModal(html);
   initPickerMap(); updateGeoHint();
+  document.getElementById("f_category").addEventListener("change", function(){
+    var newCat = categoryById(this.value);
+    editingRestaurant.category = newCat.id;
+    var wrap = document.getElementById("f_placetype").parentNode;
+    wrap.innerHTML = "<label>Place type</label>"+placeTypeFieldHtml(newCat, "");
+    document.getElementById("foodOnlyFields").style.display = newCat.id==="food" ? "block" : "none";
+  });
 }
 function field(label, inner){ return '<div class="field"><label>'+label+'</label>'+inner+'</div>'; }
 
@@ -1310,19 +1374,50 @@ function applyGeoResultToFields(res, which){
 }
 
 var editingVisit = null;
-function modalLogVisit(restaurantId, existingVisit){
+function categoryExtraFieldsHtml(cat, v){
+  var extra = CATEGORY_VISIT_FIELDS[cat.id] || [];
+  var html = extra.map(function(f){
+    var val = f.list ? (v[f.key]||[]).join(", ") : (v[f.key]||"");
+    return field(f.label, '<input type="text" id="f_extra_'+f.key+'" value="'+esc(val)+'">');
+  }).join('');
+  if(cat.id==="food"){
+    html += '<div class="field-row">'+
+      field(esc(state.profiles.A)+"'s favourite dish",'<input type="text" id="f_favdishA" value="'+esc(v.favDishA||v.favDish||"")+'" placeholder="The one they\'d order again">')+
+      field(esc(state.profiles.B)+"'s favourite dish",'<input type="text" id="f_favdishB" value="'+esc(v.favDishB||"")+'" placeholder="The one they\'d order again">')+
+    '</div>';
+  }
+  return html;
+}
+function notesFieldHtml(cat, v){
+  var label = cat ? (NOTES_LABEL[cat.id]||"Notes") : "Notes";
+  return field(label,'<textarea id="f_visitnotes" placeholder="How was it? Anything memorable?">'+esc(v.notes||"")+'</textarea>');
+}
+function favFieldHtml(r){
+  if(!r) return "";
+  return field("Favourite", '<button type="button" class="btn small" id="btnToggleVisitFav">'+(r.favorite?"♥ Favourited":"♡ Mark as favourite")+'</button>');
+}
+function modalLogVisit(restaurantId, existingVisit, presetPlace){
   editingVisit = existingVisit ? Object.assign({}, existingVisit, {dishes:(existingVisit.dishes||[]).slice(), photos:(existingVisit.photos||[]).slice()}) : {restaurantId: restaurantId||null, date: todayStr(), ratingA:null, ratingB:null, wouldReturn:null, dishes:[], favDishA:"", favDishB:"", notes:"", price:null, photos:[]};
-  if(!restaurantId && !existingVisit){ editingRestaurant = {cuisines:[], tags:[], priceRange:null, favorite:false, lat:null, lng:null}; }
+  var targetRestaurant = restaurantId ? state.restaurants[restaurantId] : (existingVisit ? state.restaurants[existingVisit.restaurantId] : null);
+  var isWizardNewPlace = !restaurantId && !existingVisit && !!presetPlace;
+  if(targetRestaurant){ editingRestaurant = Object.assign({}, targetRestaurant); }
+  else if(isWizardNewPlace){ editingRestaurant = Object.assign({cuisines:[], tags:[], priceRange:null, favorite:false, lat:null, lng:null}, presetPlace); }
+  else { editingRestaurant = null; }
+  var showDropdown = !restaurantId && !existingVisit && !isWizardNewPlace;
+  var initialCategory = editingRestaurant ? categoryOf(editingRestaurant) : null;
   var restaurantOptions = allRestaurants().sort(function(a,b){return a.name.localeCompare(b.name);});
   var html = '<div class="modal">'+
     '<div class="modal-head"><h2>'+(existingVisit?"Edit visit":"Log a visit")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
     '<div class="modal-body">'+
-    (!restaurantId && !existingVisit ? field("Place", '<select id="f_visit_restaurant">'+
+    (showDropdown ? field("Place", '<select id="f_visit_restaurant">'+
+        '<option value="">— choose a place —</option>'+
         '<option value="__new__">+ Add a new place…</option>'+
         restaurantOptions.map(function(r){return '<option value="'+r.id+'">'+esc(r.name)+'</option>';}).join('')+
-      '</select>') : '<div style="font-family:Fraunces,serif;font-weight:600;font-size:18px;">'+esc((state.restaurants[editingVisit.restaurantId]||{}).name||"New place")+'</div>')+
-    '<div id="newRestaurantFields" style="display:none;">'+
-      field("Place name", '<div class="geo-search-wrap"><input type="text" id="f_name" placeholder="Start typing a name or address…" autocomplete="off"><div id="geoSuggestions" class="geo-suggestions"></div></div>'+
+      '</select>') :
+      (isWizardNewPlace ? '<div class="sub" style="font-size:12px;color:var(--ink-soft);">'+initialCategory.icon+' '+esc(initialCategory.label)+' · '+esc(editingRestaurant.placeType||"")+'</div>'
+        : '<div style="font-family:Fraunces,serif;font-weight:600;font-size:18px;">'+esc((targetRestaurant||{}).name||"New place")+'</div>'))+
+    '<div id="newRestaurantFields" style="display:'+(isWizardNewPlace?"block":"none")+';">'+
+      field("Place name", '<div class="geo-search-wrap"><input type="text" id="f_name" value="'+(isWizardNewPlace?esc(editingRestaurant.name||""):"")+'" placeholder="Start typing a name or address…" autocomplete="off"><div id="geoSuggestions" class="geo-suggestions"></div></div>'+
         '<div id="pickerMap"></div>'+
         '<div class="geo-hint" id="geoHint"></div>')+
       field("Address (optional)",'<div class="geo-search-wrap"><input type="text" id="f_address" placeholder="Type an address — we\'ll try to find the place name" autocomplete="off"><div id="geoSuggestionsAddr" class="geo-suggestions"></div></div>')+
@@ -1337,26 +1432,33 @@ function modalLogVisit(restaurantId, existingVisit){
     field("Would return?", '<div class="wr-row">'+
       ['yes','maybe','no'].map(function(w){return '<button type="button" data-set-wr="'+w+'" class="'+(editingVisit.wouldReturn===w?"on-"+w:"")+'">'+({yes:"Yes",maybe:"Maybe",no:"No"})[w]+'</button>';}).join('')+
     '</div>')+
-    field("Dishes tried (comma separated)",'<input type="text" id="f_dishes" value="'+esc((editingVisit.dishes||[]).join(", "))+'" placeholder="Pho, spring rolls…">')+
-    '<div class="field-row">'+
-      field(esc(state.profiles.A)+"'s favourite dish",'<input type="text" id="f_favdishA" value="'+esc(editingVisit.favDishA||editingVisit.favDish||"")+'" placeholder="The one they\'d order again">')+
-      field(esc(state.profiles.B)+"'s favourite dish",'<input type="text" id="f_favdishB" value="'+esc(editingVisit.favDishB||"")+'" placeholder="The one they\'d order again">')+
-    '</div>'+
-    field("Notes",'<textarea id="f_visitnotes" placeholder="How was it? Anything memorable?">'+esc(editingVisit.notes||"")+'</textarea>')+
+    '<div id="favFieldWrap">'+favFieldHtml(editingRestaurant)+'</div>'+
+    '<div id="categoryFieldsWrap">'+(initialCategory?categoryExtraFieldsHtml(initialCategory, editingVisit):'')+'</div>'+
+    '<div id="notesFieldWrap">'+notesFieldHtml(initialCategory, editingVisit)+'</div>'+
     field("Photos (up to "+MAX_PHOTOS+")", '<div class="photo-row" id="photoRow">'+photoRowHtml()+'</div><input type="file" id="f_photoInput" accept="image/*" style="display:none;">')+
     '</div>'+
     '<div class="modal-foot">'+(existingVisit?'<button class="btn danger" data-delete-visit="'+existingVisit.id+'">Delete visit</button>':'')+'<button class="btn primary" id="btnSaveVisit">Save visit</button></div>'+
   '</div>';
   openModal(html);
-  if(!restaurantId && !existingVisit){
+  if(isWizardNewPlace){ initPickerMap(); updateGeoHint(); }
+  if(showDropdown){
     var sel = document.getElementById("f_visit_restaurant");
     sel.addEventListener("change", function(){
-      var isNew = sel.value==="__new__";
-      document.getElementById("newRestaurantFields").style.display = isNew ? "block":"none";
-      if(isNew) initPickerMap();
+      if(sel.value==="__new__"){ closeModal(); modalPickCategory("visit"); return; }
+      if(!sel.value){
+        editingRestaurant = null;
+        document.getElementById("favFieldWrap").innerHTML = "";
+        document.getElementById("categoryFieldsWrap").innerHTML = "";
+        document.getElementById("notesFieldWrap").innerHTML = notesFieldHtml(null, editingVisit);
+        return;
+      }
+      var r = state.restaurants[sel.value];
+      editingRestaurant = Object.assign({}, r);
+      var cat = categoryOf(r);
+      document.getElementById("favFieldWrap").innerHTML = favFieldHtml(editingRestaurant);
+      document.getElementById("categoryFieldsWrap").innerHTML = categoryExtraFieldsHtml(cat, editingVisit);
+      document.getElementById("notesFieldWrap").innerHTML = notesFieldHtml(cat, editingVisit);
     });
-    sel.value = "__new__"; sel.dispatchEvent(new Event("change"));
-    updateGeoHint();
   }
 }
 function photoRowHtml(){
@@ -1380,6 +1482,38 @@ function modalQuickAdd(){
       '</button>'+
     '</div></div>';
   openModal(html);
+}
+function modalPickCategory(mode){
+  var html = '<div class="modal" style="max-width:440px;">'+
+    '<div class="modal-head"><button class="btn ghost small wizard-back" id="btnBackToQuickAdd" type="button">← Back</button><h2>What kind of place?</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body">'+
+      '<div class="category-grid">'+CATEGORIES.map(function(c){
+        return '<button type="button" class="category-option" data-pick-category="'+c.id+'" data-mode="'+mode+'"><span class="cat-icon">'+c.icon+'</span><span class="cat-label">'+esc(c.label)+'</span></button>';
+      }).join('')+
+      '</div>'+
+    '</div></div>';
+  openModal(html);
+}
+function modalPickPlaceType(mode, categoryId){
+  var cat = categoryById(categoryId);
+  var body;
+  if(cat.types.length){
+    body = '<div class="chip-select">'+cat.types.map(function(t){
+      return '<button type="button" data-pick-placetype="'+esc(t)+'" data-mode="'+mode+'" data-cat="'+cat.id+'">'+esc(t)+'</button>';
+    }).join('')+'</div>';
+  } else {
+    body = field("Type of place", '<input type="text" id="f_custom_placetype" placeholder="e.g. Photo booth, Pop-up event…">')+
+      '<button type="button" class="btn primary" id="btnConfirmCustomType" data-mode="'+mode+'" data-cat="'+cat.id+'" style="margin-top:10px;">Continue</button>';
+  }
+  var html = '<div class="modal" style="max-width:440px;">'+
+    '<div class="modal-head"><button class="btn ghost small wizard-back" id="btnBackToCategory" data-mode="'+mode+'" type="button">← Back</button><h2>'+esc(cat.label)+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body">'+body+'</div></div>';
+  openModal(html);
+}
+function proceedToPlaceForm(mode, categoryId, placeType){
+  closeModal();
+  if(mode==="save"){ modalEditRestaurant(null, {category:categoryId, placeType:placeType}); }
+  else { modalLogVisit(null, null, {category:categoryId, placeType:placeType}); }
 }
 function modalListForm(existing){
   var html = '<div class="modal"><div class="modal-head"><h2>'+(existing?"Edit list":"New list")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
@@ -1542,7 +1676,20 @@ document.addEventListener("click", function(e){
   if(t.closest("#btnExportData")){ exportAllData(); return; }
   if(t.closest("#btnAddVisit") || t.closest("#btnAddVisitMobile")){ modalQuickAdd(); return; }
   if(t.closest("#btnQuickLogVisit")){ closeModal(); modalLogVisit(null,null); return; }
-  if(t.closest("#btnQuickSaveLater")){ closeModal(); modalEditRestaurant(null,null); return; }
+  if(t.closest("#btnQuickSaveLater")){ closeModal(); modalPickCategory("save"); return; }
+  if(t.closest("#btnBackToQuickAdd")){ closeModal(); modalQuickAdd(); return; }
+  var backToCat = t.closest("#btnBackToCategory");
+  if(backToCat){ modalPickCategory(backToCat.getAttribute("data-mode")); return; }
+  var pickCat = t.closest("[data-pick-category]");
+  if(pickCat){ modalPickPlaceType(pickCat.getAttribute("data-mode"), pickCat.getAttribute("data-pick-category")); return; }
+  var pickType = t.closest("[data-pick-placetype]");
+  if(pickType){ proceedToPlaceForm(pickType.getAttribute("data-mode"), pickType.getAttribute("data-cat"), pickType.getAttribute("data-pick-placetype")); return; }
+  var confirmCustom = t.closest("#btnConfirmCustomType");
+  if(confirmCustom){
+    var customVal = (document.getElementById("f_custom_placetype").value||"").trim() || "Other";
+    proceedToPlaceForm(confirmCustom.getAttribute("data-mode"), confirmCustom.getAttribute("data-cat"), customVal);
+    return;
+  }
   if(t.closest("#btnAddWant")){ modalEditRestaurant(null,null); return; }
 
   var bm = t.closest("[data-browse-mode]");
@@ -1580,6 +1727,12 @@ document.addEventListener("click", function(e){
   }
   var logFor = t.closest("[data-log-visit-for]");
   if(logFor){ modalLogVisit(logFor.getAttribute("data-log-visit-for"), null); return; }
+  var favToggle = t.closest("#btnToggleVisitFav");
+  if(favToggle){
+    editingRestaurant.favorite = !editingRestaurant.favorite;
+    favToggle.textContent = editingRestaurant.favorite ? "♥ Favourited" : "♡ Mark as favourite";
+    return;
+  }
   var editV = t.closest("[data-edit-visit]");
   if(editV){ var v = state.visits[editV.getAttribute("data-edit-visit")]; modalLogVisit(v.restaurantId, v); return; }
   var delV = t.closest("[data-delete-visit]");
@@ -1827,16 +1980,19 @@ function doSaveRestaurantFromForm(){
       return;
     }
   }
+  var categoryId = document.getElementById("f_category").value;
   var data = {
     name: name,
+    category: categoryId,
+    placeType: (document.getElementById("f_placetype").value||"").trim() || "Other",
     address: document.getElementById("f_address").value.trim(),
     city: document.getElementById("f_city").value.trim(),
     neighborhood: document.getElementById("f_nbhd").value.trim(),
     lat: hasLoc(editingRestaurant) ? editingRestaurant.lat : null,
     lng: hasLoc(editingRestaurant) ? editingRestaurant.lng : null,
-    cuisines: editingRestaurant.cuisines.slice(),
+    cuisines: categoryId==="food" ? editingRestaurant.cuisines.slice() : [],
     tags: editingRestaurant.tags.slice(),
-    priceRange: editingRestaurant.priceRange || null,
+    priceRange: categoryId==="food" ? (editingRestaurant.priceRange || null) : null,
     notes: document.getElementById("f_notes").value.trim(),
     favorite: !!editingRestaurant.favorite,
     tripId: editingRestaurant.tripId || null
@@ -1844,49 +2000,66 @@ function doSaveRestaurantFromForm(){
   finishSave(saveRestaurant(data, editingRestaurant.id));
 }
 function doSaveVisitFromForm(){
-  var restaurantId = editingVisit.restaurantId;
   var isNewSelect = document.getElementById("f_visit_restaurant");
-  function proceed(rid){
-    var dishesStr = document.getElementById("f_dishes").value.trim();
+  if(isNewSelect && !isNewSelect.value){ alert("Choose a place, or add a new one."); return; }
+  var creatingNewPlace = !isNewSelect && editingRestaurant && !editingRestaurant.id;
+  function collectVisitData(rid){
+    var cat = categoryOf(editingRestaurant || state.restaurants[rid]);
     var priceVal = document.getElementById("f_price").value;
     var data = {
       restaurantId: rid,
       date: document.getElementById("f_date").value || todayStr(),
       ratingA: editingVisit.ratingA, ratingB: editingVisit.ratingB,
       wouldReturn: editingVisit.wouldReturn,
-      dishes: dishesStr ? dishesStr.split(",").map(function(s){return s.trim();}).filter(Boolean) : [],
-      favDishA: document.getElementById("f_favdishA").value.trim(),
-      favDishB: document.getElementById("f_favdishB").value.trim(),
       notes: document.getElementById("f_visitnotes").value.trim(),
       price: priceVal!=="" ? parseFloat(priceVal) : null,
-      photos: editingVisit.photos||[]
+      photos: editingVisit.photos||[],
+      dishes:[], favDishA:"", favDishB:""
     };
-    finishSave(saveVisit(data, editingVisit.id));
-  }
-  if(isNewSelect){
-    if(isNewSelect.value==="__new__"){
-      var newName = document.getElementById("f_name").value.trim();
-      if(!newName){ alert("Name the new place, or pick an existing one."); return; }
-      var dupVisit = findDuplicateRestaurant(newName);
-      if(dupVisit){
-        alert('"'+newName+'" is already saved — logging this visit against the existing entry.');
-        proceed(dupVisit.id);
-        return;
-      }
-      saveRestaurant({
-        name:newName,
-        address: (document.getElementById("f_address")||{}).value ? document.getElementById("f_address").value.trim() : "",
-        city:document.getElementById("f_city").value.trim(),
-        neighborhood:document.getElementById("f_nbhd").value.trim(),
-        lat: hasLoc(editingRestaurant) ? editingRestaurant.lat : null,
-        lng: hasLoc(editingRestaurant) ? editingRestaurant.lng : null,
-        cuisines:[], tags:[]
-      }).then(proceed);
-    } else {
-      proceed(isNewSelect.value);
+    (CATEGORY_VISIT_FIELDS[cat.id]||[]).forEach(function(f){
+      var el = document.getElementById("f_extra_"+f.key);
+      if(!el) return;
+      data[f.key] = f.list ? el.value.trim().split(",").map(function(s){return s.trim();}).filter(Boolean) : el.value.trim();
+    });
+    if(cat.id==="food"){
+      var fdA = document.getElementById("f_favdishA"), fdB = document.getElementById("f_favdishB");
+      data.favDishA = fdA ? fdA.value.trim() : "";
+      data.favDishB = fdB ? fdB.value.trim() : "";
     }
+    return data;
+  }
+  function proceed(rid){
+    var savePromise = saveVisit(collectVisitData(rid), editingVisit.id);
+    if(editingRestaurant){
+      savePromise = savePromise.then(function(r){ return updateRestaurant(rid, {favorite: !!editingRestaurant.favorite}).then(function(){ return r; }); });
+    }
+    finishSave(savePromise);
+  }
+  if(creatingNewPlace){
+    var newName = document.getElementById("f_name").value.trim();
+    if(!newName){ alert("Give this place a name."); return; }
+    var dupVisit = findDuplicateRestaurant(newName);
+    if(dupVisit){
+      alert('"'+newName+'" is already saved — logging this visit against the existing entry.');
+      proceed(dupVisit.id);
+      return;
+    }
+    saveRestaurant({
+      name:newName,
+      category: editingRestaurant.category || "food",
+      placeType: editingRestaurant.placeType || "Other",
+      address: (document.getElementById("f_address")||{}).value ? document.getElementById("f_address").value.trim() : "",
+      city:document.getElementById("f_city").value.trim(),
+      neighborhood:document.getElementById("f_nbhd").value.trim(),
+      lat: hasLoc(editingRestaurant) ? editingRestaurant.lat : null,
+      lng: hasLoc(editingRestaurant) ? editingRestaurant.lng : null,
+      cuisines:[], tags:[],
+      favorite: !!editingRestaurant.favorite
+    }).then(function(newId){ editingRestaurant.id = newId; proceed(newId); });
+  } else if(isNewSelect){
+    proceed(isNewSelect.value);
   } else {
-    proceed(restaurantId);
+    proceed(editingVisit.restaurantId);
   }
 }
 
