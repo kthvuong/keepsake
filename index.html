@@ -251,6 +251,12 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 
 .section-title{font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:26px 0 12px;}
 .section-title:first-child{margin-top:0;}
+.subsection-title{font-size:12.5px; font-weight:700; color:var(--ink-soft); margin:16px 0 8px 2px;}
+.subsection-title:first-of-type{margin-top:4px;}
+.cat-stat-card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:var(--shadow);}
+.cat-stat-card .cs-head{display:flex; align-items:center; gap:8px; font-family:'Fraunces',serif; font-weight:600; font-size:15px; margin-bottom:10px;}
+.cat-stat-card .cs-row{display:flex; justify-content:space-between; font-size:13px; color:var(--ink-soft); padding:6px 0; border-top:1px solid var(--line-soft);}
+.cat-stat-card .cs-row:first-of-type{border-top:none;}
 .shelf{display:flex; gap:14px; overflow-x:auto; padding-bottom:6px;}
 .shelf .rcard{min-width:210px;}
 
@@ -372,6 +378,37 @@ var CATEGORY_VISIT_FIELDS = {
   other: []
 };
 var NOTES_LABEL = {food:"Food notes", shopping:"Store notes", experiences:"Experience notes", outdoors:"Experience notes", other:"Notes"};
+function groupRestaurantsByCategory(list){
+  var groups = {}; CATEGORIES.forEach(function(c){ groups[c.id]=[]; });
+  list.forEach(function(r){ groups[categoryOf(r).id].push(r); });
+  return CATEGORIES.map(function(c){ return {cat:c, items:groups[c.id]}; }).filter(function(g){ return g.items.length>0; });
+}
+function categorySubheadHtml(cat, count){
+  return '<div class="subsection-title">'+cat.icon+' '+esc(cat.label)+' ('+count+')</div>';
+}
+function categoryBreakdown(filterYear){
+  var visits = allVisits().filter(function(v){ return !filterYear || (v.date||"").slice(0,4)===filterYear; });
+  var stats = {}; CATEGORIES.forEach(function(c){ stats[c.id] = {cat:c, visitedIds:{}, visitCount:0, ratings:[]}; });
+  visits.forEach(function(v){
+    var r = state.restaurants[v.restaurantId]; if(!r) return;
+    var b = stats[categoryOf(r).id];
+    b.visitedIds[r.id]=1; b.visitCount++;
+    var a = avg([v.ratingA,v.ratingB]); if(a!=null) b.ratings.push(a);
+  });
+  return CATEGORIES.map(function(c){
+    var b = stats[c.id];
+    return {cat:c, placeCount:Object.keys(b.visitedIds).length, visitCount:b.visitCount, avgRating:avg(b.ratings)};
+  }).filter(function(b){ return b.visitCount>0; });
+}
+function categoryStatCardHtml(b, savedCount){
+  return '<div class="cat-stat-card">'+
+    '<div class="cs-head">'+b.cat.icon+' '+esc(b.cat.label)+'</div>'+
+    '<div class="cs-row"><span>Places visited</span><span class="mono">'+b.placeCount+'</span></div>'+
+    '<div class="cs-row"><span>Visits logged</span><span class="mono">'+b.visitCount+'</span></div>'+
+    (b.avgRating!=null?'<div class="cs-row"><span>Average rating</span><span class="mono">'+b.avgRating.toFixed(1)+' ★</span></div>':'')+
+    (savedCount?'<div class="cs-row"><span>Saved for later</span><span class="mono">'+savedCount+'</span></div>':'')+
+  '</div>';
+}
 
 /* ---------- tiny utils ---------- */
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
@@ -881,12 +918,23 @@ function viewFavorites(){
   html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search favourites…" value="'+esc(state.search)+'"></div></div>';
 
   html += '<div class="section-title">Our favourites</div>';
-  html += pinned.length ? '<div class="grid-cards">'+pinned.map(restaurantCard).join('')+'</div>' : emptyState("♥","No pinned favourites yet","Open a restaurant's details and tap ♥ to pin it here.");
+  if(!pinned.length){ html += emptyState("♥","No pinned favourites yet","Open a restaurant's details and tap ♥ to pin it here."); }
+  else { groupRestaurantsByCategory(pinned).forEach(function(g){
+    html += categorySubheadHtml(g.cat, g.items.length)+'<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+  }); }
 
   html += '<div class="section-title">Top rated overall</div>';
-  html += scored.length ? '<div class="shelf">'+scored.slice(0,8).map(function(x){return restaurantCard(x.r);}).join('')+'</div>' : emptyState("⭐","Nothing rated yet","Log a visit with a rating to see your top spots.");
+  if(!scored.length){ html += emptyState("⭐","Nothing rated yet","Log a visit with a rating to see your top spots."); }
+  else {
+    var scoredByCat = {}; CATEGORIES.forEach(function(c){ scoredByCat[c.id]=[]; });
+    scored.forEach(function(x){ scoredByCat[categoryOf(x.r).id].push(x); });
+    CATEGORIES.forEach(function(c){
+      var arr = scoredByCat[c.id]; if(!arr.length) return;
+      html += categorySubheadHtml(c, arr.length)+'<div class="shelf">'+arr.slice(0,8).map(function(x){return restaurantCard(x.r);}).join('')+'</div>';
+    });
+  }
 
-  html += '<div class="section-title">Best by category</div>';
+  html += '<div class="section-title">Best by tag</div>';
   var catCards = FAV_CATS.map(function(cat){
     var inCat = scored.filter(function(x){ return (x.r.tags||[]).indexOf(cat)>=0; });
     if(!inCat.length) return null;
@@ -896,7 +944,7 @@ function viewFavorites(){
   html += catCards.length ? '<div class="grid-cards">'+catCards.map(function(c){
     return '<div class="rcard" data-open-restaurant="'+c.r.id+'"><div class="photo">'+(firstPhotoFor(c.r.id)?'<img src="'+firstPhotoFor(c.r.id)+'">':'<div class="noimg">'+categoryOf(c.r).icon+'</div>')+'</div>'+
       '<div class="body"><div class="tag" style="align-self:flex-start;">Best '+esc(c.cat)+'</div><div class="name">'+esc(c.r.name)+'</div>'+renderStarsDisplay(c.s)+'</div></div>';
-  }).join('')+'</div>' : emptyState("🏷","No category leaders yet","Tag a few places (Dessert, Coffee Shop, Cocktail Bar…) and rate your visits.");
+  }).join('')+'</div>' : emptyState("🏷","No tag leaders yet","Tag a few places (Dessert, Coffee Shop, Cocktail Bar…) and rate your visits.");
 
   html += '<div class="section-title">Top dishes</div>';
   var dishes = [];
@@ -934,20 +982,23 @@ function viewWantToTry(){
     html += emptyState("☆","Nothing saved yet","Add a restaurant or dish you both want to try.");
     return html;
   }
-  var byCity = {}, cityOrder = [];
-  list.forEach(function(r){
-    var city = r.city || "No city set";
-    if(!byCity[city]){ byCity[city]=[]; cityOrder.push(city); }
-    byCity[city].push(r);
-  });
-  cityOrder.sort(function(a,b){
-    if(a==="No city set") return 1;
-    if(b==="No city set") return -1;
-    return a.localeCompare(b);
-  });
-  cityOrder.forEach(function(city){
-    html += '<div class="section-title">'+esc(city)+' ('+byCity[city].length+')</div>';
-    html += '<div class="grid-cards">'+byCity[city].map(function(r){return restaurantCard(r,{quickDelete:true});}).join('')+'</div>';
+  groupRestaurantsByCategory(list).forEach(function(g){
+    html += '<div class="section-title">'+g.cat.icon+' '+esc(g.cat.label)+' ('+g.items.length+')</div>';
+    var byCity = {}, cityOrder = [];
+    g.items.forEach(function(r){
+      var city = r.city || "No city set";
+      if(!byCity[city]){ byCity[city]=[]; cityOrder.push(city); }
+      byCity[city].push(r);
+    });
+    cityOrder.sort(function(a,b){
+      if(a==="No city set") return 1;
+      if(b==="No city set") return -1;
+      return a.localeCompare(b);
+    });
+    cityOrder.forEach(function(city){
+      html += '<div class="subsection-title">'+esc(city)+' ('+byCity[city].length+')</div>';
+      html += '<div class="grid-cards">'+byCity[city].map(function(r){return restaurantCard(r,{quickDelete:true});}).join('')+'</div>';
+    });
   });
   return html;
 }
@@ -1025,9 +1076,15 @@ function viewTripDetail(t){
     '<div style="display:flex;gap:8px;"><button class="btn small" data-add-to-trip="'+t.id+'">+ Add spot</button><button class="btn small danger" data-delete-trip="'+t.id+'">Delete trip</button></div></div>';
   html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search this trip…" value="'+esc(state.search)+'"></div></div>';
   html += '<div class="section-title">Itinerary — to visit ('+toTry.length+')</div>';
-  html += toTry.length ? '<div class="grid-cards">'+toTry.map(restaurantCard).join('')+'</div>' : emptyState("☆","Nothing queued yet","Add places you want to visit on this trip.");
+  if(!toTry.length){ html += emptyState("☆","Nothing queued yet","Add places you want to visit on this trip."); }
+  else { groupRestaurantsByCategory(toTry).forEach(function(g){
+    html += categorySubheadHtml(g.cat, g.items.length)+'<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+  }); }
   html += '<div class="section-title">Visited on this trip ('+visited.length+')</div>';
-  html += visited.length ? '<div class="grid-cards">'+visited.map(restaurantCard).join('')+'</div>' : emptyState("🍽","Not yet visited","Log a visit once you've been.");
+  if(!visited.length){ html += emptyState("🍽","Not yet visited","Log a visit once you've been."); }
+  else { groupRestaurantsByCategory(visited).forEach(function(g){
+    html += categorySubheadHtml(g.cat, g.items.length)+'<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+  }); }
   return html;
 }
 
@@ -1076,6 +1133,20 @@ function viewStats(){
     statTile("Photos captured", s.totalPhotos) +
   '</div>';
 
+  var breakdown = categoryBreakdown(null);
+  var savedByCat = {}; CATEGORIES.forEach(function(c){ savedByCat[c.id]=0; });
+  allRestaurants().forEach(function(r){ if(!visitsFor(r.id).length) savedByCat[categoryOf(r).id]++; });
+  var catsWithData = CATEGORIES.filter(function(c){
+    return breakdown.some(function(b){return b.cat.id===c.id;}) || savedByCat[c.id]>0;
+  });
+  if(catsWithData.length){
+    html += '<div class="section-title">By category</div>';
+    html += '<div class="grid-cards">'+catsWithData.map(function(c){
+      var b = breakdown.filter(function(x){return x.cat.id===c.id;})[0] || {cat:c, placeCount:0, visitCount:0, avgRating:null};
+      return categoryStatCardHtml(b, savedByCat[c.id]);
+    }).join('')+'</div>';
+  }
+
   var months = Object.keys(s.spendByMonth).sort();
   if(months.length){
     var max = Math.max.apply(null, months.map(function(m){return s.spendByMonth[m];}));
@@ -1114,6 +1185,8 @@ function viewWrapped(){
 
   var slides = [];
   slides.push({k:"Meals logged together", big:String(s.totalVisits), foot:s.restaurantCount+" different restaurants"});
+  var yearBreakdown = categoryBreakdown(state.wrappedYear);
+  if(yearBreakdown.length>1) slides.push({k:"By category", breakdown:yearBreakdown});
   if(s.topRestaurant) slides.push({k:"Most visited", big:s.topRestaurant.name, foot:s.topRestaurantCount+" visits this year"});
   if(s.topCuisine) slides.push({k:"Top cuisine", big:s.topCuisine.key, foot:s.topCuisine.count+" meals"});
   if(s.avgRating!=null) slides.push({k:"Average rating", big:s.avgRating.toFixed(1)+" ★", foot:"across every visit logged"});
@@ -1127,7 +1200,16 @@ function viewWrapped(){
 
   wrappedSlideIdx = clamp(wrappedSlideIdx,0,slides.length-1);
   var sl = slides[wrappedSlideIdx];
-  html += '<div class="wrap-slide"><div class="k">'+esc(sl.k)+'</div><div class="big">'+esc(sl.big)+'</div><div class="foot">'+esc(sl.foot)+'</div></div>';
+  if(sl.breakdown){
+    html += '<div class="wrap-slide"><div class="k">'+esc(sl.k)+'</div>'+
+      '<div style="display:flex;flex-direction:column;gap:10px;margin:14px auto 0;width:100%;max-width:320px;">'+
+      sl.breakdown.map(function(b){
+        return '<div style="display:flex;justify-content:space-between;align-items:center;font-size:16px;"><span>'+b.cat.icon+' '+esc(b.cat.label)+'</span><span class="mono">'+b.visitCount+' visit'+(b.visitCount!==1?'s':'')+'</span></div>';
+      }).join('')+
+      '</div></div>';
+  } else {
+    html += '<div class="wrap-slide"><div class="k">'+esc(sl.k)+'</div><div class="big">'+esc(sl.big)+'</div><div class="foot">'+esc(sl.foot)+'</div></div>';
+  }
   html += '<div class="wrap-nav">'+
     '<button class="btn small" data-wrap-prev="1">‹ Prev</button>'+
     slides.map(function(_,i){return '<button class="wrap-dot'+(i===wrappedSlideIdx?' on':'')+'" data-wrap-dot="'+i+'"></button>';}).join('')+
