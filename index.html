@@ -23,6 +23,7 @@
   --olive:#4d6640; --olive-soft:#dfe6d5;
   --gold:#b3811f; --gold-soft:#f0e2c2;
   --shadow: 0 1px 2px rgba(42,36,32,.06), 0 8px 24px -12px rgba(42,36,32,.18);
+  --shadow-lift: 0 4px 8px rgba(42,36,32,.1), 0 20px 36px -14px rgba(42,36,32,.28);
   --radius: 14px;
   color-scheme: light;
 }
@@ -35,6 +36,7 @@
     --olive:#8fae7c; --olive-soft:#2a331f;
     --gold:#dcb15c; --gold-soft:#3a2f18;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    --shadow-lift: 0 4px 10px rgba(0,0,0,.4), 0 22px 40px -14px rgba(0,0,0,.65);
   }
 }
 :root[data-theme="dark"]{
@@ -110,14 +112,18 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 
 /* cards / list */
 .grid-cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px;}
-.rcard{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; cursor:pointer;}
-.rcard:hover{border-color:var(--ink-faint);}
+.rcard{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; cursor:pointer; transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease, border-color .22s ease;}
+.rcard:hover{border-color:var(--accent); box-shadow:var(--shadow-lift); transform:translateY(-5px) scale(1.015);}
+.rcard:active{transform:translateY(-2px) scale(1.005); transition-duration:.08s;}
 .rcard .photo{height:150px; background:var(--surface-2); position:relative; overflow:hidden;}
-.rcard .photo img{width:100%; height:100%; object-fit:cover; display:block;}
-.rcard .photo .noimg{width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:28px;}
+.rcard .photo img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .35s ease;}
+.rcard:hover .photo img{transform:scale(1.08);}
+.rcard .photo .noimg{width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:28px; transition:transform .35s ease;}
+.rcard:hover .photo .noimg{transform:scale(1.12);}
 .fav-badge{position:absolute; top:8px; right:8px; width:27px; height:27px; border-radius:50%; background:var(--surface); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:13px;}
 .del-badge{position:absolute; top:8px; left:8px; width:27px; height:27px; border-radius:50%; background:var(--surface); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:13px; border:none; padding:0; z-index:2;}
 .del-badge:hover{background:var(--accent-soft); color:var(--accent);}
+.recent-badge{position:absolute; bottom:8px; left:8px; padding:3px 9px; border-radius:99px; background:rgba(20,16,12,.65); color:#fff6ef; font-size:10.5px; font-weight:700; letter-spacing:.02em; backdrop-filter:blur(2px);}
 .fav-heart{color:var(--accent);}
 .rcard .body{padding:12px 13px 14px; display:flex; flex-direction:column; gap:6px;}
 .rcard .name{font-family:'Fraunces',serif; font-weight:600; font-size:16.5px; line-height:1.2;}
@@ -414,6 +420,17 @@ function categoryStatCardHtml(b, savedCount){
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
 function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];}); }
 function fmtDate(d){ if(!d) return ""; var dt=new Date(d+"T00:00:00"); if(isNaN(dt)) return d; return dt.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }
+function relativeDate(d){
+  if(!d) return "";
+  var dt = new Date(d+"T00:00:00"); if(isNaN(dt)) return d;
+  var today = new Date(); today.setHours(0,0,0,0);
+  var diffDays = Math.round((today-dt)/86400000);
+  if(diffDays<=0) return "Today";
+  if(diffDays===1) return "Yesterday";
+  if(diffDays<7) return diffDays+"d ago";
+  if(diffDays<30) return Math.floor(diffDays/7)+"w ago";
+  return fmtDate(d);
+}
 function monthKey(d){ return d ? d.slice(0,7) : ""; }
 function todayStr(){ var d=new Date(); return d.toISOString().slice(0,10); }
 function clamp(n,a,b){ return Math.max(a,Math.min(b,n)); }
@@ -787,6 +804,7 @@ function restaurantCard(r, opts){
   return '<div class="rcard" data-open-restaurant="'+r.id+'">'+
     '<div class="photo">'+(photo? '<img src="'+photo+'" loading="lazy">' : '<div class="noimg">'+categoryOf(r).icon+'</div>')+(r.favorite?'<span class="fav-badge">♥</span>':'')+
       (opts.quickDelete?'<button type="button" class="del-badge" data-delete-restaurant="'+r.id+'" title="Remove">✕</button>':'')+
+      (opts.dateBadge?'<span class="recent-badge">'+esc(opts.dateBadge)+'</span>':'')+
     '</div>'+
     '<div class="body">'+
       '<div class="name">'+esc(r.name)+(r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
@@ -822,7 +840,7 @@ function viewBrowse(){
   var nbhds = distinctNeighborhoods(state.filters.city);
   var html = '';
   html += '<div class="page-head"><div><h1>Browse</h1><div class="sub">'+list.length+' place'+(list.length!==1?'s':'')+' logged together</div></div>'+
-    '<div class="viewtoggle"><button data-browse-mode="list" class="'+(state.browseMode==="list"?"active":"")+'">☰ List</button><button data-browse-mode="map" class="'+(state.browseMode==="map"?"active":"")+'">◎ Map</button></div></div>';
+    '<div class="viewtoggle"><button data-browse-mode="list" class="'+(state.browseMode==="list"?"active":"")+'">▦ Grid</button><button data-browse-mode="map" class="'+(state.browseMode==="map"?"active":"")+'">◎ Map</button></div></div>';
 
   html += '<div class="toolbar">'+
     '<div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search restaurants, dishes, cuisines, neighbourhoods…" value="'+esc(state.search)+'"></div>'+
@@ -853,11 +871,24 @@ function viewBrowse(){
   if(!list.length){
     html += emptyState("🍜","Nothing here yet","Log your first visit or add a place you want to try.");
   } else if(state.browseMode==="list"){
-    html += '<div>'+list.map(restaurantRow).join('')+'</div>';
+    html += recentLogsShelfHtml(list);
+    groupRestaurantsByCategory(list).forEach(function(g){
+      html += '<div class="section-title">'+g.cat.icon+' '+esc(g.cat.label)+' ('+g.items.length+')</div>';
+      html += '<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
+    });
   } else {
     html += mapView(list);
   }
   return html;
+}
+function recentLogsShelfHtml(list){
+  var recent = list.filter(function(r){ return visitsFor(r.id).length>0; })
+    .slice().sort(function(a,b){ return (lastVisitDate(b.id)||"").localeCompare(lastVisitDate(a.id)||""); })
+    .slice(0,8);
+  if(!recent.length) return '';
+  return '<div class="section-title">Recently logged</div><div class="shelf">'+recent.map(function(r){
+    return restaurantCard(r, {dateBadge: relativeDate(lastVisitDate(r.id))});
+  }).join('')+'</div>';
 }
 function selectField(id,label,options,value,fmt){
   return '<div class="field"><label>'+label+'</label><select id="'+id+'">'+options.map(function(o){
