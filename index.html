@@ -139,6 +139,8 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 .del-badge{position:absolute; top:8px; left:8px; width:27px; height:27px; border-radius:50%; background:var(--surface); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:13px; border:none; padding:0; z-index:2;}
 .del-badge:hover{background:var(--accent-soft); color:var(--accent);}
 .recent-badge{position:absolute; bottom:8px; left:8px; padding:3px 9px; border-radius:99px; background:rgba(20,16,12,.65); color:#fff6ef; font-size:10.5px; font-weight:700; letter-spacing:.02em; backdrop-filter:blur(2px);}
+.log-badge{position:absolute; bottom:8px; right:8px; width:30px; height:30px; border-radius:50%; background:var(--accent); color:var(--accent-ink); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:700; border:none; padding:0; cursor:pointer; transition:transform .15s ease, filter .15s ease; z-index:2;}
+.log-badge:hover{transform:scale(1.12); filter:brightness(1.06);}
 .fav-heart{color:var(--accent);}
 .rcard .body{padding:10px 13px 12px; display:flex; flex-direction:column; gap:5px;}
 .rcard .name{font-family:'Fraunces',serif; font-weight:600; font-size:16.5px; line-height:1.2;}
@@ -861,6 +863,7 @@ function restaurantCard(r, opts){
     '<div class="photo">'+(photo? '<img src="'+photo+'" loading="lazy">' : categoryNoimgHtml(r))+(r.favorite?'<span class="fav-badge">♥</span>':'')+
       (opts.quickDelete?'<button type="button" class="del-badge" data-delete-restaurant="'+r.id+'" title="Remove">✕</button>':'')+
       (opts.dateBadge?'<span class="recent-badge">'+esc(opts.dateBadge)+'</span>':'')+
+      '<button type="button" class="log-badge" data-log-visit-for="'+r.id+'" title="Log a visit">+</button>'+
     '</div>'+
     '<div class="body">'+
       '<div class="name">'+esc(r.name)+(r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
@@ -1182,7 +1185,7 @@ function viewTripDetail(t){
 
 /* ---------- STATS ---------- */
 function computeStats(filterYear){
-  var visits = allVisits().filter(function(v){ return !filterYear || (v.date||"").slice(0,4)===filterYear; });
+  var visits = allVisits().filter(function(v){ return v.restaurantId && (!filterYear || (v.date||"").slice(0,4)===filterYear); });
   var visitedRids = {}; visits.forEach(function(v){visitedRids[v.restaurantId]=1;});
   var restaurantCount = Object.keys(visitedRids).length;
   var cuisineCount = {}, neighborhoodCount = {}, restCount = {};
