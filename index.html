@@ -213,7 +213,7 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 
 /* modal */
 .overlay{position:fixed; inset:0; background:rgba(20,16,12,.5); display:flex; align-items:flex-start; justify-content:center; padding:calc(40px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left)); overflow-y:auto; z-index:100;}
-.modal{background:var(--surface); border-radius:18px; max-width:640px; width:100%; box-shadow:var(--shadow); border:1px solid var(--line); margin-bottom:40px;}
+.modal{background:var(--surface); border-radius:18px; max-width:640px; width:100%; box-shadow:var(--shadow); border:1px solid var(--line); margin-bottom:40px; overflow:hidden;}
 .modal-head{display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--line-soft);}
 .modal-head h2{font-size:19px;}
 .modal-body{padding:20px 22px; display:flex; flex-direction:column; gap:16px; max-height:70vh; overflow-y:auto;}
@@ -253,11 +253,21 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 .wr-row button.on-no{background:var(--accent-soft); color:var(--accent); border-color:transparent;}
 
 /* detail drawer */
-.detail-hero{position:relative; height:220px; background:var(--surface-2);}
-.detail-hero img{width:100%; height:100%; object-fit:cover;}
-.visit-item{border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px; background:var(--surface);}
+.detail-hero{position:relative; height:200px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:5px; color:#fff6ef;}
+.detail-hero img{width:100%; height:100%; object-fit:cover; position:absolute; inset:0;}
+.detail-hero .dh-icon{font-size:50px; line-height:1;}
+.detail-hero .dh-cat{font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; opacity:.85;}
+button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
+.detail-cta{width:100%; justify-content:center; padding:13px 16px; font-size:14.5px;}
+.detail-actions-secondary{display:flex; gap:8px; flex-wrap:wrap;}
+.tag-accent{background:var(--accent-soft) !important; color:var(--accent) !important;}
+.detail-note{background:var(--surface-2); border-left:3px solid var(--accent); border-radius:0 10px 10px 0; padding:10px 14px; margin:0; font-family:'Fraunces',serif; font-style:italic; font-size:14px; color:var(--ink-soft); line-height:1.45;}
+.btn-text-danger{background:none; border:none; color:var(--ink-faint); font-size:12px; cursor:pointer; padding:4px 2px; text-decoration:underline; text-underline-offset:2px; align-self:flex-start;}
+.btn-text-danger:hover{color:var(--accent);}
+.visit-item{border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px; background:var(--surface); transition:border-color .18s ease, box-shadow .18s ease;}
+.visit-item:hover{border-color:var(--ink-faint); box-shadow:var(--shadow);}
 .visit-item .vhead{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;}
-.visit-item .vdate{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-faint);}
+.visit-item .vdate{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-faint); background:var(--surface-2); padding:3px 8px; border-radius:6px;}
 .visit-photos{display:flex; gap:6px; margin-top:8px;}
 .visit-photos img{width:64px; height:64px; object-fit:cover; border-radius:8px; cursor:zoom-in;}
 
@@ -296,6 +306,15 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
   .listrow .main-col{flex-basis:0;}
   .listrow .right-col{flex-basis:100%; flex-wrap:wrap; justify-content:flex-start; margin-left:58px;}
   #leafletMap{height:70vh; min-height:320px;}
+  .grid-cards{grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px;}
+  .rcard .photo{height:76px;}
+  .rcard .photo .noimg{font-size:20px;}
+  .rcard .body{padding:8px 10px 10px; gap:4px;}
+  .rcard .name{font-size:14px; line-height:1.25;}
+  .rcard .meta{font-size:10.5px;}
+  .rcard .tag{font-size:9.5px; padding:2px 6px;}
+  .rcard .badge{font-size:9px; padding:2px 6px;}
+  .shelf .rcard{min-width:172px;}
 }
 </style>
 </head>
@@ -399,6 +418,11 @@ var CATEGORY_VISIT_FIELDS = {
   other: []
 };
 var NOTES_LABEL = {food:"Food notes", shopping:"Store notes", experiences:"Experience notes", outdoors:"Experience notes", other:"Notes"};
+function shortAddress(r){
+  if(!r.address) return "";
+  var parts = r.address.split(",").map(function(s){return s.trim();}).filter(Boolean);
+  return parts.slice(0,2).join(", ");
+}
 function categoryNoimgHtml(r){
   var c = categoryOf(r);
   return '<div class="noimg cat-bg-'+c.id+'">'+c.icon+'</div>';
@@ -1293,24 +1317,24 @@ function renderRestaurantDetail(rid){
   var score = restaurantScore(rid);
   var hero = firstPhotoFor(rid);
   var rcat = categoryOf(r);
-  var body = '<div class="detail-hero">'+(hero?'<img src="'+hero+'">':'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:44px;color:var(--ink-faint);">'+rcat.icon+'</div>')+'</div>'+
-    '<div class="modal-body">'+
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">'+
-      '<div><h2 style="font-size:22px;">'+esc(r.name)+'</h2><div class="sub" style="color:var(--ink-soft);font-size:13px;margin-top:3px;">'+rcat.icon+' '+esc(r.placeType||rcat.label)+' · '+esc(r.neighborhood||"")+(r.city?', '+esc(r.city):'')+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+'</div>'+(r.address?'<div class="sub" style="color:var(--ink-faint);font-size:12px;margin-top:2px;">'+esc(r.address)+'</div>':'')+'</div>'+
-      '<button class="btn small" data-toggle-fav="'+rid+'">'+(r.favorite?'♥ Favourited':'♡ Favourite')+'</button>'+
+  var body = '<div class="detail-hero'+(hero?'':' cat-bg-'+rcat.id)+'">'+
+      (hero?'<img src="'+hero+'">':'<div class="dh-icon">'+rcat.icon+'</div><div class="dh-cat">'+esc(rcat.label)+'</div>')+
+      '<button type="button" class="fav-badge" data-toggle-fav="'+rid+'" title="'+(r.favorite?"Remove favourite":"Mark favourite")+'">'+(r.favorite?'♥':'♡')+'</button>'+
     '</div>'+
+    '<div class="modal-body">'+
+    '<div><h2 style="font-size:24px;">'+esc(r.name)+'</h2><div class="sub" style="color:var(--ink-soft);font-size:13px;margin-top:4px;">'+rcat.icon+' '+esc(r.placeType||rcat.label)+' · '+esc(r.neighborhood||"")+(r.city?', '+esc(r.city):'')+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+'</div>'+(r.address?'<div class="sub" style="color:var(--ink-faint);font-size:12px;margin-top:2px;">'+esc(shortAddress(r))+'</div>':'')+'</div>'+
     (score!=null? '<div>'+renderStarsDisplay(score,"lg")+' <span class="mono" style="font-size:13px;color:var(--ink-soft);">'+score.toFixed(1)+'</span></div>' : '')+
-    '<div class="tagrow">'+(r.cuisines||[]).map(function(c){return '<span class="tag">'+esc(c)+'</span>';}).join('')+(r.tags||[]).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('')+'</div>'+
-    (r.notes?'<p style="font-size:13.5px;color:var(--ink-soft);">'+esc(r.notes)+'</p>':'')+
-    '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
-      '<button class="btn small primary" data-log-visit-for="'+rid+'">+ Log a visit</button>'+
-      '<button class="btn small" data-edit-restaurant="'+rid+'">Edit details</button>'+
-      '<button class="btn small" data-addto-list-for="'+rid+'">Add to list</button>'+
-      (r.tripId ? '<span class="chip">On trip: '+esc((state.trips[r.tripId]||{}).destination||"")+'</span>' : '<button class="btn small" data-assign-trip="'+rid+'">Assign to trip</button>')+
-      '<button class="btn small danger" data-delete-restaurant="'+rid+'">Delete restaurant</button>'+
+    '<div class="tagrow">'+(r.cuisines||[]).map(function(c){return '<span class="tag tag-accent">'+esc(c)+'</span>';}).join('')+(r.tags||[]).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('')+'</div>'+
+    (r.notes?'<p class="detail-note">'+esc(r.notes)+'</p>':'')+
+    '<button class="btn primary detail-cta" data-log-visit-for="'+rid+'">+ Log a visit</button>'+
+    '<div class="detail-actions-secondary">'+
+      '<button class="btn small ghost" data-edit-restaurant="'+rid+'">Edit details</button>'+
+      '<button class="btn small ghost" data-addto-list-for="'+rid+'">Add to list</button>'+
+      (r.tripId ? '<span class="chip">On trip: '+esc((state.trips[r.tripId]||{}).destination||"")+'</span>' : '<button class="btn small ghost" data-assign-trip="'+rid+'">Assign to trip</button>')+
     '</div>'+
     '<div class="section-title" style="margin-top:6px;">Visits ('+vs.length+')</div>'+
     (vs.length ? vs.map(visitItemHtml).join('') : '<p style="font-size:13px;color:var(--ink-faint);">No visits logged yet — this is on your want-to-try list.</p>')+
+    '<button type="button" class="btn-text-danger" data-delete-restaurant="'+rid+'">Delete this place</button>'+
     '</div>';
   return body;
 }
