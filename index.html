@@ -21,7 +21,7 @@
   --accent:#C8446A; --accent-ink:#FFFFFF; --accent-soft:#FBE3EA;
   --olive:#2F6B4F; --olive-soft:#DCF0E4;
   --gold:#9A6512; --gold-soft:#FBEFC6;
-  --star:#E89A2C; --honey-ink:#B36B12;
+  --star:#E89A2C; --honey-ink:#B36B12; --tape:rgba(240,222,178,.8); --note-pill:rgba(255,255,255,.62);
   --tint-1:#FDE3D2; --tint-2:#D9F0E4; --tint-3:#E7DEF7; --tint-4:#FBEFC6; --tint-5:#D8E9F7;
   --shadow: 0 1px 2px rgba(51,40,58,.05), 0 8px 24px -12px rgba(51,40,58,.16);
   --shadow-lift: 0 4px 10px rgba(51,40,58,.08), 0 20px 36px -14px rgba(51,40,58,.24);
@@ -36,7 +36,7 @@
     --accent:#F07FA0; --accent-ink:#2A0F18; --accent-soft:#3A2231;
     --olive:#8FD1AE; --olive-soft:#213329;
     --gold:#F5BE5E; --gold-soft:#38331F;
-    --star:#F5BE5E; --honey-ink:#F5BE5E;
+    --star:#F5BE5E; --honey-ink:#F5BE5E; --tape:rgba(140,118,80,.55); --note-pill:rgba(0,0,0,.3);
     --tint-1:#3A2A26; --tint-2:#213329; --tint-3:#2C2640; --tint-4:#38331F; --tint-5:#22303D;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
     --shadow-lift: 0 4px 10px rgba(0,0,0,.4), 0 22px 40px -14px rgba(0,0,0,.65);
@@ -50,7 +50,7 @@
   --accent:#F07FA0; --accent-ink:#2A0F18; --accent-soft:#3A2231;
   --olive:#8FD1AE; --olive-soft:#213329;
   --gold:#F5BE5E; --gold-soft:#38331F;
-  --star:#F5BE5E; --honey-ink:#F5BE5E;
+  --star:#F5BE5E; --honey-ink:#F5BE5E; --tape:rgba(140,118,80,.55); --note-pill:rgba(0,0,0,.3);
   --tint-1:#3A2A26; --tint-2:#213329; --tint-3:#2C2640; --tint-4:#38331F; --tint-5:#22303D;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
   --shadow-lift: 0 4px 10px rgba(0,0,0,.4), 0 22px 40px -14px rgba(0,0,0,.65);
@@ -86,7 +86,7 @@ button{cursor:pointer;}
 .nav-btn{display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:9px; border:none; background:transparent; color:var(--ink-soft); font-size:14.5px; font-weight:600; text-align:left;}
 .nav-btn:hover{background:var(--surface-2); color:var(--ink);}
 .nav-btn.active{background:var(--accent-soft); color:var(--accent);}
-.nav-btn .ic{width:18px; text-align:center; font-size:15px;}
+.nav-btn .ic{width:18px; height:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
 .nav-sep{height:1px; background:var(--line-soft); margin:8px 4px;}
 .sidebar-foot{margin-top:auto; display:flex; flex-direction:column; gap:8px;}
 .profile-switch{display:flex; gap:6px; background:var(--surface-2); border-radius:10px; padding:4px;}
@@ -94,6 +94,8 @@ button{cursor:pointer;}
 .profile-pill.active{background:var(--surface); color:var(--accent); box-shadow:var(--shadow);}
 .icon-btn{border:1px solid var(--line); background:var(--surface); border-radius:9px; padding:8px; color:var(--ink-soft); font-size:13px;}
 .icon-btn:hover{color:var(--ink); border-color:var(--ink-faint);}
+.icon-btn svg{display:block;}
+#btnSettings{display:flex; align-items:center; gap:8px;}
 
 /* Main */
 .main{flex:1; min-width:0; padding:26px 34px 60px;}
@@ -120,47 +122,19 @@ button{cursor:pointer;}
 .search-box input{width:100%; padding:10px 12px 10px 34px; border-radius:10px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:16px;}
 .search-box .sicon{position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--ink-faint); display:flex; pointer-events:none;}
 select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:16px; font-weight:600;}
-.chiprow{display:flex; gap:7px; flex-wrap:wrap; margin:0 0 16px;}
 .chip{padding:5px 11px; border-radius:99px; background:var(--surface-2); border:1px solid var(--line-soft); font-size:12px; font-weight:700; color:var(--ink-soft); display:inline-flex; align-items:center; gap:6px;}
 .chip.on{background:var(--accent-soft); color:var(--accent); border-color:transparent;}
 .chip button{background:none; border:none; color:inherit; font-size:12px; padding:0; line-height:1;}
-.filter-panel{display:flex; flex-wrap:wrap; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:16px;}
-.filter-panel label{display:flex; flex-direction:column; gap:5px; font-size:11px; font-weight:700; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.03em;}
 
 /* cards / list */
 .grid-cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px;}
-.rcard{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; cursor:pointer; transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease, border-color .22s ease;}
-.rcard:hover{border-color:var(--accent); box-shadow:var(--shadow-lift); transform:translateY(-5px) scale(1.015);}
-.rcard:active{transform:translateY(-2px) scale(1.005); transition-duration:.08s;}
-.rcard .photo{height:92px; background:var(--surface-2); position:relative; overflow:hidden;}
-.rcard .photo img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .35s ease;}
-.rcard:hover .photo img{transform:scale(1.08);}
-.rcard .photo .noimg{width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:var(--ink); font-size:26px; transition:transform .35s ease;}
-.rcard:hover .photo .noimg{transform:scale(1.12);}
 .tint-1,.cat-bg-food{background:var(--tint-1);}
 .tint-2,.cat-bg-outdoors{background:var(--tint-2);}
 .tint-3,.cat-bg-shopping{background:var(--tint-3);}
 .tint-4,.cat-bg-experiences,.cat-bg-list{background:var(--tint-4);}
 .tint-5,.cat-bg-other{background:var(--tint-5);}
-.cat-section{margin-bottom:6px;}
-.cat-header{display:flex; align-items:center; gap:12px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin:26px 0 16px; cursor:pointer; text-align:left; box-shadow:var(--shadow); transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;}
-.cat-section:first-child .cat-header{margin-top:0;}
-.cat-header:hover{border-color:var(--accent); box-shadow:var(--shadow-lift); transform:translateY(-1px);}
-.cat-header .ch-icon{width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; color:var(--ink);}
-.cat-header .ch-label{font-family:'Fraunces',serif; font-weight:700; font-size:19px; color:var(--ink); flex:1;}
-.cat-header .ch-count{font-size:12.5px; font-weight:700; color:var(--ink-soft); background:var(--surface-2); padding:4px 11px; border-radius:99px;}
-.cat-header .ch-chevron{font-size:14px; color:var(--ink-faint); transition:transform .22s ease; margin-left:2px;}
-.cat-header.collapsed .ch-chevron{transform:rotate(-90deg);}
 .fav-badge{position:absolute; top:8px; right:8px; width:27px; height:27px; border-radius:50%; background:var(--surface); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:13px;}
-.del-badge{position:absolute; top:8px; left:8px; width:27px; height:27px; border-radius:50%; background:var(--surface); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:13px; border:none; padding:0; z-index:2;}
-.del-badge:hover{background:var(--accent-soft); color:var(--accent);}
-.recent-badge{position:absolute; bottom:8px; left:8px; padding:0 9px; border-radius:99px; background:var(--surface); color:var(--ink); font-family:'Caveat',cursive; font-size:16px; font-weight:600; line-height:1.45; box-shadow:var(--shadow);}
-.log-badge{position:absolute; bottom:8px; right:8px; width:30px; height:30px; border-radius:50%; background:var(--accent); color:var(--accent-ink); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:700; border:none; padding:0; cursor:pointer; transition:transform .15s ease, filter .15s ease; z-index:2;}
-.log-badge:hover{transform:scale(1.12); filter:brightness(1.06);}
 .fav-heart{color:var(--accent);}
-.rcard .body{padding:10px 13px 12px; display:flex; flex-direction:column; gap:5px;}
-.rcard .name{font-family:'Fraunces',serif; font-weight:600; font-size:16.5px; line-height:1.2;}
-.rcard .meta{font-size:12px; color:var(--ink-soft);}
 .badge{font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:99px;}
 .badge.yes{background:var(--olive-soft); color:var(--olive);}
 .badge.maybe{background:var(--gold-soft); color:var(--gold);}
@@ -168,14 +142,6 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 .tagrow{display:flex; gap:5px; flex-wrap:wrap;}
 .tag{font-size:10.5px; font-weight:700; color:var(--ink-soft); background:var(--surface-2); padding:3px 7px; border-radius:6px;}
 
-.listrow{display:flex; align-items:center; gap:14px; padding:12px 14px; background:var(--surface); border:1px solid var(--line); border-radius:12px; margin-bottom:9px; cursor:pointer;}
-.listrow:hover{border-color:var(--ink-faint);}
-.listrow .thumb{width:54px; height:54px; border-radius:9px; background:var(--surface-2); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--ink-faint);}
-.listrow .thumb img{width:100%; height:100%; object-fit:cover;}
-.listrow .main-col{flex:1; min-width:0;}
-.listrow .name{font-family:'Fraunces',serif; font-weight:600; font-size:15.5px;}
-.listrow .meta{font-size:12px; color:var(--ink-soft); margin-top:2px;}
-.listrow .right-col{display:flex; align-items:center; gap:14px; flex-shrink:0;}
 
 /* stars */
 .stars{display:inline-flex; gap:2px; vertical-align:middle;}
@@ -192,23 +158,11 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 .empty .emoji{font-size:38px; margin-bottom:10px;}
 .empty h3{font-size:19px; margin-bottom:6px; color:var(--ink);}
 
-/* stat tiles */
-.stat-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-bottom:24px;}
-.stat-tile{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow);}
-.stat-tile .lbl{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); margin-bottom:8px;}
-.stat-tile .val{font-family:'Fraunces',serif; font-size:26px; font-weight:600; line-height:1.1;}
-.stat-tile .sub{font-size:12px; color:var(--ink-soft); margin-top:4px;}
 
 /* map */
-.mapwrap{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:0; overflow:hidden; box-shadow:var(--shadow);}
-.mapnote{padding:10px 16px; font-size:12px; color:var(--ink-faint); border-bottom:1px solid var(--line-soft); background:var(--surface-2);}
-#browseMap{height:560px; width:100%; background:var(--surface-2); position:relative;}
 .gmap-fill{width:100%; height:100%;}
 .map-error{display:flex; align-items:center; justify-content:center; height:100%; padding:16px; text-align:center; font-size:13px; color:var(--ink-soft);}
 .gm-style{font-family:'Nunito',system-ui,sans-serif;}
-.gm-style .gm-style-iw-c{background:var(--surface); color:var(--ink); padding:0 !important; border-radius:12px !important; box-shadow:var(--shadow-lift) !important;}
-.gm-style .gm-style-iw-d{overflow:auto !important; padding:0 !important;}
-.gm-style .gm-style-iw-tc::after{background:var(--surface);}
 .geo-search-wrap{position:relative;}
 .geo-suggestions{position:absolute; top:100%; left:0; right:0; margin-top:4px; background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); z-index:5; max-height:240px; overflow-y:auto; display:none;}
 .geo-suggestions.open{display:block;}
@@ -298,14 +252,10 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 
 .section-title{font-family:'Caveat',cursive; font-size:25px; font-weight:600; color:var(--accent); margin:24px 0 10px; line-height:1.1;}
 .section-title:first-child{margin-top:0;}
-.subsection-title{font-size:12.5px; font-weight:700; color:var(--ink-soft); margin:16px 0 8px 2px;}
-.subsection-title:first-of-type{margin-top:4px;}
 .cat-stat-card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:var(--shadow);}
 .cat-stat-card .cs-head{display:flex; align-items:center; gap:8px; font-family:'Fraunces',serif; font-weight:600; font-size:15px; margin-bottom:10px;}
 .cat-stat-card .cs-row{display:flex; justify-content:space-between; font-size:13px; color:var(--ink-soft); padding:6px 0; border-top:1px solid var(--line-soft);}
 .cat-stat-card .cs-row:first-of-type{border-top:none;}
-.shelf{display:flex; gap:14px; overflow-x:auto; padding-bottom:6px;}
-.shelf .rcard{min-width:210px;}
 
 /* journal */
 .journal-sub{font-family:'Caveat',cursive; font-size:23px; font-weight:600; color:var(--accent); margin-top:2px;}
@@ -364,7 +314,6 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .stamp.done::after{content:"✓"; position:absolute; right:-4px; bottom:-4px; width:20px; height:20px; border-radius:50%; background:var(--accent); color:var(--accent-ink); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center;}
 .stamp:hover{transform:scale(1.12) rotate(0deg);}
 .stamp-caption{font-family:'Caveat',cursive; font-size:20px; font-weight:600; color:var(--ink-soft); margin-top:8px;}
-#tripMap{height:260px; width:100%; background:var(--surface-2); position:relative;}
 .bucket-item{display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:8px; transition:transform .2s ease, box-shadow .2s ease, border-color .15s ease;}
 .bi-box{width:22px; height:22px; border:2px solid var(--line); border-radius:6px; flex-shrink:0;}
 .bi-main{flex:1; min-width:0; cursor:pointer;}
@@ -375,6 +324,192 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .bucket-item.picked .bi-main::after{content:"how about this one?"; display:block; font-family:'Caveat',cursive; font-size:19px; font-weight:600; color:var(--accent);}
 .trip-day{display:flex; align-items:center; gap:12px; margin:22px 0 10px; font-family:'Caveat',cursive; font-size:26px; font-weight:600;}
 .trip-day::after{content:""; flex:1; height:1px; background:var(--line);}
+
+/* people: Kat is rose, Albie is sky, everywhere a person shows up */
+.who-dot{width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-family:'Nunito',sans-serif; font-size:10px; font-weight:800; flex-shrink:0;}
+.who-a{background:var(--accent-soft); color:var(--accent);}
+.who-b{background:var(--tint-5); color:#2E5A86;}
+:root[data-theme="dark"] .who-b{color:#A9CBEB;}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .who-b{color:#A9CBEB;} }
+
+/* pinboard */
+.board-toolbar .btn{padding:9px 14px;}
+.bchips{display:flex; gap:7px; overflow-x:auto; padding:2px 2px 8px; margin:0 -2px 4px; scrollbar-width:none;}
+.bchips::-webkit-scrollbar{display:none;}
+.bchip{flex-shrink:0; display:inline-flex; align-items:center; gap:5px; padding:6px 13px; border-radius:99px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); font-size:13px; font-weight:700; white-space:nowrap;}
+.bchip:hover{border-color:var(--ink-faint); color:var(--ink);}
+.bchip.on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink);}
+.bchip .n{font-weight:600; opacity:.7;}
+.bchips .sep{flex-shrink:0; width:1px; background:var(--line); margin:5px 3px;}
+.board-hint{font-family:'Caveat',cursive; font-size:21px; font-weight:600; color:var(--ink-soft); margin:4px 0 8px;}
+.board-zone{display:flex; align-items:center; gap:10px; margin:22px 0 2px; font-family:'Caveat',cursive; font-size:34px; font-weight:600; color:var(--ink); line-height:1.1;}
+.board-zone .bz-count{font-family:'Nunito',sans-serif; font-size:13px; font-weight:800; color:var(--ink-soft); background:var(--surface-2); border-radius:99px; padding:3px 10px;}
+.board-area{display:flex; align-items:center; gap:10px; margin:14px 0 14px; font-family:'Caveat',cursive; font-size:24px; font-weight:600; color:var(--ink-soft);}
+.board-area::after{content:""; flex:1; height:1px; background:var(--line);}
+.trip-tag{font-family:'Nunito',sans-serif; font-size:12px; font-weight:800; color:var(--accent); background:var(--accent-soft); border:none; border-radius:99px; padding:4px 10px;}
+.board-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:26px 18px; padding-top:10px; margin-bottom:10px;}
+.bitem{position:relative; cursor:pointer; transform:rotate(var(--tilt,0deg)); transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease;}
+.bitem:hover{transform:rotate(0deg) translateY(-4px) scale(1.02); box-shadow:var(--shadow-lift); z-index:3;}
+.bitem.flash{box-shadow:0 0 0 3px var(--accent), var(--shadow-lift);}
+.bitem.picked{transform:rotate(0deg) scale(1.03); box-shadow:0 0 0 3px var(--accent), var(--shadow-lift); z-index:3;}
+.pick-label{font-family:'Caveat',cursive; font-size:20px; font-weight:600; color:var(--accent); line-height:1.1; margin-top:6px;}
+.tape-strip{position:absolute; top:-10px; left:50%; width:60px; height:19px; margin-left:-30px; background:var(--tape); transform:rotate(-4deg); z-index:2;}
+.heart-pin{position:absolute; top:-11px; left:50%; width:24px; height:24px; margin-left:-12px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; box-shadow:0 2px 5px rgba(0,0,0,.25); z-index:2;}
+.note{padding:20px 14px 12px; min-height:140px; display:flex; flex-direction:column; box-shadow:var(--shadow); color:var(--ink);}
+.n-name{font-family:'Caveat',cursive; font-size:26px; font-weight:600; line-height:1; color:var(--ink); overflow-wrap:anywhere;}
+.n-meta{font-size:12px; color:var(--ink-soft); margin-top:6px; line-height:1.35;}
+.added-by{display:flex; align-items:center; gap:5px; font-family:'Caveat',cursive; font-size:18px; font-weight:600; color:var(--ink-soft); margin-top:6px; line-height:1;}
+.n-foot{margin-top:auto; padding-top:10px; display:flex; justify-content:flex-end;}
+.n-went{border:none; background:var(--note-pill); color:var(--accent); font-size:12px; font-weight:800; padding:5px 10px; border-radius:99px;}
+.n-went:hover{background:var(--surface);}
+.km{font-size:11px; font-weight:800; color:var(--ink-soft);}
+.note > .km{position:absolute; top:8px; right:9px;}
+.polaroid-card{background:var(--surface); padding:8px 8px 12px; border:1px solid var(--line-soft); box-shadow:var(--shadow); color:var(--ink);}
+.p-img{position:relative; height:110px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:30px; background:var(--surface-2);}
+.p-img img{width:100%; height:100%; object-fit:cover; display:block;}
+.p-img .km{position:absolute; top:6px; right:6px; background:var(--surface); padding:1px 7px; border-radius:99px;}
+.p-name{font-family:'Fraunces',serif; font-size:15.5px; font-weight:500; line-height:1.2; margin-top:9px;}
+.p-stars{margin-top:4px;}
+.p-meta{font-size:11.5px; color:var(--ink-soft); margin-top:3px;}
+.where-opt{display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:14px 16px; border-radius:12px; border:1px solid var(--line); background:var(--surface-2); text-align:left; cursor:pointer;}
+.where-opt:hover{border-color:var(--accent); background:var(--accent-soft);}
+.where-opt .wo-name{font-family:'Fraunces',serif; font-size:16px; font-weight:600; color:var(--ink);}
+.where-opt .wo-count{font-family:'Caveat',cursive; font-size:19px; font-weight:600; color:var(--ink-soft);}
+.where-opt.near{background:var(--accent-soft); border-color:transparent;}
+.unplaced{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:14px; font-size:12.5px; color:var(--ink-soft);}
+.unplaced .chip{cursor:pointer;}
+
+/* maps, pinned to the board like a paper map */
+.map-legend{display:flex; gap:14px; align-items:center; font-family:'Caveat',cursive; font-size:19px; font-weight:600; color:var(--ink-soft); margin:2px 0 16px;}
+.lg-dot{display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:5px; vertical-align:-1px; border:2px solid var(--surface); box-shadow:0 1px 2px rgba(0,0,0,.3);}
+.lg-dot.been{background:var(--accent);}
+.lg-dot.try{background:var(--star);}
+.lg-heart{color:var(--accent);}
+.paper-map{position:relative; background:var(--surface); padding:8px; border:1px solid var(--line); border-radius:4px; box-shadow:var(--shadow);}
+.paper-map::before,.paper-map::after{content:""; position:absolute; top:-10px; width:76px; height:20px; background:var(--tape); z-index:5; pointer-events:none;}
+.paper-map::before{left:14px; transform:rotate(-6deg);}
+.paper-map::after{right:14px; transform:rotate(5deg);}
+#boardMap{height:62vh; min-height:340px; width:100%; background:var(--surface-2); position:relative; overflow:hidden;}
+#tripMap{height:300px; width:100%; background:var(--surface-2); position:relative; overflow:hidden;}
+.map-card{position:absolute; left:20px; right:20px; bottom:20px; z-index:6; max-width:360px; margin:0 auto;}
+.mc{position:relative; box-shadow:var(--shadow-lift); padding:14px 14px 12px;}
+.mc.note{min-height:0;}
+.mc-close{position:absolute; top:6px; right:6px; width:26px; height:26px; border-radius:50%; border:none; background:var(--note-pill); color:var(--ink-soft); font-size:12px; z-index:2;}
+.mc-body{display:flex; gap:12px; align-items:center; cursor:pointer; padding-right:26px;}
+.mc-photo{width:64px; height:64px; object-fit:cover; flex-shrink:0;}
+.mc-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:10px;}
+.pushpin{position:relative; width:24px; height:32px; cursor:pointer; transform-origin:50% 100%; transition:transform .15s ease;}
+.pp-head{position:absolute; top:0; left:2px; width:20px; height:20px; border-radius:50%; background:var(--accent); border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; line-height:1;}
+.pushpin.try .pp-head{background:var(--star);}
+.pp-needle{position:absolute; left:11px; top:19px; width:2px; height:13px; border-radius:1px; background:#7d7080;}
+.pushpin:hover,.pushpin.active{transform:scale(1.25);}
+.pushpin.bounce{animation:pin-bounce .6s ease 3;}
+@keyframes pin-bounce{0%,100%{transform:translateY(0) scale(1.25);} 45%{transform:translateY(-14px) scale(1.25);}}
+.me-dot{width:14px; height:14px; border-radius:50%; background:#3B82F6; border:3px solid #fff; box-shadow:0 0 0 6px rgba(59,130,246,.22);}
+
+/* lists, as notepad pages */
+.notepads{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:30px 20px; padding-top:12px;}
+.notepad{position:relative; display:block; width:100%; text-align:left; background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow); padding:22px 16px 36px 44px; min-height:200px; cursor:pointer; color:var(--ink); transform:rotate(var(--tilt,0deg)); transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease;}
+.notepad:hover{transform:rotate(0deg) translateY(-4px); box-shadow:var(--shadow-lift);}
+.notepad::before{content:""; position:absolute; top:0; bottom:0; left:31px; width:2px; background:var(--accent-soft);}
+.notepad.favs{background:var(--accent-soft);}
+.notepad.favs::before,.list-page.favs::before{background:var(--accent); opacity:.25;}
+.np-title{display:block; font-family:'Caveat',cursive; font-size:28px; font-weight:600; line-height:1.05; margin-bottom:8px;}
+.np-line{display:flex; align-items:center; gap:9px; font-family:'Caveat',cursive; font-size:21px; font-weight:500; line-height:1.1; padding:5px 0; border-bottom:1px solid var(--line); min-width:0;}
+.notepad.favs .np-line{border-bottom-color:rgba(200,68,106,.18);}
+.np-text{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.np-empty{color:var(--ink-faint);}
+.np-box{width:15px; height:15px; border:1.5px solid var(--ink-faint); border-radius:3px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; color:var(--accent); font-family:'Nunito',sans-serif; font-size:12px; font-weight:800; line-height:1;}
+.np-box.done{border-color:var(--accent);}
+.np-box.done::after{content:"✓";}
+.np-more{font-family:'Caveat',cursive; font-size:19px; color:var(--ink-faint); margin-top:6px;}
+.np-count{position:absolute; left:44px; bottom:12px; font-size:11.5px; font-weight:800; color:var(--ink-faint);}
+.np-new{display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:4px; border-style:dashed; box-shadow:none; background:transparent;}
+.np-new .np-title{color:var(--accent); margin:0;}
+.np-ideas{font-family:'Caveat',cursive; font-size:19px; color:var(--ink-faint); line-height:1.15;}
+.list-page{position:relative; background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow); padding:30px 22px 20px 60px; margin-top:6px;}
+.list-page.favs{background:var(--accent-soft);}
+.list-page::before{content:""; position:absolute; top:0; bottom:0; left:42px; width:2px; background:var(--accent-soft);}
+.lp-head{display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:10px;}
+.lp-title{font-family:'Caveat',cursive; font-size:42px; font-weight:600; line-height:1;}
+.lp-desc{font-family:'Caveat',cursive; font-size:21px; color:var(--ink-soft); margin-top:4px;}
+.lp-progress{font-size:12px; font-weight:800; color:var(--ink-faint); margin-top:6px;}
+.lp-actions{display:flex; gap:8px;}
+.lp-item{display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line);}
+.list-page.favs .lp-item{border-bottom-color:rgba(200,68,106,.18);}
+.lp-item .np-box{width:18px; height:18px; font-size:14px;}
+.lp-main{flex:1; min-width:0; cursor:pointer;}
+.lp-name{font-family:'Caveat',cursive; font-size:25px; font-weight:600; line-height:1.05;}
+.lp-meta{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+.lp-vote{border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); border-radius:99px; padding:4px 10px; font-size:12px; font-weight:800;}
+.lp-vote.on{background:var(--accent-soft); border-color:transparent; color:var(--accent);}
+.lp-remove{border:none; background:transparent; color:var(--ink-faint); font-size:13px; padding:6px;}
+.lp-remove:hover{color:var(--accent);}
+.lp-empty{font-family:'Caveat',cursive; font-size:22px; color:var(--ink-faint); padding:14px 0 6px;}
+
+/* stats, as a sticker book */
+.stickers{display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:14px; margin:4px 0 22px;}
+.stk{aspect-ratio:1; width:100%; max-width:118px; justify-self:center; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; transform:rotate(var(--tilt,0deg)); box-shadow:var(--shadow); border:3px solid var(--surface); color:var(--ink); transition:transform .2s ease;}
+.stk:hover{transform:rotate(0deg) scale(1.06);}
+.stk-n{font-family:'Fraunces',serif; font-size:32px; font-weight:500; line-height:1;}
+.stk-l{font-family:'Caveat',cursive; font-size:19px; font-weight:600; line-height:1; margin-top:2px; color:var(--ink-soft);}
+.unwrap{position:relative; overflow:hidden; display:flex; align-items:center; gap:14px; width:100%; padding:18px 22px; border:none; border-radius:16px; background:var(--accent); color:var(--accent-ink); text-align:left; cursor:pointer; box-shadow:var(--shadow); transition:transform .2s ease, box-shadow .2s ease;}
+.unwrap:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift);}
+.unwrap::before{content:""; position:absolute; top:0; bottom:0; right:64px; width:16px; background:rgba(255,255,255,.25);}
+.uw-bow{font-size:30px; position:relative;}
+.uw-title{display:block; font-family:'Fraunces',serif; font-size:21px; font-weight:600; line-height:1.15; position:relative;}
+.uw-sub{display:block; font-family:'Caveat',cursive; font-size:20px; font-weight:600; position:relative;}
+.uw-arrow{margin-left:auto; font-size:22px; font-weight:800; position:relative; width:40px; text-align:center;}
+.stats-duo{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:22px; align-items:start;}
+.critic{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:16px 18px; box-shadow:var(--shadow); margin-top:24px;}
+.critic .section-title{margin-top:0;}
+.cr-row{display:flex; align-items:center; justify-content:space-around; margin:6px 0 12px;}
+.cr-side{text-align:center;}
+.cr-av{width:46px; height:46px; border-radius:50%; margin:0 auto 6px; display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-size:20px; font-weight:600;}
+.cr-val{font-family:'Fraunces',serif; font-size:24px; font-weight:500;}
+.cr-star{color:var(--star); font-size:18px;}
+.cr-lbl{font-size:11.5px; color:var(--ink-faint);}
+.cr-vs{font-family:'Caveat',cursive; font-size:26px; color:var(--ink-faint);}
+.cr-meter{height:9px; border-radius:99px; background:var(--accent-soft); overflow:hidden;}
+.cr-meter span{display:block; height:100%; background:var(--accent); border-radius:99px;}
+.cr-note{font-size:12.5px; color:var(--ink-soft); margin-top:7px;}
+.cr-verdict{font-family:'Caveat',cursive; font-size:23px; font-weight:600; color:var(--ink); margin-top:4px;}
+.critic-empty{font-family:'Caveat',cursive; font-size:21px; color:var(--ink-faint);}
+.podium{display:flex; align-items:flex-end; gap:10px; padding:0 4px;}
+.pod-col{flex:1; min-width:0; text-align:center; cursor:pointer;}
+.pod-crown{font-size:22px; line-height:1; margin-bottom:2px;}
+.pod-name{font-family:'Fraunces',serif; font-size:14px; font-weight:500; line-height:1.2; overflow-wrap:anywhere;}
+.pod-score{font-size:12px; font-weight:800; color:var(--star); margin:3px 0 6px;}
+.pod-block{border-radius:10px 10px 0 0; display:flex; align-items:flex-start; justify-content:center; padding-top:8px; font-family:'Fraunces',serif; font-size:26px; font-weight:500; color:var(--ink); transition:transform .2s ease;}
+.pod-col:hover .pod-block{transform:translateY(-3px);}
+.st-count{font-family:'Nunito',sans-serif; font-size:13px; font-weight:800; color:var(--ink-faint); margin-left:8px;}
+.badges{display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:18px 10px;}
+.bdg{display:flex; flex-direction:column; align-items:center; text-align:center; gap:5px; cursor:pointer; background:none; border:none; padding:0; color:var(--ink);}
+.bdg-disc{width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; transform:rotate(var(--tilt,0deg)); transition:transform .2s ease;}
+.bdg.earned .bdg-disc{box-shadow:var(--shadow); border:3px solid var(--surface);}
+.bdg:not(.earned) .bdg-disc{border:2px dashed var(--line); filter:grayscale(1); opacity:.5;}
+.bdg:hover .bdg-disc{transform:rotate(0deg) scale(1.08);}
+.bdg-name{font-size:12.5px; font-weight:800; line-height:1.2;}
+.bdg-prog{font-size:11.5px; color:var(--ink-faint); font-weight:700;}
+.bdg-how{display:none; font-family:'Caveat',cursive; font-size:17px; line-height:1.1; color:var(--ink-soft);}
+.bdg.show-how .bdg-how{display:block;}
+.awards{display:flex; flex-wrap:wrap; gap:10px;}
+.award{display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 16px 10px 12px; cursor:pointer; box-shadow:var(--shadow);}
+.aw-medal{font-size:26px;}
+.aw-what{font-family:'Caveat',cursive; font-size:18px; font-weight:600; color:var(--accent); line-height:1;}
+.aw-name{font-family:'Fraunces',serif; font-size:15px; font-weight:500;}
+.dish-tapes{display:flex; flex-wrap:wrap; gap:10px 8px;}
+.dish-tape{display:inline-flex; flex-direction:column; align-items:flex-start; border:none; padding:7px 14px 8px; transform:rotate(var(--tilt,0deg)); cursor:pointer; color:var(--ink); text-align:left; transition:transform .2s ease;}
+.dish-tape:hover{transform:rotate(0deg) translateY(-2px);}
+.dt-dish{font-family:'Caveat',cursive; font-size:22px; font-weight:600; line-height:1;}
+.dt-where{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+.months{display:flex; align-items:flex-end; gap:12px; background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:16px 18px 12px; box-shadow:var(--shadow); min-height:170px;}
+.mo-col{flex:1; max-width:64px; display:flex; flex-direction:column; align-items:center; gap:5px;}
+.mo-n{font-family:'Fraunces',serif; font-size:16px; font-weight:500;}
+.mo-bar{width:100%; border-radius:8px 8px 3px 3px;}
+.mo-lbl{font-family:'Caveat',cursive; font-size:19px; font-weight:600; color:var(--ink-soft); line-height:1;}
+.mo-spend{font-size:11px; color:var(--ink-faint); font-weight:700;}
+
 
 @media (max-width:860px){
   .sidebar{position:fixed; z-index:50; transform:translateX(-100%); transition:transform .2s; box-shadow:var(--shadow); padding-top:calc(20px + env(safe-area-inset-top)); padding-bottom:calc(20px + env(safe-area-inset-bottom));}
@@ -388,26 +523,37 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 }
 @media (min-width:861px){ .mobile-topbar{display:none;} }
 @media (max-width:560px){
-  .listrow{flex-wrap:wrap; row-gap:8px;}
-  .listrow .thumb{width:44px; height:44px;}
-  .listrow .main-col{flex-basis:0;}
-  .listrow .right-col{flex-basis:100%; flex-wrap:wrap; justify-content:flex-start; margin-left:58px;}
-  #browseMap{height:70vh; min-height:320px;}
   .grid-cards{grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px;}
-  .rcard .photo{height:76px;}
-  .rcard .photo .noimg{font-size:20px;}
-  .rcard .body{padding:8px 10px 10px; gap:4px;}
-  .rcard .name{font-size:14px; line-height:1.25;}
-  .rcard .meta{font-size:10.5px;}
-  .rcard .tag{font-size:9.5px; padding:2px 6px;}
-  .rcard .badge{font-size:9px; padding:2px 6px;}
-  .shelf .rcard{min-width:172px;}
   .jentry{grid-template-columns:40px minmax(0,1fr); gap:8px;}
   .jday{font-size:24px;}
   .jcard{padding:12px 13px;}
   .polaroid{width:92px;}
   .polaroid img{height:76px;}
   .sticky-note{margin-left:0;}
+  .board-grid{grid-template-columns:repeat(2, minmax(0,1fr)); gap:22px 12px;}
+  .board-zone{font-size:30px;}
+  .note{min-height:128px; padding:18px 11px 10px;}
+  .n-name{font-size:22px;}
+  .added-by{font-size:16px;}
+  .p-img{height:84px;}
+  .p-name{font-size:14px;}
+  #boardMap{height:58vh; min-height:300px;}
+  .map-card{left:14px; right:14px; bottom:14px;}
+  .notepads{grid-template-columns:repeat(2, minmax(0,1fr)); gap:24px 12px;}
+  .notepad{padding:18px 10px 30px 30px; min-height:168px;}
+  .notepad::before{left:20px;}
+  .np-title{font-size:23px;}
+  .np-line{font-size:18px;}
+  .np-count{left:30px;}
+  .list-page{padding:26px 14px 16px 40px;}
+  .list-page::before{left:26px;}
+  .lp-title{font-size:34px;}
+  .stickers{grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px;}
+  .stk-n{font-size:26px;}
+  .stats-duo{grid-template-columns:minmax(0,1fr); gap:0;}
+  .badges{grid-template-columns:repeat(4, minmax(0,1fr)); gap:14px 6px;}
+  .bdg-disc{width:54px; height:54px; font-size:24px;}
+  .bdg-name{font-size:11.5px;}
 }
 </style>
 </head>
@@ -438,14 +584,14 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
     <div class="sidebar-foot">
       <div class="profile-label">Logging as</div>
       <div class="profile-switch" id="profileSwitch"></div>
-      <button class="icon-btn" id="btnSettings" style="text-align:left;">⚙ Settings</button>
+      <button class="icon-btn" id="btnSettings"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/></svg>Settings</button>
       <div id="syncState" style="font-size:11px; color:var(--ink-faint); padding:2px 4px;"></div>
     </div>
   </nav>
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
   <main class="main">
     <div class="mobile-topbar">
-      <button class="icon-btn" id="btnMenu">☰</button>
+      <button class="icon-btn" id="btnMenu" aria-label="Menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <button class="mobile-brand" id="btnHomeMobile" type="button"><svg class="brand-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg><span class="brand-name">keepsake</span></button>
       <button class="btn small primary" id="btnAddVisitMobile">+ Add</button>
     </div>
@@ -536,29 +682,6 @@ function placeHash(r){
   return Math.abs(h);
 }
 function placeTint(r){ return "tint-"+(placeHash(r)%5+1); }
-function categoryNoimgHtml(r){
-  return '<div class="noimg '+placeTint(r)+'">'+categoryOf(r).icon+'</div>';
-}
-function categorySectionBlockHtml(cat, count, key, innerHtml){
-  var collapsed = !!state.collapsedCategories[key];
-  return '<div class="cat-section">'+
-    '<button type="button" class="cat-header'+(collapsed?' collapsed':'')+'" data-toggle-category="'+esc(key)+'">'+
-      '<span class="ch-icon cat-bg-'+cat.id+'">'+cat.icon+'</span>'+
-      '<span class="ch-label">'+esc(cat.label)+'</span>'+
-      '<span class="ch-count">'+count+'</span>'+
-      '<span class="ch-chevron">▾</span>'+
-    '</button>'+
-    (collapsed?'':innerHtml)+
-  '</div>';
-}
-function groupRestaurantsByCategory(list){
-  var groups = {}; CATEGORIES.forEach(function(c){ groups[c.id]=[]; });
-  list.forEach(function(r){ groups[categoryOf(r).id].push(r); });
-  return CATEGORIES.map(function(c){ return {cat:c, items:groups[c.id]}; }).filter(function(g){ return g.items.length>0; });
-}
-function categorySubheadHtml(cat, count){
-  return '<div class="subsection-title">'+cat.icon+' '+esc(cat.label)+' ('+count+')</div>';
-}
 function categoryBreakdown(filterYear){
   var visits = allVisits().filter(function(v){ return !filterYear || (v.date||"").slice(0,4)===filterYear; });
   var stats = {}; CATEGORIES.forEach(function(c){ stats[c.id] = {cat:c, visitedIds:{}, visitCount:0, ratings:[]}; });
@@ -579,7 +702,7 @@ function categoryStatCardHtml(b, savedCount){
     '<div class="cs-row"><span>Places visited</span><span class="mono">'+b.placeCount+'</span></div>'+
     '<div class="cs-row"><span>Visits logged</span><span class="mono">'+b.visitCount+'</span></div>'+
     (b.avgRating!=null?'<div class="cs-row"><span>Average rating</span><span class="mono">'+b.avgRating.toFixed(1)+' ★</span></div>':'')+
-    (savedCount?'<div class="cs-row"><span>Saved for later</span><span class="mono">'+savedCount+'</span></div>':'')+
+    (savedCount?'<div class="cs-row"><span>Still to try</span><span class="mono">'+savedCount+'</span></div>':'')+
   '</div>';
 }
 
@@ -611,7 +734,7 @@ var DEFAULT_MAP_CENTER = {lat:53.5461, lng:-113.4938};
 var mapsLib = null, mapsLoading = null;
 window.gm_authFailure = function(){
   mapsAuthFailed = true;
-  ["browseMap","tripMap","pickerMap"].forEach(function(id){
+  ["boardMap","tripMap","pickerMap"].forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.innerHTML = mapErrorHtml(mapsAuthFailureText());
   });
@@ -735,12 +858,14 @@ var state = {
   me: localStorage.getItem("pp_me") || null,
   theme: localStorage.getItem("pp_theme") || "system",
   route: "journal",
-  browseMode: "list",
+  boardMode: "board",
+  board: {status:"all", cat:"", area:""},
+  myLoc: null,
+  pickedId: null,
+  mapCardId: null,
+  boardNote: "",
+  showWrapped: false,
   search: "",
-  sort: "date",
-  filters: {city:"", neighborhood:"", cuisine:"", tag:"", wouldReturn:"", price:""},
-  filtersOpen: false,
-  collapsedCategories: {},
   activeTripId: null,
   activeListId: null,
   wrappedYear: null,
@@ -754,7 +879,7 @@ function markLoaded(key){
   if(firstLoad.restaurants && firstLoad.visits) state.loading = false;
 }
 function loadFailed(err){ console.error(err); state.loading = false; scheduleRender(); }
-var lastBrowseList = [];
+var lastBoardList = [];
 
 function visitsFor(rid){
   return Object.keys(state.visits).map(function(k){return state.visits[k];}).filter(function(v){return v.restaurantId===rid;});
@@ -924,15 +1049,13 @@ function scheduleRender(){
 }
 
 /* ---------- nav ---------- */
+function navIcon(paths){ return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths+'</svg>'; }
 var NAV = [
-  {id:"journal", label:"Journal", ic:"✎"},
-  {id:"browse", label:"Browse", ic:"◎"},
-  {id:"favorites", label:"Favorites", ic:"♥"},
-  {id:"wanttotry", label:"Saved Places", ic:"☆"},
-  {id:"lists", label:"Lists", ic:"☰"},
-  {id:"trips", label:"Trips", ic:"✈"},
-  {id:"stats", label:"Stats", ic:"◫"},
-  {id:"wrapped", label:"Wrapped", ic:"✦"}
+  {id:"journal", label:"Journal", ic:navIcon('<path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6l0 13"/><path d="M12 6l0 13"/><path d="M21 6l0 13"/>')},
+  {id:"pinboard", label:"Pinboard", ic:navIcon('<path d="M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4"/><path d="M9 15l-4.5 4.5"/><path d="M14.5 4l5.5 5.5"/>')},
+  {id:"trips", label:"Trips", ic:navIcon('<path d="M16 10h4a2 2 0 0 1 0 4h-4l-4 7h-3l2 -7h-4l-2 2h-3l2 -4l-2 -4h3l2 2h4l-2 -7h3z"/>')},
+  {id:"lists", label:"Lists", ic:navIcon('<path d="M3.5 5.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 11.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 17.5l1.5 1.5l2.5 -2.5"/><path d="M11 6l9 0"/><path d="M11 12l9 0"/><path d="M11 18l9 0"/>')},
+  {id:"stats", label:"Stats", ic:navIcon('<path d="M20 12l-2 .5a6 6 0 0 1 -6.5 -6.5l.5 -2l8 8"/><path d="M20 12a8 8 0 1 1 -8 -8"/>')}
 ];
 function toggleSidebar(){
   var isOpen = document.getElementById("sidebar").classList.toggle("open");
@@ -955,7 +1078,7 @@ function renderProfileSwitch(){
   }).join("");
 }
 
-/* ---------- filtering / sorting helpers for browse ---------- */
+/* ---------- search ---------- */
 function matchesSearch(r, q){
   if(!q) return true;
   q = q.toLowerCase();
@@ -966,90 +1089,6 @@ function matchesSearch(r, q){
     return ((v.favDishA||"")+" "+(v.favDishB||"")+" "+(v.favDish||"")+" "+(v.dishes||[]).join(" ")+" "+(v.notes||"")+" "+(v.notesA||"")+" "+(v.notesB||"")).toLowerCase().indexOf(q)>=0;
   });
 }
-function passesFilters(r){
-  var f = state.filters;
-  if(f.city && r.city!==f.city) return false;
-  if(f.neighborhood && r.neighborhood!==f.neighborhood) return false;
-  if(f.cuisine && (r.cuisines||[]).indexOf(f.cuisine)<0) return false;
-  if(f.tag && (r.tags||[]).indexOf(f.tag)<0) return false;
-  if(f.price && String(r.priceRange)!==f.price) return false;
-  if(f.wouldReturn){
-    var vs = visitsFor(r.id);
-    if(!vs.some(function(v){return v.wouldReturn===f.wouldReturn;})) return false;
-  }
-  return true;
-}
-function sortRestaurants(list){
-  var s = state.sort;
-  list = list.slice();
-  if(s==="rating"){
-    list.sort(function(a,b){ var sa=restaurantScore(a.id), sb=restaurantScore(b.id); if(sa==null&&sb==null) return 0; if(sa==null) return 1; if(sb==null) return -1; return sb-sa; });
-  } else if(s==="alpha"){
-    list.sort(function(a,b){ return a.name.localeCompare(b.name); });
-  } else {
-    list.sort(function(a,b){
-      var da = lastVisitDate(a.id) || a.createdAt || "";
-      var db_ = lastVisitDate(b.id) || b.createdAt || "";
-      return String(db_).localeCompare(String(da));
-    });
-  }
-  return list;
-}
-function distinctNeighborhoods(cityFilter){
-  var set = {};
-  allRestaurants().forEach(function(r){ if(r.neighborhood && (!cityFilter || r.city===cityFilter)) set[r.neighborhood]=1; });
-  return Object.keys(set).sort();
-}
-function distinctCities(){
-  var set = {};
-  allRestaurants().forEach(function(r){ if(r.city) set[r.city]=1; });
-  return Object.keys(set).sort();
-}
-
-/* ---------- card / row templates ---------- */
-function wrBadge(rid){
-  var vs = visitsFor(rid).slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");});
-  if(!vs.length || !vs[0].wouldReturn) return "";
-  var wr = vs[0].wouldReturn;
-  var label = wr==="yes"?"Would return":wr==="maybe"?"Maybe return":"Wouldn't return";
-  return '<span class="badge '+wr+'">'+label+'</span>';
-}
-function restaurantCard(r, opts){
-  opts = opts || {};
-  var photo = firstPhotoFor(r.id);
-  var score = restaurantScore(r.id);
-  var vs = visitsFor(r.id);
-  return '<div class="rcard" data-open-restaurant="'+r.id+'">'+
-    '<div class="photo">'+(photo? '<img src="'+photo+'" loading="lazy">' : categoryNoimgHtml(r))+(r.favorite?'<span class="fav-badge">♥</span>':'')+
-      (opts.quickDelete?'<button type="button" class="del-badge" data-delete-restaurant="'+r.id+'" title="Remove">✕</button>':'')+
-      (opts.dateBadge?'<span class="recent-badge">'+esc(opts.dateBadge)+'</span>':'')+
-      '<button type="button" class="log-badge" data-log-visit-for="'+r.id+'" title="Log a visit">+</button>'+
-    '</div>'+
-    '<div class="body">'+
-      '<div class="name">'+esc(r.name)+(r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
-      '<div class="meta">'+esc(r.neighborhood||r.city||"")+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+(vs.length? ' · '+vs.length+' visit'+(vs.length>1?'s':'') : ' · not yet visited')+'</div>'+
-      (score!=null ? renderStarsDisplay(score) : '<span style="font-size:12px;color:var(--ink-faint);">no ratings yet</span>')+
-      '<div class="tagrow">'+(r.cuisines||[]).slice(0,1).map(function(c){return '<span class="tag">'+esc(c)+'</span>';}).join('')+(r.tags||[]).slice(0,2).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('')+'</div>'+
-      wrBadge(r.id)+
-    '</div></div>';
-}
-function restaurantRow(r){
-  var photo = firstPhotoFor(r.id);
-  var score = restaurantScore(r.id);
-  var vs = visitsFor(r.id);
-  return '<div class="listrow" data-open-restaurant="'+r.id+'">'+
-    '<div class="thumb">'+(photo?'<img src="'+photo+'">':categoryOf(r).icon)+'</div>'+
-    '<div class="main-col">'+
-      '<div class="name">'+esc(r.name)+(r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
-      '<div class="meta">'+esc(r.neighborhood||r.city||"")+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+' · '+((r.cuisines&&r.cuisines.length)?r.cuisines.join(", "):(r.placeType||""))+'</div>'+
-    '</div>'+
-    '<div class="right-col">'+
-      wrBadge(r.id)+
-      '<span style="font-size:12px;color:var(--ink-soft);">'+(vs.length?vs.length+' visit'+(vs.length>1?'s':''):'saved')+'</span>'+
-      (score!=null?renderStarsDisplay(score):'')+
-    '</div></div>';
-}
-
 /* ---------- JOURNAL view ---------- */
 function plural(n, word){ return n+" "+word+(n===1?"":"s"); }
 function monthLabel(mk){ return mk ? new Date(mk+"-01T00:00:00").toLocaleDateString(undefined,{month:"long",year:"numeric"}) : "Undated"; }
@@ -1100,7 +1139,7 @@ function stillOnListHtml(saved){
   if(!saved.length) return '';
   var names = saved.slice(0,4).map(function(r){ return r.name; });
   var more = saved.length - names.length;
-  return '<button type="button" class="sticky-note" data-route="wanttotry"><div class="sticky-title">Still on our list</div>'+
+  return '<button type="button" class="sticky-note" data-route="pinboard" data-board-status="try"><div class="sticky-title">Still on our list</div>'+
     '<div class="sticky-body">'+esc(names.join(", "))+(more>0 ? ', and '+more+' more' : '')+'</div></button>';
 }
 function viewJournal(){
@@ -1130,262 +1169,369 @@ function viewJournal(){
   return html + stillOnListHtml(saved);
 }
 
-/* ---------- BROWSE view ---------- */
-function viewBrowse(){
-  var list = allRestaurants().filter(function(r){ return matchesSearch(r,state.search) && passesFilters(r); });
-  list = sortRestaurants(list);
-  lastBrowseList = list;
-  var cities = distinctCities();
-  var nbhds = distinctNeighborhoods(state.filters.city);
-  var html = '';
-  html += '<div class="page-head"><div><h1>Browse</h1><div class="sub">'+list.length+' place'+(list.length!==1?'s':'')+' logged together</div></div>'+
-    '<div class="viewtoggle"><button data-browse-mode="list" class="'+(state.browseMode==="list"?"active":"")+'">▦ Grid</button><button data-browse-mode="map" class="'+(state.browseMode==="map"?"active":"")+'">◎ Map</button></div></div>';
-
-  html += '<div class="toolbar">'+
-    '<div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search restaurants, dishes, cuisines, neighbourhoods…" value="'+esc(state.search)+'"></div>'+
-    (state.browseMode==="list" ? '<select id="sortSelect"><option value="date"'+(state.sort==="date"?" selected":"")+'>Sort: Recent</option><option value="rating"'+(state.sort==="rating"?" selected":"")+'>Sort: Rating</option><option value="alpha"'+(state.sort==="alpha"?" selected":"")+'>Sort: A–Z</option></select>' : '')+
-    '<button class="btn small" id="btnToggleFilters">'+(state.filtersOpen?"Hide filters":"Filters")+'</button>'+
+/* ---------- PINBOARD ---------- */
+// Browse, saved places and favourites in one place: a place starts as a sticky note and becomes a polaroid once it has a visit.
+var NEAR_KM = 15;
+function isTried(r){ return visitsFor(r.id).length > 0; }
+function placeCity(r){ return r.city || "Somewhere"; }
+function tiltFor(o){ return ((placeHash(o)%7)-3)*0.7; }
+function kmBetween(a, b){
+  var rad = Math.PI/180, dLat = (b.lat-a.lat)*rad, dLng = (b.lng-a.lng)*rad;
+  var h = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return 12742*Math.asin(Math.sqrt(h));
+}
+function kmLabel(km){ return km < 1 ? Math.max(50, Math.round(km*20)*50)+" m" : (km < 10 ? km.toFixed(1) : Math.round(km))+" km"; }
+function boardStatusMatch(r, status){
+  if(status==="try") return !isTried(r);
+  if(status==="been") return isTried(r);
+  if(status==="fav") return !!r.favorite;
+  return true;
+}
+function boardAreas(){
+  var counts = {};
+  allRestaurants().forEach(function(r){ var c = placeCity(r); counts[c] = (counts[c]||0)+1; });
+  return Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a] || a.localeCompare(b); }).map(function(c){ return {name:c, count:counts[c]}; });
+}
+function inBoardArea(r){ return !state.board.area || state.board.area==="near" || placeCity(r)===state.board.area; }
+// Near me keeps places within NEAR_KM, closest first; if none are that close it falls back to the six nearest.
+function boardPlaces(){
+  var b = state.board;
+  var list = allRestaurants().filter(function(r){
+    return matchesSearch(r, state.search) && boardStatusMatch(r, b.status) && (!b.cat || categoryOf(r).id===b.cat) && inBoardArea(r);
+  });
+  if(b.area!=="near") return {list:list, km:{}};
+  if(!state.myLoc) return {list:[], km:{}};
+  var km = {}, located = list.filter(hasLoc);
+  located.forEach(function(r){ km[r.id] = kmBetween(state.myLoc, r); });
+  located.sort(function(a,c){ return km[a.id]-km[c.id]; });
+  var close = located.filter(function(r){ return km[r.id] <= NEAR_KM; });
+  return close.length ? {list:close, km:km} : {list:located.slice(0,6), km:km, far:located.length>0};
+}
+function boardOrder(list){
+  var fresh = list.filter(function(r){ return !isTried(r); }).sort(function(a,b){ return (b.createdAt||"").localeCompare(a.createdAt||""); });
+  var been = list.filter(isTried).sort(function(a,b){ return (restaurantScore(b.id)||0)-(restaurantScore(a.id)||0) || (lastVisitDate(b.id)||"").localeCompare(lastVisitDate(a.id)||""); });
+  return fresh.concat(been);
+}
+function placeKind(r){ return (r.cuisines||[])[0] || (r.tags||[])[0] || r.placeType || categoryOf(r).label; }
+function whoDot(who){ return '<span class="who-dot who-'+String(who).toLowerCase()+'">'+esc((state.profiles[who]||"?").charAt(0).toUpperCase())+'</span>'; }
+function addedByHtml(r, withDate){
+  if(!state.profiles[r.createdBy]) return '';
+  var when = withDate && r.createdAt && !isNaN(new Date(r.createdAt)) ? ' on '+fmtDate(localDateStr(new Date(r.createdAt))) : '';
+  return '<div class="added-by">'+whoDot(r.createdBy)+'added by '+esc(state.profiles[r.createdBy])+esc(when)+'</div>';
+}
+function boardItemHtml(r, km){
+  var cat = categoryOf(r), picked = state.pickedId===r.id;
+  var where = [r.neighborhood || r.city, placeKind(r)].filter(Boolean).join(" · ");
+  var top = r.favorite ? '<span class="heart-pin" title="Favourite">♥</span>' : '<span class="tape-strip"></span>';
+  var dist = km!=null ? '<span class="km">'+kmLabel(km)+'</span>' : '';
+  var pick = picked ? '<div class="pick-label">how about this one?</div>' : '';
+  var attrs = ' data-board-item="'+r.id+'" data-open-restaurant="'+r.id+'" style="--tilt:'+tiltFor(r)+'deg"';
+  if(!isTried(r)){
+    return '<div class="bitem note '+placeTint(r)+(picked?' picked':'')+'"'+attrs+'>'+top+dist+
+      '<div class="n-name">'+esc(r.name)+'</div>'+
+      '<div class="n-meta">'+cat.icon+' '+esc(where)+'</div>'+
+      addedByHtml(r)+pick+
+      '<div class="n-foot"><button type="button" class="n-went" data-log-visit-for="'+r.id+'">+ we went</button></div>'+
     '</div>';
-
-  if(state.filtersOpen){
-    html += '<div class="filter-panel">'+
-      selectField("filterCity","City",["",...cities],state.filters.city)+
-      selectField("filterNeighborhood","Neighbourhood",["",...nbhds],state.filters.neighborhood)+
-      selectField("filterCuisine","Cuisine",[""].concat(CUISINES),state.filters.cuisine)+
-      selectField("filterTag","Tag",[""].concat(TAGS),state.filters.tag)+
-      selectField("filterPrice","Price",["","1","2","3","4"],state.filters.price,function(v){return v?PRICE_LABELS[v]:"Any";})+
-      selectField("filterWouldReturn","Would return",["","yes","maybe","no"],state.filters.wouldReturn,function(v){return v?({yes:"Yes",maybe:"Maybe",no:"No"})[v]:"Any";})+
-      '<div class="field" style="justify-content:flex-end;"><label>&nbsp;</label><button class="btn small ghost" id="btnClearFilters">Clear all</button></div>'+
-      '</div>';
   }
+  var photo = firstPhotoFor(r.id), score = restaurantScore(r.id);
+  return '<div class="bitem polaroid-card'+(picked?' picked':'')+'"'+attrs+'>'+top+
+    '<div class="p-img'+(photo?'':' '+placeTint(r))+'">'+(photo ? '<img src="'+photo+'" alt="" loading="lazy">' : cat.icon)+dist+'</div>'+
+    '<div class="p-name">'+esc(r.name)+'</div>'+
+    (score!=null ? '<div class="p-stars">'+renderStarsDisplay(score)+'</div>' : '')+
+    '<div class="p-meta">'+esc(where)+'</div>'+pick+
+  '</div>';
+}
+function bchip(attr, val, label, on){ return '<button type="button" class="bchip'+(on?' on':'')+'" '+attr+'="'+esc(val)+'">'+label+'</button>'; }
+function tripForPlaces(places){
+  for(var i=0;i<places.length;i++){ var t = places[i].tripId && state.trips[places[i].tripId]; if(t) return t; }
+  return null;
+}
+function viewPinboard(){
+  var b = state.board, all = allRestaurants();
+  var triedCount = all.filter(isTried).length;
+  var res = boardPlaces(), list = res.list;
+  lastBoardList = list;
+  var html = '<div class="page-head"><div><h1>Our pinboard</h1><div class="journal-sub">'+(all.length ? triedCount+" tried, "+(all.length-triedCount)+" still on our list" : "every place we want to go")+'</div></div>'+
+    '<button class="btn primary" id="btnAddWant">+ Pin a place</button></div>';
+  html += '<div class="toolbar board-toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search places, dishes, areas…" value="'+esc(state.search)+'"></div>'+
+    '<div class="viewtoggle"><button data-board-mode="board" class="'+(state.boardMode==="board"?"active":"")+'">Board</button><button data-board-mode="map" class="'+(state.boardMode==="map"?"active":"")+'">Map</button></div>'+
+    '<button type="button" class="btn" id="btnBoardPick">🎲 Pick for us</button></div>';
 
-  var activeChips = [];
-  Object.keys(state.filters).forEach(function(k){ if(state.filters[k]) activeChips.push({k:k, v:state.filters[k]}); });
-  if(activeChips.length){
-    html += '<div class="chiprow">'+activeChips.map(function(c){
-      return '<span class="chip on">'+esc(c.v)+'<button data-clear-filter="'+c.k+'">✕</button></span>';
-    }).join('')+'</div>';
+  // Chip counts follow the search and area, so they match what tapping the chip would show.
+  var scope = all.filter(function(r){ return matchesSearch(r, state.search) && inBoardArea(r); });
+  var inCat = scope.filter(function(r){ return !b.cat || categoryOf(r).id===b.cat; });
+  var count = function(status){ return inCat.filter(function(r){ return boardStatusMatch(r, status); }).length; };
+  html += '<div class="bchips">'+
+    bchip("data-board-status","all",'All <span class="n">'+count("all")+'</span>', b.status==="all")+
+    bchip("data-board-status","try",'To try <span class="n">'+count("try")+'</span>', b.status==="try")+
+    bchip("data-board-status","been",'Been <span class="n">'+count("been")+'</span>', b.status==="been")+
+    bchip("data-board-status","fav",'♥ Faves <span class="n">'+count("fav")+'</span>', b.status==="fav");
+  var cats = CATEGORIES.filter(function(c){ return scope.some(function(r){ return categoryOf(r).id===c.id; }); });
+  if(cats.length > 1 || b.cat){
+    html += '<span class="sep"></span>'+cats.map(function(c){ return bchip("data-board-cat", b.cat===c.id ? "" : c.id, c.icon+' '+esc(c.label), b.cat===c.id); }).join('');
   }
+  html += '</div><div class="bchips">'+
+    bchip("data-board-area","near",'📍 Near me', b.area==="near")+
+    bchip("data-board-area","",'Everywhere', !b.area)+
+    boardAreas().map(function(a){ return bchip("data-board-area", a.name, esc(a.name)+' <span class="n">'+a.count+'</span>', b.area===a.name); }).join('')+
+  '</div>';
 
+  var note = state.boardNote; state.boardNote = "";
+  if(b.area==="near" && !state.myLoc) note = "Finding where you are…";
+  else if(res.far) note = "Nothing within "+NEAR_KM+" km of you, so here are the closest.";
+  if(note) html += '<div class="board-hint">'+esc(note)+'</div>';
+
+  if(state.boardMode==="map"){
+    var unplaced = list.filter(function(r){ return !hasLoc(r); });
+    html += '<div class="map-legend"><span><i class="lg-dot been"></i>been</span><span><i class="lg-dot try"></i>to try</span><span class="lg-heart">♥ favourite</span></div>'+
+      '<div class="paper-map"><div id="boardMap"></div><div class="map-card" id="boardMapCard" hidden></div></div>';
+    if(unplaced.length) html += '<div class="unplaced">Not on the map yet: '+unplaced.map(function(r){ return '<button type="button" class="chip" data-open-restaurant="'+r.id+'">'+esc(r.name)+'</button>'; }).join('')+'</div>';
+    return html;
+  }
   if(!list.length){
-    html += emptyState("🍜","Nothing here yet","Log your first visit or add a place you want to try.");
-  } else if(state.browseMode==="list"){
-    html += recentLogsShelfHtml(list);
-    groupRestaurantsByCategory(list).forEach(function(g){
-      var inner = '<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
-      html += categorySectionBlockHtml(g.cat, g.items.length, "browse:"+g.cat.id, inner);
-    });
-  } else {
-    html += mapView(list);
+    if(b.area==="near" && !state.myLoc) return html;
+    return html + emptyState("📌", all.length ? "Nothing pinned here" : "Your pinboard is empty",
+      all.length ? "Try another filter, or pin a new place." : "Pin the places you want to try. They turn into polaroids once you go.");
   }
+  // Want to try comes first and apart from Been there, so the places still to go are easy to scan.
+  var ordered = b.area==="near" ? list : boardOrder(list);
+  var zones = [
+    {title:"Want to try", icon:"📝", items:ordered.filter(function(r){ return !isTried(r); })},
+    {title:"Been there", icon:"📸", items:ordered.filter(isTried)}
+  ];
+  var areaOrder = boardAreas().map(function(a){ return a.name; });
+  zones.forEach(function(z){
+    if(!z.items.length) return;
+    html += '<div class="board-zone"><span>'+z.icon+' '+z.title+'</span><span class="bz-count">'+z.items.length+'</span></div>';
+    if(b.area){
+      html += '<div class="board-grid">'+z.items.map(function(r){ return boardItemHtml(r, res.km[r.id]); }).join('')+'</div>';
+      return;
+    }
+    var groups = {}, cities = [];
+    z.items.forEach(function(r){ var c = placeCity(r); if(!groups[c]){ groups[c] = []; cities.push(c); } groups[c].push(r); });
+    cities.sort(function(x,y){ return areaOrder.indexOf(x)-areaOrder.indexOf(y); });
+    cities.forEach(function(c){
+      var t = tripForPlaces(groups[c]);
+      html += '<div class="board-area"><span>'+esc(c)+'</span>'+(t ? '<button type="button" class="trip-tag" data-goto-trip="'+t.id+'">✈ '+esc(tripStatus(t).label)+'</button>' : '')+'</div>';
+      html += '<div class="board-grid">'+groups[c].map(function(r){ return boardItemHtml(r); }).join('')+'</div>';
+    });
+  });
   return html;
 }
-function recentLogsShelfHtml(list){
-  var recent = list.filter(function(r){ return visitsFor(r.id).length>0; })
-    .slice().sort(function(a,b){ return (lastVisitDate(b.id)||"").localeCompare(lastVisitDate(a.id)||""); })
-    .slice(0,8);
-  if(!recent.length) return '';
-  return '<div class="section-title">Recently logged</div><div class="shelf">'+recent.map(function(r){
-    return restaurantCard(r, {dateBadge: relativeDate(lastVisitDate(r.id))});
-  }).join('')+'</div>';
+
+// Pick for us only ever picks inside an area (a city or near me), so it can't suggest somewhere in another city.
+function pickPool(){
+  var list = boardPlaces().list;
+  if(state.boardMode==="map") list = list.filter(hasLoc);
+  if(state.board.status==="been" || state.board.status==="fav") return list;
+  return list.filter(function(r){ return !isTried(r); });
 }
-function selectField(id,label,options,value,fmt){
-  return '<div class="field"><label>'+label+'</label><select id="'+id+'">'+options.map(function(o){
-    return '<option value="'+esc(o)+'"'+(o===value?" selected":"")+'>'+esc(fmt?fmt(o):(o||"Any"))+'</option>';
-  }).join('')+'</select></div>';
+function pickForUs(){
+  var pool = pickPool();
+  if(!pool.length){
+    state.pickedId = null;
+    state.boardNote = state.board.area==="near" ? "Nothing on our list near here yet." : "Nothing to pick from in "+state.board.area+" yet. Pin a few places first.";
+    renderAll(); return;
+  }
+  var winner = pool[Math.floor(Math.random()*pool.length)];
+  if(state.boardMode==="map"){ state.pickedId = winner.id; pickBounce = true; renderAll(); return; }
+  var land = function(){
+    state.pickedId = winner.id; renderAll();
+    var el = document.querySelector(".bitem.picked");
+    if(el) el.scrollIntoView({behavior:"smooth", block:"center"});
+  };
+  var els = pool.map(function(r){ return document.querySelector('[data-board-item="'+r.id+'"]'); }).filter(Boolean);
+  if(els.length < 2) return land();
+  var spins = 0, lit = null;
+  var spin = setInterval(function(){
+    if(lit) lit.classList.remove("flash");
+    lit = els[Math.floor(Math.random()*els.length)];
+    lit.classList.add("flash");
+    if(++spins >= 10){ clearInterval(spin); land(); }
+  }, 90);
 }
+function modalPickWhere(){
+  var opts = boardAreas().map(function(a){
+    var fresh = allRestaurants().filter(function(r){ return placeCity(r)===a.name && !isTried(r); }).length;
+    return '<button type="button" class="where-opt" data-pick-area="'+esc(a.name)+'"><span class="wo-name">'+esc(a.name)+'</span><span class="wo-count">'+fresh+' to try</span></button>';
+  }).join('');
+  openModal('<div class="modal"><div class="modal-head"><h2>Where are we?</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body"><button type="button" class="where-opt near" data-pick-area="near"><span class="wo-name">📍 Near me</span><span class="wo-count">use my location</span></button>'+opts+'</div></div>');
+}
+function locateMe(then){
+  if(!navigator.geolocation){
+    state.board.area = ""; state.boardNote = "This browser can't share your location, so pick a city instead.";
+    renderAll(); return;
+  }
+  renderAll();
+  navigator.geolocation.getCurrentPosition(function(pos){
+    state.myLoc = {lat:pos.coords.latitude, lng:pos.coords.longitude};
+    renderAll();
+    if(then) then();
+  }, function(){
+    if(!state.myLoc){ state.board.area = ""; state.boardNote = "Couldn't get your location, so pick a city instead."; }
+    renderAll();
+  }, {timeout:10000, maximumAge:300000});
+}
+
 function emptyState(emoji,title,body){
   return '<div class="empty"><div class="emoji">'+emoji+'</div><h3>'+title+'</h3><p>'+body+'</p></div>';
 }
 
-/* ---------- MAP view (Google Maps) ---------- */
-function mapView(list){
-  var withLoc = list.filter(hasLoc);
-  var withoutLoc = list.filter(function(r){return !hasLoc(r);});
-  var html = '<div class="mapwrap"><div class="mapnote">'+withLoc.length+' of '+list.length+' pinned · tap a pin for photos & details</div>'+
-    '<div id="browseMap"></div></div>';
-  if(withoutLoc.length){
-    html += '<div class="section-title">No location set yet</div><div>'+withoutLoc.map(restaurantRow).join('')+'</div>';
-  }
-  return html;
-}
-function mapPopupHtml(r){
-  var photo = firstPhotoFor(r.id);
-  var score = restaurantScore(r.id);
-  return '<div style="width:200px;">'+
-    (photo?'<img src="'+photo+'" style="width:100%;height:100px;object-fit:cover;display:block;">':'')+
-    '<div style="padding:10px 12px;">'+
-    '<div style="font-family:Fraunces,serif;font-weight:600;font-size:14.5px;">'+esc(r.name)+'</div>'+
-    '<div style="font-size:11.5px;color:var(--ink-soft);margin:2px 0 6px;">'+esc(r.neighborhood||"")+'</div>'+
-    (score!=null?renderStarsDisplay(score):'<span style="font-size:11px;color:var(--ink-faint);">saved</span>')+
-    '<div style="margin-top:9px;"><button class="btn small primary" style="width:100%;justify-content:center;" data-open-restaurant="'+r.id+'">View details</button></div>'+
-    '</div></div>';
-}
+/* ---------- MAP (Google Maps, pinboard style) ---------- */
 // A new Google map is a billable map load, so one map is created and moved into whichever view needs it.
-var browseMap = null, browseMapEl = null, browseInfo = null, browseMarkers = [], browseMapPins = "";
+var sharedMap = null, sharedMapEl = null, mapMarkers = [], mapMarkerById = {}, mapPins = "", mapSlotId = null, meMarker = null, pickBounce = false;
+function pushPinEl(r){
+  var el = document.createElement("div");
+  el.className = "pushpin "+(isTried(r) ? "been" : "try");
+  el.innerHTML = '<span class="pp-head">'+(r.favorite ? "♥" : "")+'</span><span class="pp-needle"></span>';
+  return el;
+}
+function mapCardHtml(r, picked){
+  var tried = isTried(r), cat = categoryOf(r), score = restaurantScore(r.id), photo = firstPhotoFor(r.id);
+  var where = [r.neighborhood || r.city, placeKind(r)].filter(Boolean).join(" · ");
+  return '<div class="mc '+(tried ? 'polaroid-card' : 'note '+placeTint(r))+'">'+
+    '<button type="button" class="mc-close" data-map-card-close="1" aria-label="Close">✕</button>'+
+    '<div class="mc-body" data-open-restaurant="'+r.id+'">'+
+      (tried && photo ? '<img class="mc-photo" src="'+photo+'" alt="">' : '')+
+      '<div>'+(picked ? '<div class="pick-label">how about this one?</div>' : '')+
+      '<div class="'+(tried ? 'p-name' : 'n-name')+'">'+esc(r.name)+'</div>'+
+      (tried && score!=null ? '<div class="p-stars">'+renderStarsDisplay(score)+'</div>' : '')+
+      '<div class="'+(tried ? 'p-meta' : 'n-meta')+'">'+(tried ? '' : cat.icon+' ')+esc(where)+'</div>'+(tried ? '' : addedByHtml(r))+'</div>'+
+    '</div>'+
+    '<div class="mc-actions"><button type="button" class="btn small" data-open-restaurant="'+r.id+'">Details</button>'+
+      '<button type="button" class="btn small primary" data-log-visit-for="'+r.id+'">'+(tried ? '+ Log again' : '+ We went')+'</button></div>'+
+  '</div>';
+}
+function showMapCard(rid, bounce){
+  var card = document.getElementById(mapSlotId+"Card"), r = state.restaurants[rid], m = mapMarkerById[rid];
+  if(!card || !r || !m) return;
+  state.mapCardId = rid;
+  card.innerHTML = mapCardHtml(r, state.pickedId===rid);
+  card.hidden = false;
+  Object.keys(mapMarkerById).forEach(function(id){ mapMarkerById[id].el.classList.toggle("active", id===rid); });
+  sharedMap.panTo({lat:r.lat, lng:r.lng});
+  if(bounce){ m.el.classList.remove("bounce"); void m.el.offsetWidth; m.el.classList.add("bounce"); }
+}
+function hideMapCard(){
+  state.mapCardId = null; state.pickedId = null;
+  var card = document.getElementById(mapSlotId+"Card");
+  if(card){ card.hidden = true; card.innerHTML = ""; }
+  Object.keys(mapMarkerById).forEach(function(id){ mapMarkerById[id].el.classList.remove("active"); });
+}
 function renderPlacesMap(slotId, list){
   var slot = document.getElementById(slotId);
   if(!slot) return;
   loadMaps().then(function(g){
     if(!document.body.contains(slot)) return;
-    if(!browseMap){
-      browseMapEl = document.createElement("div");
-      browseMapEl.className = "gmap-fill";
-      slot.appendChild(browseMapEl);
-      browseMap = newMap(g, browseMapEl, lastPlaceCenter(), 11);
-      browseInfo = new g.InfoWindow({headerDisabled:true});
-      browseMap.addListener("click", function(){ browseInfo.close(); });
+    if(!sharedMap){
+      sharedMapEl = document.createElement("div");
+      sharedMapEl.className = "gmap-fill";
+      slot.appendChild(sharedMapEl);
+      sharedMap = newMap(g, sharedMapEl, lastPlaceCenter(), 11);
+      sharedMap.addListener("click", function(){ hideMapCard(); });
     } else {
-      slot.appendChild(browseMapEl);
+      slot.appendChild(sharedMapEl);
     }
-    browseMarkers.forEach(function(m){ m.map = null; });
+    if(mapSlotId !== slotId) state.mapCardId = null;
+    mapSlotId = slotId;
+    mapMarkers.forEach(function(m){ m.map = null; });
+    mapMarkerById = {};
     var withLoc = list.filter(hasLoc);
-    browseMarkers = withLoc.map(function(r){
-      var marker = new g.Marker({map:browseMap, position:{lat:r.lat, lng:r.lng}, title:r.name, gmpClickable:true, content:newPin(g, !visitsFor(r.id).length)});
-      marker.addEventListener("gmp-click", function(){ browseInfo.setContent(mapPopupHtml(r)); browseInfo.open({anchor:marker, map:browseMap}); });
+    mapMarkers = withLoc.map(function(r){
+      var el = pushPinEl(r);
+      var marker = new g.Marker({map:sharedMap, position:{lat:r.lat, lng:r.lng}, title:r.name, gmpClickable:true, content:el});
+      marker.addEventListener("gmp-click", function(){ state.pickedId = null; showMapCard(r.id); });
+      mapMarkerById[r.id] = {marker:marker, el:el};
       return marker;
     });
-    var pins = withLoc.map(function(r){ return r.id; }).sort().join(",");
-    if(pins !== browseMapPins){ browseMapPins = pins; fitMapTo(g, browseMap, withLoc); }
+    if(meMarker){ meMarker.map = null; meMarker = null; }
+    var fitTo = withLoc.slice();
+    if(slotId==="boardMap" && state.board.area==="near" && state.myLoc){
+      var dot = document.createElement("div"); dot.className = "me-dot";
+      meMarker = new g.Marker({map:sharedMap, position:state.myLoc, content:dot, title:"You are here"});
+      fitTo.push(state.myLoc);
+    }
+    var pins = slotId+":"+fitTo.map(function(p){ return p.id || "me"; }).sort().join(",");
+    var refit = pins !== mapPins;
+    if(refit){ mapPins = pins; fitMapTo(g, sharedMap, fitTo); }
+    var open = state.pickedId || state.mapCardId, bounce = pickBounce;
+    pickBounce = false;
+    // Panning while the map is still zooming to fit would cancel the zoom, so a refit waits until the map settles.
+    if(open && mapMarkerById[open]){
+      var shown = false, show = function(){ if(!shown){ shown = true; showMapCard(open, bounce); } };
+      if(refit){ g.event.addListenerOnce(sharedMap, "idle", show); setTimeout(show, 1500); }
+      else show();
+    }
   }).catch(function(err){
     console.error("Map failed to load", err);
     slot.innerHTML = mapErrorHtml(mapsAuthFailed ? mapsAuthFailureText() : "Couldn't load the map. Check your connection and try again.");
   });
 }
 
-/* ---------- FAVORITES ---------- */
-function viewFavorites(){
-  var pinned = allRestaurants().filter(function(r){return r.favorite && matchesSearch(r,state.search);});
-  var scored = allRestaurants().map(function(r){return {r:r, s:restaurantScore(r.id)};}).filter(function(x){return x.s!=null && matchesSearch(x.r,state.search);}).sort(function(a,b){return b.s-a.s;});
-  var html = '<div class="page-head"><div><h1>Favorites</h1><div class="sub">Your top spots, dishes and cuisines</div></div></div>';
-  html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search favourites…" value="'+esc(state.search)+'"></div></div>';
-
-  html += '<div class="section-title">Our favourites</div>';
-  if(!pinned.length){ html += emptyState("♥","No pinned favourites yet","Open a restaurant's details and tap ♥ to pin it here."); }
-  else { groupRestaurantsByCategory(pinned).forEach(function(g){
-    var inner = '<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
-    html += categorySectionBlockHtml(g.cat, g.items.length, "fav:pinned:"+g.cat.id, inner);
-  }); }
-
-  html += '<div class="section-title">Top rated overall</div>';
-  if(!scored.length){ html += emptyState("⭐","Nothing rated yet","Log a visit with a rating to see your top spots."); }
-  else {
-    var scoredByCat = {}; CATEGORIES.forEach(function(c){ scoredByCat[c.id]=[]; });
-    scored.forEach(function(x){ scoredByCat[categoryOf(x.r).id].push(x); });
-    CATEGORIES.forEach(function(c){
-      var arr = scoredByCat[c.id]; if(!arr.length) return;
-      var inner = '<div class="shelf">'+arr.slice(0,8).map(function(x){return restaurantCard(x.r);}).join('')+'</div>';
-      html += categorySectionBlockHtml(c, arr.length, "fav:top:"+c.id, inner);
-    });
-  }
-
-  html += '<div class="section-title">Best by tag</div>';
-  var catCards = FAV_CATS.map(function(cat){
-    var inCat = scored.filter(function(x){ return (x.r.tags||[]).indexOf(cat)>=0; });
-    if(!inCat.length) return null;
-    var top = inCat[0];
-    return {cat:cat, r:top.r, s:top.s};
-  }).filter(Boolean);
-  html += catCards.length ? '<div class="grid-cards">'+catCards.map(function(c){
-    return '<div class="rcard" data-open-restaurant="'+c.r.id+'"><div class="photo">'+(firstPhotoFor(c.r.id)?'<img src="'+firstPhotoFor(c.r.id)+'">':categoryNoimgHtml(c.r))+'</div>'+
-      '<div class="body"><div class="tag" style="align-self:flex-start;">Best '+esc(c.cat)+'</div><div class="name">'+esc(c.r.name)+'</div>'+renderStarsDisplay(c.s)+'</div></div>';
-  }).join('')+'</div>' : emptyState("🏷","No tag leaders yet","Tag a few places (Dessert, Coffee Shop, Cocktail Bar…) and rate your visits.");
-
-  html += '<div class="section-title">Top dishes</div>';
-  var dishes = [];
-  allVisits().forEach(function(v){
-    var r = state.restaurants[v.restaurantId];
-    var restName = r?r.name:"?";
-    var combined = avg([v.ratingA,v.ratingB]);
-    if(v.favDishA){ dishes.push({dish:v.favDishA, rest:restName, rating:(v.ratingA!=null?v.ratingA:combined), rid:v.restaurantId, who:state.profiles.A}); }
-    if(v.favDishB){ dishes.push({dish:v.favDishB, rest:restName, rating:(v.ratingB!=null?v.ratingB:combined), rid:v.restaurantId, who:state.profiles.B}); }
-    if(!v.favDishA && !v.favDishB){
-      var legacy = v.favDish || (v.dishes&&v.dishes[0]);
-      if(legacy) dishes.push({dish:legacy, rest:restName, rating:combined, rid:v.restaurantId, who:null});
-    }
-  });
-  dishes = dishes.filter(function(d){return d.rating!=null;});
-  if(state.search){
-    var qLower = state.search.toLowerCase();
-    dishes = dishes.filter(function(d){ return (d.dish+" "+d.rest).toLowerCase().indexOf(qLower)>=0; });
-  }
-  dishes = dishes.sort(function(a,b){return b.rating-a.rating;}).slice(0,6);
-  html += dishes.length ? '<div>'+dishes.map(function(d){
-    return '<div class="listrow" data-open-restaurant="'+d.rid+'"><div class="thumb">🍴</div><div class="main-col"><div class="name">'+esc(d.dish)+'</div><div class="meta">at '+esc(d.rest)+(d.who?' · '+esc(d.who)+'\'s pick':'')+'</div></div><div class="right-col">'+renderStarsDisplay(d.rating)+'</div></div>';
-  }).join('')+'</div>' : emptyState("🍴","No favourite dishes logged","Add a favourite dish next time you log a visit.");
-
-  return html;
-}
-
-/* ---------- WANT TO TRY ---------- */
-function viewWantToTry(){
-  var list = allRestaurants().filter(function(r){ return visitsFor(r.id).length===0 && matchesSearch(r,state.search); });
-  list = sortRestaurants(list);
-  var html = '<div class="page-head"><div><h1>Saved Places</h1><div class="sub">'+list.length+' saved for later</div></div><button class="btn primary" id="btnAddWant">+ Save a place</button></div>';
-  html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search…" value="'+esc(state.search)+'"></div></div>';
-  if(!list.length){
-    html += emptyState("☆","Nothing saved yet","Add a restaurant or dish you both want to try.");
-    return html;
-  }
-  groupRestaurantsByCategory(list).forEach(function(g){
-    var byCity = {}, cityOrder = [];
-    g.items.forEach(function(r){
-      var city = r.city || "No city set";
-      if(!byCity[city]){ byCity[city]=[]; cityOrder.push(city); }
-      byCity[city].push(r);
-    });
-    cityOrder.sort(function(a,b){
-      if(a==="No city set") return 1;
-      if(b==="No city set") return -1;
-      return a.localeCompare(b);
-    });
-    var inner = '';
-    cityOrder.forEach(function(city){
-      inner += '<div class="subsection-title">'+esc(city)+' ('+byCity[city].length+')</div>';
-      inner += '<div class="grid-cards">'+byCity[city].map(function(r){return restaurantCard(r,{quickDelete:true});}).join('')+'</div>';
-    });
-    html += categorySectionBlockHtml(g.cat, g.items.length, "saved:"+g.cat.id, inner);
-  });
-  return html;
-}
-
 /* ---------- LISTS ---------- */
+// Favourites isn't stored as a list: it's every place with the heart on, shown as the first notepad.
+var FAV_LIST_ID = "__favs__";
+function favouritesList(){
+  var ids = allRestaurants().filter(function(r){ return r.favorite; }).sort(function(a,b){ return a.name.localeCompare(b.name); }).map(function(r){ return r.id; });
+  return {id:FAV_LIST_ID, name:"Our favourites", description:"Every place we've hearted", restaurantIds:ids, builtIn:true};
+}
+function listById(id){ return id===FAV_LIST_ID ? favouritesList() : state.lists[id]; }
+function listPlaces(l){ return (l.restaurantIds||[]).map(function(id){ return state.restaurants[id]; }).filter(Boolean); }
+function notepadHtml(l){
+  var places = listPlaces(l), tried = places.filter(isTried).length;
+  var lines = places.slice(0,4).map(function(r){
+    return '<div class="np-line"><span class="np-box'+(isTried(r)?' done':'')+'"></span><span class="np-text">'+esc(r.name)+'</span></div>';
+  }).join('');
+  return '<div class="notepad'+(l.builtIn?' favs':'')+'" data-open-list="'+l.id+'" style="--tilt:'+tiltFor(l)+'deg">'+
+    (l.builtIn ? '<span class="heart-pin">♥</span>' : '<span class="tape-strip"></span>')+
+    '<div class="np-title">'+esc(l.name)+'</div>'+
+    (lines || '<div class="np-line np-empty">'+(l.builtIn ? "heart a place to add it" : "nothing here yet")+'</div>')+
+    (places.length > 4 ? '<div class="np-more">+ '+(places.length-4)+' more</div>' : '')+
+    (places.length ? '<div class="np-count">'+tried+' of '+places.length+' tried</div>' : '')+
+  '</div>';
+}
 function viewLists(){
-  if(state.activeListId && state.lists[state.activeListId]) return viewListDetail(state.lists[state.activeListId]);
+  if(state.activeListId){ var active = listById(state.activeListId); if(active) return viewListDetail(active); }
   var lists = Object.keys(state.lists).map(function(k){return state.lists[k];}).sort(function(a,b){return (b.createdAt||"").localeCompare(a.createdAt||"");});
+  var all = [favouritesList()].concat(lists);
   if(state.search){
-    var qLists = state.search.toLowerCase();
-    lists = lists.filter(function(l){ return ((l.name||"")+" "+(l.description||"")).toLowerCase().indexOf(qLists)>=0; });
+    var q = state.search.toLowerCase();
+    all = all.filter(function(l){ return ((l.name||"")+" "+(l.description||"")+" "+listPlaces(l).map(function(r){ return r.name; }).join(" ")).toLowerCase().indexOf(q)>=0; });
   }
-  var html = '<div class="page-head"><div><h1>Lists</h1><div class="sub">Curated collections you build together</div></div><button class="btn primary" id="btnNewList">+ New list</button></div>';
-  html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search lists…" value="'+esc(state.search)+'"></div></div>';
-  html += lists.length ? '<div class="grid-cards">'+lists.map(function(l){
-    var count = (l.restaurantIds||[]).length;
-    var covers = (l.restaurantIds||[]).slice(0,1).map(function(rid){return firstPhotoFor(rid);}).filter(Boolean);
-    return '<div class="rcard" data-open-list="'+l.id+'"><div class="photo">'+(covers[0]?'<img src="'+covers[0]+'">':'<div class="noimg cat-bg-list">☰</div>')+'</div>'+
-      '<div class="body"><div class="name">'+esc(l.name)+'</div><div class="meta">'+count+' place'+(count!==1?'s':'')+'</div>'+
-      (l.description?'<div class="meta">'+esc(l.description)+'</div>':'')+'</div></div>';
-  }).join('')+'</div>' : emptyState("☰","No lists yet",'Try "Best ramen", "Birthday restaurants", or "Places to take my parents."');
-  return html;
+  var html = '<div class="page-head"><div><h1>Our lists</h1><div class="journal-sub">'+plural(lists.length+1,"list")+', written together</div></div><button class="btn primary" id="btnNewList">+ New list</button></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search lists and places…" value="'+esc(state.search)+'"></div></div>';
+  if(!all.length) return html + emptyState("☰","No lists match","Try a different search.");
+  return html + '<div class="notepads">'+all.map(notepadHtml).join('')+
+    (state.search ? '' : '<button type="button" class="notepad np-new" id="btnNewListPad"><span class="np-title">+ start a new list</span><span class="np-ideas">best ramen, birthday spots, take the parents…</span></button>')+
+  '</div>';
 }
 function viewListDetail(l){
-  var items = (l.restaurantIds||[]).map(function(id){return state.restaurants[id];}).filter(Boolean);
-  if(state.search) items = items.filter(function(r){ return matchesSearch(r,state.search); });
-  var html = '<div class="page-head"><div>'+
-    '<button class="btn ghost small" data-back-lists="1">← All lists</button>'+
-    '<h1 style="margin-top:6px;">'+esc(l.name)+'</h1><div class="sub">'+esc(l.description||"")+'</div></div>'+
-    '<div style="display:flex;gap:8px;"><button class="btn small" data-add-to-list="'+l.id+'">+ Add place</button><button class="btn small danger" data-delete-list="'+l.id+'">Delete list</button></div></div>';
-  html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search this list…" value="'+esc(state.search)+'"></div></div>';
-  html += items.length ? '<div>'+items.map(function(r){
-    var votes = (l.votes&&l.votes[r.id])||[];
-    var myVote = votes.indexOf(state.me)>=0;
-    return '<div class="listrow"><div class="thumb" data-open-restaurant="'+r.id+'">'+(firstPhotoFor(r.id)?'<img src="'+firstPhotoFor(r.id)+'">':categoryOf(r).icon)+'</div>'+
-      '<div class="main-col" data-open-restaurant="'+r.id+'"><div class="name">'+esc(r.name)+'</div><div class="meta">'+esc(r.neighborhood||"")+'</div></div>'+
-      '<div class="right-col">'+
-      '<button class="btn small'+(myVote?' primary':'')+'" data-vote-list="'+l.id+'" data-vote-rest="'+r.id+'">♥ '+votes.length+'</button>'+
-      '<button class="btn small ghost" data-remove-from-list="'+l.id+'" data-remove-rest="'+r.id+'">Remove</button>'+
-      '</div></div>';
-  }).join('')+'</div>' : emptyState("☰","Empty list","Add a restaurant to get started.");
+  var all = listPlaces(l), tried = all.filter(isTried).length;
+  var places = state.search ? all.filter(function(r){ return matchesSearch(r,state.search); }) : all;
+  var html = '<button class="btn ghost small" data-back-lists="1" style="margin-bottom:10px;">← All lists</button>';
+  if(all.length > 8) html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search this list…" value="'+esc(state.search)+'"></div></div>';
+  html += '<div class="list-page'+(l.builtIn?' favs':'')+'">'+(l.builtIn ? '<span class="heart-pin">♥</span>' : '<span class="tape-strip"></span>')+
+    '<div class="lp-head"><div><h1 class="lp-title">'+esc(l.name)+'</h1>'+(l.description ? '<div class="lp-desc">'+esc(l.description)+'</div>' : '')+
+      (all.length ? '<div class="lp-progress">'+tried+' of '+plural(all.length,"place")+' tried</div>' : '')+'</div>'+
+    '<div class="lp-actions"><button class="btn small primary" data-add-to-list="'+l.id+'">+ Add a place</button>'+
+      (l.builtIn ? '' : '<button class="btn small" data-edit-list="'+l.id+'">Edit</button>')+'</div></div>';
+  if(!places.length){
+    html += '<div class="lp-empty">'+(state.search ? "Nothing on this list matches." : l.builtIn ? "Tap the ♡ on any place and it lands here." : "Add a place to get this list started.")+'</div>';
+  }
+  html += places.map(function(r){
+    var score = restaurantScore(r.id), votes = (l.votes&&l.votes[r.id])||[], myVote = votes.indexOf(state.me)>=0;
+    var meta = [r.neighborhood || r.city, isTried(r) ? (score!=null ? score.toFixed(1)+" ★" : "tried") : "not tried yet"].filter(Boolean).join(" · ");
+    return '<div class="lp-item">'+
+      '<span class="np-box'+(isTried(r)?' done':'')+'"></span>'+
+      '<div class="lp-main" data-open-restaurant="'+r.id+'"><div class="lp-name">'+esc(r.name)+'</div><div class="lp-meta">'+esc(meta)+'</div></div>'+
+      (l.builtIn ? '' : '<button type="button" class="lp-vote'+(myVote?' on':'')+'" data-vote-list="'+l.id+'" data-vote-rest="'+r.id+'" title="Vote for this one">♥ '+votes.length+'</button>')+
+      '<button type="button" class="lp-remove" '+(l.builtIn ? 'data-unfav="'+r.id+'"' : 'data-remove-from-list="'+l.id+'" data-remove-rest="'+r.id+'"')+' title="Remove from this list" aria-label="Remove from this list">✕</button>'+
+    '</div>';
+  }).join('');
+  html += '</div>';
+  if(!l.builtIn) html += '<button type="button" class="btn-text-danger" data-delete-list="'+l.id+'" style="margin-top:22px;">Delete this list</button>';
   return html;
 }
 
@@ -1479,7 +1625,7 @@ function viewTripDetail(t){
       return '<button type="button" class="stamp'+(isTried(r)?' done':'')+'" data-open-restaurant="'+r.id+'" title="'+esc(r.name)+'">'+categoryOf(r).icon+'</button>';
     }).join('')+'</div>'+
     '<div class="stamp-caption">'+tried.length+' of '+plural(spots.length,"spot")+' tried'+(toTry.length ? '' : ' — every stamp collected!')+'</div>';
-  if(spots.some(hasLoc)) html += '<div class="mapwrap" style="margin-top:14px;"><div id="tripMap"></div></div>';
+  if(spots.some(hasLoc)) html += '<div class="paper-map" style="margin-top:22px;"><div id="tripMap"></div><div class="map-card" id="tripMapCard" hidden></div></div>';
   if(toTry.length){
     html += '<div class="section-row"><div class="section-title">Still to try</div>'+
       (toTry.length > 1 ? '<button type="button" class="btn small" id="btnTripPick">🎲 Where to next?</button>' : '')+'</div>'+
@@ -1544,53 +1690,162 @@ function computeStats(filterYear){
     spendByMonth: spendByMonth
   };
 }
-function viewStats(){
-  var s = computeStats(null);
-  var html = '<div class="page-head"><div><h1>Stats</h1><div class="sub">Your foodie footprint so far</div></div></div>';
-  html += '<div class="stat-grid">'+
-    statTile("Restaurants visited", s.restaurantCount) +
-    statTile("Visits logged", s.totalVisits) +
-    statTile("Cuisines tried", s.cuisineCount) +
-    statTile("Average rating", s.avgRating!=null ? s.avgRating.toFixed(1)+" ★" : "—") +
-    statTile("Most visited", s.topRestaurant ? s.topRestaurant.name : "—", s.topRestaurant ? s.topRestaurantCount+" visits" : "") +
-    statTile("Most ordered cuisine", s.topCuisine ? s.topCuisine.key : "—", s.topCuisine ? s.topCuisine.count+" visits" : "") +
-    statTile("Favourite neighbourhood", s.topNeighborhood ? s.topNeighborhood.key : "—") +
-    statTile("Photos captured", s.totalPhotos) +
+function sharedRatings(){
+  return allVisits().filter(function(v){ return v.restaurantId && state.restaurants[v.restaurantId] && v.ratingA!=null && v.ratingB!=null; });
+}
+function statStickersHtml(s){
+  var areas = {};
+  allVisits().forEach(function(v){ var r = state.restaurants[v.restaurantId]; if(r && r.neighborhood) areas[r.neighborhood] = 1; });
+  var toTry = allRestaurants().filter(function(r){ return !isTried(r); }).length;
+  var items = [[s.totalVisits,"meal"],[s.restaurantCount,"place"],[Object.keys(areas).length,"area"],[toTry,"to try"],[s.totalPhotos,"photo"],[s.cuisineCount,"cuisine"]];
+  var tilts = [-6,4,-3,5,-4,3];
+  return '<div class="stickers">'+items.map(function(x,i){
+    var label = x[1]==="to try" || x[0]===1 ? x[1] : x[1]+"s";
+    return '<div class="stk tint-'+(i%5+1)+'" style="--tilt:'+tilts[i]+'deg"><span class="stk-n">'+x[0]+'</span><span class="stk-l">'+label+'</span></div>';
+  }).join('')+'</div>';
+}
+function wrappedTeaserHtml(){
+  var y = availableYears()[0];
+  return '<button type="button" class="unwrap" data-open-wrapped="'+esc(y)+'"><span class="uw-bow">🎁</span>'+
+    '<span><span class="uw-title">Our '+esc(y)+', wrapped</span><span class="uw-sub">tap to unwrap the year</span></span><span class="uw-arrow">→</span></button>';
+}
+// Compares the two of you only on meals you both rated, so neither average is skewed by places only one of you rated.
+function criticCardHtml(){
+  var shared = sharedRatings(), A = state.profiles.A, B = state.profiles.B;
+  var html = '<div class="critic"><div class="section-title">Who\'s the tougher critic?</div>';
+  if(!shared.length) return html+'<div class="critic-empty">Rate a meal together and we\'ll see who\'s pickier.</div></div>';
+  var avgA = avg(shared.map(function(v){ return v.ratingA; })), avgB = avg(shared.map(function(v){ return v.ratingB; }));
+  var agree = shared.filter(function(v){ return Math.abs(v.ratingA-v.ratingB) <= 0.5; }).length;
+  var diff = avgA - avgB;
+  var verdict = Math.abs(diff) < 0.05 ? "You rate exactly alike" : (diff > 0 ? B : A)+" is the tougher critic"+(Math.abs(diff) < 0.3 ? ", barely" : "");
+  var split = shared.slice().sort(function(a,b){ return Math.abs(b.ratingA-b.ratingB)-Math.abs(a.ratingA-a.ratingB); })[0];
+  function side(who, name, val){
+    return '<div class="cr-side"><div class="cr-av who-'+who.toLowerCase()+'">'+esc((name||"?").charAt(0).toUpperCase())+'</div>'+
+      '<div class="cr-val">'+val.toFixed(1)+' <span class="cr-star">★</span></div><div class="cr-lbl">'+esc(name)+'\'s average</div></div>';
+  }
+  return html+'<div class="cr-row">'+side("A", A, avgA)+'<div class="cr-vs">vs</div>'+side("B", B, avgB)+'</div>'+
+    '<div class="cr-meter"><span style="width:'+Math.round(agree/shared.length*100)+'%"></span></div>'+
+    '<div class="cr-note">Within half a star on '+agree+' of the '+plural(shared.length,"meal")+' you both rated</div>'+
+    '<div class="cr-verdict">'+esc(verdict)+'</div>'+
+    (Math.abs(split.ratingA-split.ratingB) >= 1 ? '<div class="cr-note">Biggest split: '+esc(state.restaurants[split.restaurantId].name)+' ('+esc(A)+' '+split.ratingA+', '+esc(B)+' '+split.ratingB+')</div>' : '')+
   '</div>';
-
+}
+function podiumHtml(){
+  var ranked = allRestaurants().map(function(r){ return {r:r, s:restaurantScore(r.id), n:visitsFor(r.id).length}; })
+    .filter(function(x){ return x.s!=null; }).sort(function(a,b){ return b.s-a.s || b.n-a.n; }).slice(0,3);
+  if(!ranked.length) return '';
+  var cols = [ranked[1], ranked[0], ranked[2]], heights = [74, 104, 54], place = [2, 1, 3], tints = ["tint-3","tint-4","tint-1"];
+  return '<div class="section-title">Our top '+ranked.length+'</div><div class="podium">'+cols.map(function(x,i){
+    if(!x) return '<div class="pod-col"></div>';
+    return '<div class="pod-col" data-open-restaurant="'+x.r.id+'">'+(place[i]===1 ? '<div class="pod-crown">👑</div>' : '')+
+      '<div class="pod-name">'+esc(x.r.name)+'</div><div class="pod-score">'+x.s.toFixed(1)+' ★</div>'+
+      '<div class="pod-block '+tints[i]+'" style="height:'+heights[i]+'px">'+place[i]+'</div></div>';
+  }).join('')+'</div>';
+}
+function stickerBadges(){
+  var visits = allVisits().filter(function(v){ return v.restaurantId && state.restaurants[v.restaurantId]; });
+  var perPlace = {};
+  visits.forEach(function(v){ perPlace[v.restaurantId] = (perPlace[v.restaurantId]||0)+1; });
+  var visited = Object.keys(perPlace).map(function(id){ return state.restaurants[id]; });
+  function distinct(fn){ var seen = {}; visited.forEach(function(r){ [].concat(fn(r)||[]).forEach(function(x){ if(x) seen[x] = 1; }); }); return Object.keys(seen).length; }
+  function tagged(tags, types){ return visited.filter(function(r){ return (r.tags||[]).some(function(t){ return tags.indexOf(t)>=0; }) || (types||[]).indexOf(r.placeType)>=0; }).length; }
+  var photos = 0; visits.forEach(function(v){ photos += (v.photos||[]).length; });
+  var repeat = Math.max.apply(null, [0].concat(Object.keys(perPlace).map(function(k){ return perPlace[k]; })));
+  var trips = Object.keys(state.trips).map(function(k){ return state.trips[k]; });
+  var tripsDone = trips.filter(function(t){ return tripStatus(t).kind==="past" && tripSpots(t).some(function(r){ return tripVisitsFor(t, r.id).length; }); }).length;
+  var next = trips.filter(function(t){ return tripStatus(t).kind==="upcoming"; }).sort(function(a,b){ return a.startDate.localeCompare(b.startDate); })[0];
+  var nextLabel = next ? tripStatus(next).label : "";
+  return [
+    {icon:"🍽", name:"First bite", n:visits.length, goal:1, how:"Log your first meal together"},
+    {icon:"🗺", name:"Explorers", n:distinct(function(r){ return r.neighborhood; }), goal:5, how:"Eat in 5 different neighbourhoods"},
+    {icon:"🔁", name:"Regulars", n:repeat, goal:3, how:"Go back to the same spot 3 times"},
+    {icon:"🍦", name:"Sweet tooth", n:tagged(["Dessert","Bakery"], ["Dessert","Bakery"]), goal:3, how:"Visit 3 dessert or bakery spots"},
+    {icon:"🥞", name:"Brunch club", n:tagged(["Brunch"]), goal:3, how:"Try 3 brunch spots"},
+    {icon:"🌙", name:"Night owls", n:tagged(["Late Night"]), goal:1, how:"Log a late-night spot"},
+    {icon:"⭐", name:"Five stars", n:visits.some(function(v){ return v.ratingA===5 || v.ratingB===5; }) ? 1 : 0, goal:1, how:"Give somewhere a perfect 5"},
+    {icon:"💞", name:"Soulmates", n:sharedRatings().filter(function(v){ return Math.abs(v.ratingA-v.ratingB) <= 0.5; }).length, goal:5, how:"Agree within half a star on 5 meals"},
+    {icon:"📸", name:"Shutterbugs", n:photos, goal:10, how:"Save 10 photos"},
+    {icon:"🌏", name:"Globetrotters", n:distinct(function(r){ return r.cuisines; }), goal:5, how:"Try 5 different cuisines"},
+    {icon:"🛍", name:"Off the menu", n:visited.some(function(r){ return categoryOf(r).id!=="food"; }) ? 1 : 0, goal:1, how:"Log an outing that isn't food"},
+    {icon:"✈", name:"Jet-setters", n:tripsDone, goal:1, how:"Finish a trip with a spot logged",
+      hint: next ? next.destination+(nextLabel==="tomorrow!" ? " tomorrow" : " in "+nextLabel.replace(" to go","")) : ""}
+  ];
+}
+function badgeHtml(b, i){
+  var done = b.n >= b.goal;
+  return '<button type="button" class="bdg'+(done?' earned':'')+'" data-badge="1">'+
+    '<span class="bdg-disc'+(done ? ' tint-'+(i%5+1) : '')+'" style="--tilt:'+(done ? (i%2 ? 1 : -1)*(3+(i%4)*2) : 0)+'deg">'+b.icon+'</span>'+
+    '<span class="bdg-name">'+esc(b.name)+'</span>'+
+    (done ? '' : '<span class="bdg-prog">'+esc(b.hint || Math.min(b.n, b.goal)+'/'+b.goal)+'</span>')+
+    '<span class="bdg-how">'+esc(b.how)+'</span>'+
+  '</button>';
+}
+function awardsHtml(){
+  var out = FAV_CATS.map(function(tag){
+    var best = allRestaurants().filter(function(r){ return (r.tags||[]).indexOf(tag)>=0 && restaurantScore(r.id)!=null; })
+      .sort(function(a,b){ return restaurantScore(b.id)-restaurantScore(a.id); })[0];
+    return best ? '<div class="award" data-open-restaurant="'+best.id+'"><span class="aw-medal">🏅</span><div><div class="aw-what">best '+esc(tag.toLowerCase())+'</div><div class="aw-name">'+esc(best.name)+'</div></div></div>' : '';
+  }).join('');
+  return out ? '<div class="section-title">Our awards</div><div class="awards">'+out+'</div>' : '';
+}
+function topDishesHtml(){
+  var dishes = [];
+  allVisits().forEach(function(v){
+    var r = state.restaurants[v.restaurantId]; if(!r) return;
+    ["A","B"].forEach(function(who){
+      if(v["favDish"+who]) dishes.push({dish:v["favDish"+who], r:r, who:state.profiles[who], rating:v["rating"+who]!=null ? v["rating"+who] : avg([v.ratingA,v.ratingB])});
+    });
+    if(!v.favDishA && !v.favDishB && v.favDish) dishes.push({dish:v.favDish, r:r, who:null, rating:avg([v.ratingA,v.ratingB])});
+  });
+  if(!dishes.length) return '';
+  dishes.sort(function(a,b){ return (b.rating||0)-(a.rating||0); });
+  return '<div class="section-title">Dishes we\'d order again</div><div class="dish-tapes">'+dishes.slice(0,10).map(function(d,i){
+    return '<button type="button" class="dish-tape tint-'+(i%5+1)+'" data-open-restaurant="'+d.r.id+'" style="--tilt:'+(i%2 ? 1.5 : -2)+'deg">'+
+      '<span class="dt-dish">'+esc(d.dish)+'</span><span class="dt-where">'+esc(d.r.name)+(d.who ? ' · '+esc(d.who)+'\'s pick' : '')+'</span></button>';
+  }).join('')+'</div>';
+}
+function monthsHtml(){
+  var counts = {}, spend = {};
+  allVisits().forEach(function(v){
+    if(!v.restaurantId || !state.restaurants[v.restaurantId] || !v.date) return;
+    var mk = v.date.slice(0,7);
+    counts[mk] = (counts[mk]||0)+1;
+    if(typeof v.price==="number") spend[mk] = (spend[mk]||0)+v.price;
+  });
+  var months = Object.keys(counts).sort().slice(-8);
+  if(!months.length) return '';
+  var max = Math.max.apply(null, months.map(function(m){ return counts[m]; }));
+  return '<div class="section-title">Our months</div><div class="months">'+months.map(function(m,i){
+    return '<div class="mo-col"><div class="mo-n">'+counts[m]+'</div>'+
+      '<div class="mo-bar tint-'+(i%5+1)+'" style="height:'+Math.max(14, Math.round(counts[m]/max*110))+'px"></div>'+
+      '<div class="mo-lbl">'+esc(new Date(m+"-01T00:00:00").toLocaleDateString(undefined,{month:"short"}))+'</div>'+
+      (spend[m] ? '<div class="mo-spend">$'+Math.round(spend[m])+'</div>' : '')+'</div>';
+  }).join('')+'</div>';
+}
+function categoryCardsHtml(){
   var breakdown = categoryBreakdown(null);
   var savedByCat = {}; CATEGORIES.forEach(function(c){ savedByCat[c.id]=0; });
-  allRestaurants().forEach(function(r){ if(!visitsFor(r.id).length) savedByCat[categoryOf(r).id]++; });
-  var catsWithData = CATEGORIES.filter(function(c){
-    return breakdown.some(function(b){return b.cat.id===c.id;}) || savedByCat[c.id]>0;
+  allRestaurants().forEach(function(r){ if(!isTried(r)) savedByCat[categoryOf(r).id]++; });
+  var cats = CATEGORIES.filter(function(c){
+    return breakdown.some(function(b){ return b.cat.id===c.id; }) || savedByCat[c.id]>0;
   });
-  if(catsWithData.length){
-    html += '<div class="section-title">By category</div>';
-    html += '<div class="grid-cards">'+catsWithData.map(function(c){
-      var b = breakdown.filter(function(x){return x.cat.id===c.id;})[0] || {cat:c, placeCount:0, visitCount:0, avgRating:null};
-      return categoryStatCardHtml(b, savedByCat[c.id]);
-    }).join('')+'</div>';
-  }
-
-  var months = Object.keys(s.spendByMonth).sort();
-  if(months.length){
-    var max = Math.max.apply(null, months.map(function(m){return s.spendByMonth[m];}));
-    html += '<div class="section-title">Monthly dining spend</div>';
-    html += '<div style="display:flex; align-items:flex-end; gap:8px; height:160px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:var(--shadow);">'+
-      months.map(function(m){
-        var h = Math.max(6, Math.round((s.spendByMonth[m]/max)*120));
-        return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">'+
-          '<div class="mono" style="font-size:10.5px;color:var(--ink-soft);">$'+Math.round(s.spendByMonth[m])+'</div>'+
-          '<div style="width:100%;max-width:34px;height:'+h+'px;background:var(--accent);border-radius:5px 5px 0 0;"></div>'+
-          '<div class="mono" style="font-size:10px;color:var(--ink-faint);">'+m.slice(5)+'/'+m.slice(2,4)+'</div>'+
-        '</div>';
-      }).join('')+
-    '</div>';
-  }
-  return html;
+  if(cats.length < 2) return '';
+  return '<div class="section-title">By category</div><div class="grid-cards">'+cats.map(function(c){
+    var b = breakdown.filter(function(x){ return x.cat.id===c.id; })[0] || {cat:c, placeCount:0, visitCount:0, avgRating:null};
+    return categoryStatCardHtml(b, savedByCat[c.id]);
+  }).join('')+'</div>';
 }
-function statTile(label, val, sub){
-  return '<div class="stat-tile"><div class="lbl">'+esc(label)+'</div><div class="val">'+esc(val)+'</div>'+(sub?'<div class="sub">'+esc(sub)+'</div>':'')+'</div>';
+function viewStats(){
+  if(state.showWrapped) return viewWrapped();
+  var s = computeStats(null);
+  var html = '<div class="page-head"><div><h1>Us, by the numbers</h1><div class="journal-sub">our little sticker book</div></div></div>';
+  html += statStickersHtml(s) + wrappedTeaserHtml();
+  var podium = podiumHtml();
+  html += podium ? '<div class="stats-duo">'+criticCardHtml()+'<div>'+podium+'</div></div>' : criticCardHtml();
+  var badges = stickerBadges(), earned = badges.filter(function(b){ return b.n >= b.goal; }).length;
+  html += '<div class="section-title">Stickers we\'ve earned<span class="st-count">'+earned+' of '+badges.length+'</span></div>'+
+    '<div class="badges">'+badges.map(badgeHtml).join('')+'</div>';
+  return html + awardsHtml() + topDishesHtml() + monthsHtml() + categoryCardsHtml();
 }
 
 /* ---------- WRAPPED ---------- */
@@ -1605,7 +1860,8 @@ function viewWrapped(){
   var years = availableYears();
   if(!state.wrappedYear || years.indexOf(state.wrappedYear)<0) state.wrappedYear = years[0];
   var s = computeStats(state.wrappedYear);
-  var html = '<div class="page-head"><div><h1>'+state.wrappedYear+' Wrapped</h1><div class="sub">Your year in meals</div></div>'+
+  var html = '<button class="btn ghost small" data-back-stats="1" style="margin-bottom:10px;">← Back to stats</button>'+
+    '<div class="page-head"><div><h1>'+state.wrappedYear+' Wrapped</h1><div class="sub">Your year in meals</div></div>'+
     '<select id="wrappedYearSelect">'+years.map(function(y){return '<option value="'+y+'"'+(y===state.wrappedYear?" selected":"")+'>'+y+'</option>';}).join('')+'</select></div>';
 
   var slides = [];
@@ -1655,7 +1911,7 @@ function renderRestaurantDetail(rid){
       '<button type="button" class="fav-badge" data-toggle-fav="'+rid+'" title="'+(r.favorite?"Remove favourite":"Mark favourite")+'">'+(r.favorite?'♥':'♡')+'</button>'+
     '</div>'+
     '<div class="modal-body">'+
-    '<div><h2 style="font-size:24px;">'+esc(r.name)+'</h2><div class="sub" style="color:var(--ink-soft);font-size:13px;margin-top:4px;">'+rcat.icon+' '+esc(r.placeType||rcat.label)+' · '+esc(r.neighborhood||"")+(r.city?', '+esc(r.city):'')+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+'</div>'+(r.address?'<div class="sub" style="color:var(--ink-faint);font-size:12px;margin-top:2px;">'+esc(shortAddress(r))+'</div>':'')+'</div>'+
+    '<div><h2 style="font-size:24px;">'+esc(r.name)+'</h2><div class="sub" style="color:var(--ink-soft);font-size:13px;margin-top:4px;">'+rcat.icon+' '+esc(r.placeType||rcat.label)+' · '+esc(r.neighborhood||"")+(r.city?', '+esc(r.city):'')+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+'</div>'+(r.address?'<div class="sub" style="color:var(--ink-faint);font-size:12px;margin-top:2px;">'+esc(shortAddress(r))+'</div>':'')+addedByHtml(r, true)+'</div>'+
     (score!=null? '<div>'+renderStarsDisplay(score,"lg")+' <span class="mono" style="font-size:13px;color:var(--ink-soft);">'+score.toFixed(1)+'</span></div>' : '')+
     '<div class="tagrow">'+(r.cuisines||[]).map(function(c){return '<span class="tag tag-accent">'+esc(c)+'</span>';}).join('')+(r.tags||[]).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('')+'</div>'+
     (r.notes?'<p class="detail-note">'+esc(r.notes)+'</p>':'')+
@@ -1669,7 +1925,7 @@ function renderRestaurantDetail(rid){
     sameDayVisitGroups(vs).map(function(ids){
       return '<div class="join-note">Logged twice on '+fmtDate(state.visits[ids[0]].date)+'. <button type="button" class="btn-link" data-combine-visits="'+ids.join(",")+'">Combine into one visit</button></div>';
     }).join('')+
-    (vs.length ? vs.map(visitItemHtml).join('') : '<p style="font-size:13px;color:var(--ink-faint);">No visits logged yet — this is on your want-to-try list.</p>')+
+    (vs.length ? vs.map(visitItemHtml).join('') : '<p style="font-size:13px;color:var(--ink-faint);">No visits yet. It\'s still a sticky note on the pinboard.</p>')+
     '<button type="button" class="btn-text-danger" data-delete-restaurant="'+rid+'">Delete this place</button>'+
     '</div>';
   return body;
@@ -2063,7 +2319,7 @@ function modalQuickAdd(){
       '</button>'+
       '<button type="button" class="quick-add-option" id="btnQuickSaveLater">'+
         '<span class="qa-icon">☆</span>'+
-        '<span class="qa-text"><span class="qa-title">Save for later</span><span class="qa-sub">Want to try — no visit yet</span></span>'+
+        '<span class="qa-text"><span class="qa-title">Save for later</span><span class="qa-sub">Goes on the pinboard as a sticky note</span></span>'+
       '</button>'+
     '</div></div>';
   openModal(html);
@@ -2182,7 +2438,7 @@ function modalSettings(){
     field("Profile A name",'<input type="text" id="f_profA" value="'+esc(state.profiles.A)+'">')+
     field("Profile B name",'<input type="text" id="f_profB" value="'+esc(state.profiles.B)+'">')+
     '<p style="font-size:12px;color:var(--ink-faint);">Use the switcher in the sidebar to say who\'s logging each entry — it\'s remembered per device.</p>'+
-    field("Your data", '<button type="button" class="btn small" id="btnExportData">⭳ Download a backup (JSON)</button>')+
+    field("Your data", '<button type="button" class="btn small" id="btnExportData"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download a backup (JSON)</button>')+
     '</div><div class="modal-foot"><button class="btn primary" id="btnSaveProfiles">Save</button></div></div>';
   openModal(html);
 }
@@ -2218,17 +2474,14 @@ function renderAll(){
   if(state.loading){ el.innerHTML = '<div class="loading-page"><svg class="brand-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg>opening our journal…</div>'; return; }
   var html;
   switch(state.route){
-    case "journal": html = viewJournal(); break;
-    case "favorites": html = viewFavorites(); break;
-    case "wanttotry": html = viewWantToTry(); break;
+    case "pinboard": html = viewPinboard(); break;
     case "lists": html = viewLists(); break;
     case "trips": html = viewTrips(); break;
     case "stats": html = viewStats(); break;
-    case "wrapped": html = viewWrapped(); break;
-    default: html = viewBrowse();
+    default: html = viewJournal();
   }
   el.innerHTML = html;
-  if(state.route==="browse" && state.browseMode==="map") renderPlacesMap("browseMap", lastBrowseList);
+  if(state.route==="pinboard" && state.boardMode==="map") renderPlacesMap("boardMap", lastBoardList);
   var activeTrip = state.route==="trips" && state.trips[state.activeTripId];
   if(activeTrip) renderPlacesMap("tripMap", tripSpots(activeTrip));
 }
@@ -2239,11 +2492,16 @@ document.addEventListener("click", function(e){
 
   // nav
   var routeBtn = t.closest("[data-route]");
-  if(routeBtn){ state.route = routeBtn.getAttribute("data-route"); state.search=""; state.activeListId=null; state.activeTripId=null; closeSidebar(); renderAll(); return; }
+  if(routeBtn){
+    state.route = routeBtn.getAttribute("data-route"); state.search=""; state.activeListId=null; state.activeTripId=null;
+    state.showWrapped = false; state.pickedId = null; state.mapCardId = null;
+    if(routeBtn.getAttribute("data-board-status")){ state.board.status = routeBtn.getAttribute("data-board-status"); state.boardMode = "board"; }
+    closeSidebar(); renderAll(); return;
+  }
 
   if(t.closest("#btnMenu")){ toggleSidebar(); return; }
   if(t.closest("#sidebarBackdrop")){ closeSidebar(); return; }
-  if(t.closest("#btnHome") || t.closest("#btnHomeMobile")){ state.route="journal"; state.search=""; state.activeListId=null; state.activeTripId=null; closeSidebar(); renderAll(); return; }
+  if(t.closest("#btnHome") || t.closest("#btnHomeMobile")){ state.route="journal"; state.search=""; state.activeListId=null; state.activeTripId=null; state.showWrapped=false; closeSidebar(); renderAll(); return; }
 
   var meBtn = t.closest("[data-me]");
   if(meBtn){ state.me = meBtn.getAttribute("data-me"); localStorage.setItem("pp_me", state.me); renderAll(); return; }
@@ -2276,13 +2534,35 @@ document.addEventListener("click", function(e){
   }
   if(t.closest("#btnAddWant")){ modalEditRestaurant(null,null); return; }
 
-  var bm = t.closest("[data-browse-mode]");
-  if(bm){ state.browseMode = bm.getAttribute("data-browse-mode"); renderAll(); return; }
-
-  if(t.closest("#btnToggleFilters")){ state.filtersOpen = !state.filtersOpen; renderAll(); return; }
-  if(t.closest("#btnClearFilters")){ state.filters = {city:"",neighborhood:"",cuisine:"",tag:"",wouldReturn:"",price:""}; renderAll(); return; }
-  var clearF = t.closest("[data-clear-filter]");
-  if(clearF){ state.filters[clearF.getAttribute("data-clear-filter")] = ""; renderAll(); return; }
+  // pinboard
+  var boardModeBtn = t.closest("[data-board-mode]");
+  if(boardModeBtn){ state.boardMode = boardModeBtn.getAttribute("data-board-mode"); state.pickedId = null; state.mapCardId = null; renderAll(); return; }
+  var statusChip = t.closest("[data-board-status]");
+  if(statusChip){ state.board.status = statusChip.getAttribute("data-board-status"); state.pickedId = null; renderAll(); return; }
+  var catChip = t.closest("[data-board-cat]");
+  if(catChip){ state.board.cat = catChip.getAttribute("data-board-cat"); state.pickedId = null; renderAll(); return; }
+  var areaChip = t.closest("[data-board-area]");
+  if(areaChip){
+    state.board.area = areaChip.getAttribute("data-board-area"); state.pickedId = null; state.mapCardId = null;
+    if(state.board.area==="near") locateMe(); else renderAll();
+    return;
+  }
+  if(t.closest("#btnBoardPick")){
+    if(!state.board.area) modalPickWhere();
+    else if(state.board.area==="near" && !state.myLoc) locateMe(pickForUs);
+    else pickForUs();
+    return;
+  }
+  var pickArea = t.closest("[data-pick-area]");
+  if(pickArea){
+    closeModal();
+    state.board.area = pickArea.getAttribute("data-pick-area"); state.pickedId = null; state.mapCardId = null;
+    if(state.board.area==="near") locateMe(pickForUs); else { renderAll(); pickForUs(); }
+    return;
+  }
+  if(t.closest("[data-map-card-close]")){ hideMapCard(); return; }
+  var gotoTrip = t.closest("[data-goto-trip]");
+  if(gotoTrip){ state.route = "trips"; state.activeTripId = gotoTrip.getAttribute("data-goto-trip"); state.search = ""; renderAll(); window.scrollTo(0,0); return; }
 
   var geoSug = t.closest("[data-geo-idx]");
   if(geoSug){
@@ -2292,13 +2572,6 @@ document.addEventListener("click", function(e){
   }
 
   // restaurant open/edit/delete
-  var catToggle = t.closest("[data-toggle-category]");
-  if(catToggle){
-    var ckey = catToggle.getAttribute("data-toggle-category");
-    state.collapsedCategories[ckey] = !state.collapsedCategories[ckey];
-    renderAll();
-    return;
-  }
   var openR = t.closest("[data-open-restaurant]");
   if(openR && !t.closest("button[data-log-visit-for]") && !t.closest("button[data-delete-restaurant]") ){ modalRestaurantDetail(openR.getAttribute("data-open-restaurant")); return; }
   var editR = t.closest("[data-edit-restaurant]");
@@ -2374,7 +2647,16 @@ document.addEventListener("click", function(e){
     closeModal(); return;
   }
 
-  if(t.closest("#btnNewList")){ modalListForm(null); return; }
+  if(t.closest("#btnNewList") || t.closest("#btnNewListPad")){ modalListForm(null); return; }
+  var editList = t.closest("[data-edit-list]");
+  if(editList){ modalListForm(state.lists[editList.getAttribute("data-edit-list")]); return; }
+  var unfav = t.closest("[data-unfav]");
+  if(unfav){
+    var unfavId = unfav.getAttribute("data-unfav");
+    state.restaurants[unfavId] = Object.assign({}, state.restaurants[unfavId], {favorite:false});
+    updateRestaurant(unfavId, {favorite:false});
+    renderAll(); return;
+  }
   if(t.closest("#btnSaveList")){
     var lid = t.closest("#btnSaveList").getAttribute("data-list-id");
     var name = document.getElementById("f_listname").value.trim(); if(!name) return;
@@ -2476,7 +2758,10 @@ document.addEventListener("click", function(e){
     var newNameField = document.getElementById(kind2==="trip" ? "f_name" : "f_pick_new");
     var newName = newNameField ? newNameField.value.trim() : "";
     function withRid(ridResolved){
-      if(kind2==="list"){
+      if(kind2==="list" && cid===FAV_LIST_ID){
+        if(state.restaurants[ridResolved]) state.restaurants[ridResolved] = Object.assign({}, state.restaurants[ridResolved], {favorite:true});
+        updateRestaurant(ridResolved, {favorite:true});
+      } else if(kind2==="list"){
         var l = state.lists[cid]; var ids3 = (l.restaurantIds||[]).slice();
         if(ids3.indexOf(ridResolved)<0) ids3.push(ridResolved);
         updateList(cid, {restaurantIds:ids3});
@@ -2494,6 +2779,7 @@ document.addEventListener("click", function(e){
       return;
     }
     var newData = {name:newName, cuisines:[], tags:[]};
+    if(kind2==="list" && cid===FAV_LIST_ID) newData.favorite = true;
     if(kind2==="trip"){
       newData.address = editingRestaurant.address || "";
       newData.city = (document.getElementById("f_city")||{}).value || "";
@@ -2508,6 +2794,11 @@ document.addEventListener("click", function(e){
   var zoomPhoto = t.closest("[data-zoom-photo]");
   if(zoomPhoto){ modalPhotoZoom(decodeURIComponent(zoomPhoto.getAttribute("data-zoom-photo"))); return; }
 
+  var openWrapped = t.closest("[data-open-wrapped]");
+  if(openWrapped){ state.showWrapped = true; state.wrappedYear = openWrapped.getAttribute("data-open-wrapped"); wrappedSlideIdx = 0; renderAll(); window.scrollTo(0,0); return; }
+  if(t.closest("[data-back-stats]")){ state.showWrapped = false; renderAll(); return; }
+  var badge = t.closest("[data-badge]");
+  if(badge){ badge.classList.toggle("show-how"); return; }
   var wrapDot = t.closest("[data-wrap-dot]");
   if(wrapDot){ wrappedSlideIdx = parseInt(wrapDot.getAttribute("data-wrap-dot"),10); renderAll(); return; }
   if(t.closest("[data-wrap-prev]")){ wrappedSlideIdx = Math.max(0,wrappedSlideIdx-1); renderAll(); return; }
@@ -2533,17 +2824,6 @@ document.addEventListener("input", function(e){
   if(e.target.id==="f_name" && document.getElementById("geoSuggestions")){ debouncedGeoSearch(); }
 });
 document.addEventListener("change", function(e){
-  if(e.target.id==="sortSelect"){ state.sort = e.target.value; renderAll(); }
-  if(e.target.id==="filterCity"){
-    state.filters.city = e.target.value;
-    if(state.filters.neighborhood && distinctNeighborhoods(state.filters.city).indexOf(state.filters.neighborhood)<0){ state.filters.neighborhood = ""; }
-    renderAll();
-  }
-  if(e.target.id==="filterNeighborhood"){ state.filters.neighborhood = e.target.value; renderAll(); }
-  if(e.target.id==="filterCuisine"){ state.filters.cuisine = e.target.value; renderAll(); }
-  if(e.target.id==="filterTag"){ state.filters.tag = e.target.value; renderAll(); }
-  if(e.target.id==="filterPrice"){ state.filters.price = e.target.value; renderAll(); }
-  if(e.target.id==="filterWouldReturn"){ state.filters.wouldReturn = e.target.value; renderAll(); }
   if(e.target.id==="wrappedYearSelect"){ state.wrappedYear = e.target.value; wrappedSlideIdx=0; renderAll(); }
   if(e.target.id==="f_photoInput"){
     var file = e.target.files[0]; if(!file) return;
