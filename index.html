@@ -12,7 +12,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Keepsake">
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Nunito:wght@400;500;600;700;800&family=Caveat:wght@500;600&display=swap">
 <style>
 :root{
@@ -196,21 +195,13 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 /* map */
 .mapwrap{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:0; overflow:hidden; box-shadow:var(--shadow);}
 .mapnote{padding:10px 16px; font-size:12px; color:var(--ink-faint); border-bottom:1px solid var(--line-soft); background:var(--surface-2);}
-#leafletMap{height:560px; width:100%; background:var(--surface-2); position:relative; z-index:0; isolation:isolate;}
-.pp-marker{width:26px; height:26px; border-radius:50% 50% 50% 0; background:var(--accent); transform:rotate(-45deg); border:2px solid var(--surface); box-shadow:var(--shadow); cursor:pointer;}
-.pp-marker.want{background:var(--gold);}
-.maplibregl-map{font-family:'Nunito',system-ui,sans-serif;}
-.maplibregl-popup-content{background:var(--surface); color:var(--ink); border-radius:12px; box-shadow:var(--shadow); padding:0;}
-.maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:var(--surface);}
-.maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:var(--surface);}
-.maplibregl-popup-close-button{color:var(--ink-faint); font-size:18px; padding:2px 8px 0 0;}
-.maplibregl-ctrl-group{background:var(--surface) !important; border-radius:10px !important; box-shadow:var(--shadow) !important; overflow:hidden; border:none !important;}
-.maplibregl-ctrl-group button{background:var(--surface) !important; width:30px !important; height:30px !important;}
-.maplibregl-ctrl-group button:hover{background:var(--surface-2) !important;}
-.maplibregl-ctrl-group button + button{border-top:1px solid var(--line-soft) !important;}
-.maplibregl-ctrl-attrib{background:var(--surface) !important; color:var(--ink-faint) !important; opacity:.82; border-radius:6px 0 0 0 !important; font-size:10px !important;}
-.maplibregl-ctrl-attrib a{color:var(--ink-soft) !important;}
-.maplibregl-ctrl-bottom-right .maplibregl-ctrl{margin:0 6px 6px 0;}
+#browseMap{height:560px; width:100%; background:var(--surface-2); position:relative;}
+.gmap-fill{width:100%; height:100%;}
+.map-error{display:flex; align-items:center; justify-content:center; height:100%; padding:16px; text-align:center; font-size:13px; color:var(--ink-soft);}
+.gm-style{font-family:'Nunito',system-ui,sans-serif;}
+.gm-style .gm-style-iw-c{background:var(--surface); color:var(--ink); padding:0 !important; border-radius:12px !important; box-shadow:var(--shadow-lift) !important;}
+.gm-style .gm-style-iw-d{overflow:auto !important; padding:0 !important;}
+.gm-style .gm-style-iw-tc::after{background:var(--surface);}
 .geo-search-wrap{position:relative;}
 .geo-suggestions{position:absolute; top:100%; left:0; right:0; margin-top:4px; background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); z-index:5; max-height:240px; overflow-y:auto; display:none;}
 .geo-suggestions.open{display:block;}
@@ -351,7 +342,7 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
   .listrow .thumb{width:44px; height:44px;}
   .listrow .main-col{flex-basis:0;}
   .listrow .right-col{flex-basis:100%; flex-wrap:wrap; justify-content:flex-start; margin-left:58px;}
-  #leafletMap{height:70vh; min-height:320px;}
+  #browseMap{height:70vh; min-height:320px;}
   .grid-cards{grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px;}
   .rcard .photo{height:76px;}
   .rcard .photo .noimg{font-size:20px;}
@@ -406,7 +397,9 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<script>
+(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key:"AIzaSyCqDQzLTNKbOZTmXXzPrF4NMHwEB-qX5iM",v:"weekly"});
+</script>
 <script>
 (function(){
 "use strict";
@@ -550,20 +543,46 @@ function clamp(n,a,b){ return Math.max(a,Math.min(b,n)); }
 function avg(arr){ arr=arr.filter(function(v){return typeof v==="number";}); if(!arr.length) return null; return arr.reduce(function(a,b){return a+b;},0)/arr.length; }
 function debounce(fn,ms){ var t; return function(){ var a=arguments; clearTimeout(t); t=setTimeout(function(){fn.apply(null,a);},ms); }; }
 function hasLoc(r){ return r && typeof r.lat==="number" && typeof r.lng==="number"; }
-var MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
-function newMap(containerId, center, zoom){
-  return new maplibregl.Map({
-    container: containerId,
-    style: MAP_STYLE_URL,
-    center: center, zoom: zoom,
-    attributionControl: {compact:true}
-  });
+var GOOGLE_MAP_ID = "6990fa6021273f152b7796d4";
+var DEFAULT_MAP_CENTER = {lat:53.5461, lng:-113.4938};
+var mapsLib = null, mapsLoading = null;
+function loadMaps(){
+  if(!mapsLoading){
+    mapsLoading = Promise.all(["core","maps","marker"].map(function(n){ return google.maps.importLibrary(n); }))
+      .then(function(libs){
+        mapsLib = {ColorScheme:libs[0].ColorScheme, LatLngBounds:libs[0].LatLngBounds, event:libs[0].event,
+          Map:libs[1].Map, InfoWindow:libs[1].InfoWindow, Marker:libs[2].AdvancedMarkerElement, Pin:libs[2].PinElement};
+        return mapsLib;
+      });
+  }
+  return mapsLoading;
 }
-function ppMarkerEl(cls){
-  var el = document.createElement("div");
-  el.className = cls;
-  return el;
+function isDarkTheme(){
+  var t = document.documentElement.getAttribute("data-theme");
+  return t ? t==="dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
+function newMap(g, el, center, zoom){
+  return new g.Map(el, {center:center, zoom:zoom, mapId:GOOGLE_MAP_ID,
+    colorScheme: g.ColorScheme ? (isDarkTheme() ? g.ColorScheme.DARK : g.ColorScheme.LIGHT) : undefined,
+    clickableIcons:false, mapTypeControl:false, streetViewControl:false, fullscreenControl:false});
+}
+function newPin(g, saved){
+  var color = getComputedStyle(document.documentElement).getPropertyValue(saved ? "--star" : "--accent").trim();
+  return new g.Pin({background:color, borderColor:color, glyphColor:"#ffffff"});
+}
+function lastPlaceCenter(){
+  var located = allRestaurants().filter(hasLoc).sort(function(a,b){ return (b.createdAt||"").localeCompare(a.createdAt||""); });
+  return located.length ? {lat:located[0].lat, lng:located[0].lng} : DEFAULT_MAP_CENTER;
+}
+function fitMapTo(g, map, places){
+  if(!places.length) return;
+  if(places.length===1){ map.setCenter({lat:places[0].lat, lng:places[0].lng}); map.setZoom(15); return; }
+  var bounds = new g.LatLngBounds();
+  places.forEach(function(r){ bounds.extend({lat:r.lat, lng:r.lng}); });
+  map.fitBounds(bounds, 48);
+  g.event.addListenerOnce(map, "idle", function(){ if(map.getZoom() > 15) map.setZoom(15); });
+}
+function mapErrorHtml(msg){ return '<div class="map-error">'+msg+'</div>'; }
 
 /* ---------- star rendering ---------- */
 var STAR_PATH = "M12 2.5l2.9 6.06 6.6.77-4.87 4.55 1.28 6.6L12 17.6l-5.91 3.38 1.28-6.6L2.5 9.33l6.6-.77z";
@@ -1095,46 +1114,59 @@ function emptyState(emoji,title,body){
   return '<div class="empty"><div class="emoji">'+emoji+'</div><h3>'+title+'</h3><p>'+body+'</p></div>';
 }
 
-/* ---------- MAP view (real vector map: MapLibre + OpenFreeMap) ---------- */
+/* ---------- MAP view (Google Maps) ---------- */
 function mapView(list){
   var withLoc = list.filter(hasLoc);
   var withoutLoc = list.filter(function(r){return !hasLoc(r);});
   var html = '<div class="mapwrap"><div class="mapnote">'+withLoc.length+' of '+list.length+' pinned · tap a pin for photos & details</div>'+
-    '<div id="leafletMap"></div></div>';
+    '<div id="browseMap"></div></div>';
   if(withoutLoc.length){
     html += '<div class="section-title">No location set yet</div><div>'+withoutLoc.map(restaurantRow).join('')+'</div>';
   }
   return html;
 }
-function renderLeafletBrowseMap(list){
-  var container = document.getElementById("leafletMap");
-  if(!container || !window.maplibregl) return;
-  if(window._ppBrowseMap){ window._ppBrowseMap.remove(); window._ppBrowseMap=null; }
-  var withLoc = list.filter(hasLoc);
-  var map = newMap("leafletMap", [0,20], 1);
-  map.addControl(new maplibregl.NavigationControl({showCompass:false}), "top-right");
-  window._ppBrowseMap = map;
-  if(withLoc.length){
-    var bounds = new maplibregl.LngLatBounds();
-    withLoc.forEach(function(r){
-      var vs = visitsFor(r.id);
-      var el = ppMarkerEl("pp-marker"+(vs.length?"":" want"));
-      var marker = new maplibregl.Marker({element:el, anchor:"bottom"}).setLngLat([r.lng,r.lat]).addTo(map);
-      var photo = firstPhotoFor(r.id);
-      var score = restaurantScore(r.id);
-      var popupHtml = '<div style="width:200px;">'+
-        (photo?'<img src="'+photo+'" style="width:100%;height:100px;object-fit:cover;border-radius:12px 12px 0 0;display:block;">':'')+
-        '<div style="padding:10px 12px;">'+
-        '<div style="font-family:Fraunces,serif;font-weight:600;font-size:14.5px;">'+esc(r.name)+'</div>'+
-        '<div style="font-size:11.5px;color:var(--ink-soft);margin:2px 0 6px;">'+esc(r.neighborhood||"")+'</div>'+
-        (score!=null?renderStarsDisplay(score):'<span style="font-size:11px;color:var(--ink-faint);">saved</span>')+
-        '<div style="margin-top:9px;"><button class="btn small primary" style="width:100%;justify-content:center;" data-open-restaurant="'+r.id+'">View details</button></div>'+
-        '</div></div>';
-      marker.setPopup(new maplibregl.Popup({offset:25, maxWidth:"220px"}).setHTML(popupHtml));
-      bounds.extend([r.lng,r.lat]);
+function mapPopupHtml(r){
+  var photo = firstPhotoFor(r.id);
+  var score = restaurantScore(r.id);
+  return '<div style="width:200px;">'+
+    (photo?'<img src="'+photo+'" style="width:100%;height:100px;object-fit:cover;display:block;">':'')+
+    '<div style="padding:10px 12px;">'+
+    '<div style="font-family:Fraunces,serif;font-weight:600;font-size:14.5px;">'+esc(r.name)+'</div>'+
+    '<div style="font-size:11.5px;color:var(--ink-soft);margin:2px 0 6px;">'+esc(r.neighborhood||"")+'</div>'+
+    (score!=null?renderStarsDisplay(score):'<span style="font-size:11px;color:var(--ink-faint);">saved</span>')+
+    '<div style="margin-top:9px;"><button class="btn small primary" style="width:100%;justify-content:center;" data-open-restaurant="'+r.id+'">View details</button></div>'+
+    '</div></div>';
+}
+// A new Google map is a billable map load, so the browse map is created once and moved into each re-render.
+var browseMap = null, browseMapEl = null, browseInfo = null, browseMarkers = [], browseMapPins = "";
+function renderBrowseMap(list){
+  var slot = document.getElementById("browseMap");
+  if(!slot) return;
+  loadMaps().then(function(g){
+    if(!document.body.contains(slot)) return;
+    if(!browseMap){
+      browseMapEl = document.createElement("div");
+      browseMapEl.className = "gmap-fill";
+      slot.appendChild(browseMapEl);
+      browseMap = newMap(g, browseMapEl, lastPlaceCenter(), 11);
+      browseInfo = new g.InfoWindow({headerDisabled:true});
+      browseMap.addListener("click", function(){ browseInfo.close(); });
+    } else {
+      slot.appendChild(browseMapEl);
+    }
+    browseMarkers.forEach(function(m){ m.map = null; });
+    var withLoc = list.filter(hasLoc);
+    browseMarkers = withLoc.map(function(r){
+      var marker = new g.Marker({map:browseMap, position:{lat:r.lat, lng:r.lng}, title:r.name, gmpClickable:true, content:newPin(g, !visitsFor(r.id).length)});
+      marker.addEventListener("gmp-click", function(){ browseInfo.setContent(mapPopupHtml(r)); browseInfo.open({anchor:marker, map:browseMap}); });
+      return marker;
     });
-    map.on("load", function(){ map.fitBounds(bounds, {padding:48, maxZoom:15, duration:0}); });
-  }
+    var pins = withLoc.map(function(r){ return r.id; }).sort().join(",");
+    if(pins !== browseMapPins){ browseMapPins = pins; fitMapTo(g, browseMap, withLoc); }
+  }).catch(function(err){
+    console.error("Map failed to load", err);
+    slot.innerHTML = mapErrorHtml("Couldn't load the map. Check your connection and try again.");
+  });
 }
 
 /* ---------- FAVORITES ---------- */
@@ -1518,7 +1550,7 @@ function openModal(html){
   document.getElementById("modalRoot").innerHTML = '<div class="overlay" id="overlay">'+html+'</div>';
 }
 function closeModal(){
-  if(pickerMapInstance){ pickerMapInstance.remove(); pickerMapInstance=null; pickerMarker=null; }
+  pickerMapInstance = null; pickerMarker = null;
   document.getElementById("modalRoot").innerHTML = "";
 }
 function finishSave(promise, onOk){
@@ -1581,24 +1613,28 @@ function field(label, inner){ return '<div class="field"><label>'+label+'</label
 
 function initPickerMap(){
   var container = document.getElementById("pickerMap");
-  if(!container || !window.maplibregl) return;
-  if(pickerMapInstance){ pickerMapInstance.remove(); pickerMapInstance=null; pickerMarker=null; }
-  var loc = hasLoc(editingRestaurant);
-  var startLat = loc ? editingRestaurant.lat : 20, startLng = loc ? editingRestaurant.lng : 0;
-  var startZoom = loc ? 15 : 1;
-  pickerMapInstance = newMap("pickerMap", [startLng,startLat], startZoom);
-  pickerMapInstance.addControl(new maplibregl.NavigationControl({showCompass:false}), "top-right");
-  if(loc){ placeSelectedMarker(startLat, startLng); }
-  pickerMapInstance.on("click", function(ev){
-    editingRestaurant.lat = ev.lngLat.lat; editingRestaurant.lng = ev.lngLat.lng;
-    placeSelectedMarker(ev.lngLat.lat, ev.lngLat.lng);
-    updateGeoHint();
+  if(!container) return;
+  pickerMapInstance = null; pickerMarker = null;
+  loadMaps().then(function(g){
+    if(document.getElementById("pickerMap") !== container) return;
+    var loc = hasLoc(editingRestaurant);
+    pickerMapInstance = newMap(g, container, loc ? {lat:editingRestaurant.lat, lng:editingRestaurant.lng} : lastPlaceCenter(), loc ? 15 : 11);
+    if(loc) placeSelectedMarker(editingRestaurant.lat, editingRestaurant.lng);
+    pickerMapInstance.addListener("click", function(ev){
+      if(!ev.latLng) return;
+      editingRestaurant.lat = ev.latLng.lat(); editingRestaurant.lng = ev.latLng.lng();
+      placeSelectedMarker(editingRestaurant.lat, editingRestaurant.lng);
+      updateGeoHint();
+    });
+  }).catch(function(err){
+    console.error("Map failed to load", err);
+    container.innerHTML = mapErrorHtml("Couldn't load the map. You can still save without a pin.");
   });
 }
 function placeSelectedMarker(lat,lng){
   if(!pickerMapInstance) return;
-  if(pickerMarker){ pickerMarker.remove(); pickerMarker=null; }
-  pickerMarker = new maplibregl.Marker({element:ppMarkerEl("pp-marker"), anchor:"bottom"}).setLngLat([lng,lat]).addTo(pickerMapInstance);
+  if(pickerMarker) pickerMarker.map = null;
+  pickerMarker = new mapsLib.Marker({map:pickerMapInstance, position:{lat:lat, lng:lng}, content:newPin(mapsLib, false)});
 }
 function updateGeoHint(){
   var el = document.getElementById("geoHint");
@@ -1678,7 +1714,7 @@ function selectGeoCandidateFromResult(res){
       updateGeoHint();
       try{
         placeSelectedMarker(details.lat, details.lng);
-        if(pickerMapInstance) pickerMapInstance.flyTo({center:[details.lng,details.lat], zoom:16});
+        if(pickerMapInstance){ pickerMapInstance.panTo({lat:details.lat, lng:details.lng}); pickerMapInstance.setZoom(16); }
       }catch(err){ console.error("Map pin update failed", err); }
       return fetchOsmNeighborhood(details.lat, details.lng).then(function(osmNbhd){
         if(myToken !== geoSelectToken) return;
@@ -2004,11 +2040,7 @@ function renderAll(){
     default: html = viewBrowse();
   }
   el.innerHTML = html;
-  if(state.route==="browse" && state.browseMode==="map"){
-    renderLeafletBrowseMap(lastBrowseList);
-  } else if(window._ppBrowseMap){
-    window._ppBrowseMap.remove(); window._ppBrowseMap = null;
-  }
+  if(state.route==="browse" && state.browseMode==="map") renderBrowseMap(lastBrowseList);
 }
 
 /* ---------- event delegation ---------- */
