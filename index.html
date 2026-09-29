@@ -125,6 +125,11 @@ button{cursor:pointer;}
 .page-head .sub{color:var(--ink-soft); font-size:14px; margin-top:4px;}
 .btn{display:inline-flex; align-items:center; gap:7px; padding:10px 16px; border-radius:10px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-weight:700; font-size:13.5px; white-space:nowrap;}
 .btn:hover{border-color:var(--ink-faint);}
+a.btn{text-decoration:none;}
+.addr-link{display:inline-block; color:var(--ink-soft); font-size:12.5px; margin-top:3px; text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px;}
+.addr-link:hover{color:var(--accent); text-decoration-color:currentColor;}
+.dir-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.dir-label{font-family:'Caveat',cursive; font-size:20px; font-weight:600; color:var(--ink-soft); margin-right:2px;}
 .btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink);}
 .btn.primary:hover{filter:brightness(1.06);}
 .btn.ghost{background:transparent; border-color:transparent; color:var(--ink-soft);}
@@ -1435,6 +1440,7 @@ function mapCardHtml(r, picked){
       '<div class="'+(tried ? 'p-meta' : 'n-meta')+'">'+(tried ? '' : cat.icon+' ')+esc(where)+'</div>'+(tried ? '' : addedByHtml(r))+'</div>'+
     '</div>'+
     '<div class="mc-actions"><button type="button" class="btn small" data-open-restaurant="'+r.id+'">Details</button>'+
+      '<a class="btn small" href="'+esc(googleMapsUrl(r, true))+'" target="_blank" rel="noopener">'+DIRECTIONS_ICON+'Directions</a>'+
       '<button type="button" class="btn small primary" data-log-visit-for="'+r.id+'">'+(tried ? '+ Log again' : '+ We went')+'</button></div>'+
   '</div>';
 }
@@ -1933,6 +1939,31 @@ function viewWrapped(){
   return html;
 }
 
+/* ---------- directions ---------- */
+// Plain https links: on a phone they open the Google Maps or Apple Maps app when it's installed.
+function placeQuery(r){
+  if(r.address) return r.name+", "+r.address;
+  if(hasLoc(r)) return r.lat+","+r.lng;
+  return [r.name, r.neighborhood, r.city].filter(Boolean).join(", ");
+}
+function googleMapsUrl(r, directions){
+  var q = encodeURIComponent(placeQuery(r));
+  var id = r.placeId ? (directions ? "&destination_place_id=" : "&query_place_id=")+encodeURIComponent(r.placeId) : "";
+  return directions ? "https://www.google.com/maps/dir/?api=1&destination="+q+id : "https://www.google.com/maps/search/?api=1&query="+q+id;
+}
+function appleMapsUrl(r){
+  var dest = r.address || (hasLoc(r) ? r.lat+","+r.lng : placeQuery(r));
+  return "https://maps.apple.com/?daddr="+encodeURIComponent(dest)+"&q="+encodeURIComponent(r.name||"");
+}
+var DIRECTIONS_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8z"/></svg>';
+function directionsRowHtml(r){
+  var apple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+  return '<div class="dir-row"><span class="dir-label">get directions</span>'+
+    '<a class="btn small" href="'+esc(googleMapsUrl(r, true))+'" target="_blank" rel="noopener">'+DIRECTIONS_ICON+'Google Maps</a>'+
+    (apple ? '<a class="btn small" href="'+esc(appleMapsUrl(r))+'" target="_blank" rel="noopener">'+DIRECTIONS_ICON+'Apple Maps</a>' : '')+
+  '</div>';
+}
+
 /* ---------- RESTAURANT DETAIL ---------- */
 function renderRestaurantDetail(rid){
   var r = state.restaurants[rid]; if(!r) return "";
@@ -1945,7 +1976,8 @@ function renderRestaurantDetail(rid){
       '<button type="button" class="fav-badge" data-toggle-fav="'+rid+'" title="'+(r.favorite?"Remove favourite":"Mark favourite")+'">'+(r.favorite?'♥':'♡')+'</button>'+
     '</div>'+
     '<div class="modal-body">'+
-    '<div><h2 style="font-size:24px;">'+esc(r.name)+'</h2><div class="sub" style="color:var(--ink-soft);font-size:13px;margin-top:4px;">'+rcat.icon+' '+esc(r.placeType||rcat.label)+' · '+esc(r.neighborhood||"")+(r.city?', '+esc(r.city):'')+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+'</div>'+(r.address?'<div class="sub" style="color:var(--ink-faint);font-size:12px;margin-top:2px;">'+esc(shortAddress(r))+'</div>':'')+addedByHtml(r, true)+'</div>'+
+    '<div><h2 style="font-size:24px;">'+esc(r.name)+'</h2><div class="sub" style="color:var(--ink-soft);font-size:13px;margin-top:4px;">'+rcat.icon+' '+esc(r.placeType||rcat.label)+' · '+esc(r.neighborhood||"")+(r.city?', '+esc(r.city):'')+(r.priceRange?' · '+PRICE_LABELS[r.priceRange]:'')+'</div>'+(r.address?'<a class="addr-link" href="'+esc(googleMapsUrl(r, false))+'" target="_blank" rel="noopener" title="Open in Google Maps">'+esc(shortAddress(r))+' ↗</a>':'')+addedByHtml(r, true)+'</div>'+
+    directionsRowHtml(r)+
     (score!=null? '<div>'+renderStarsDisplay(score,"lg")+' <span class="mono" style="font-size:13px;color:var(--ink-soft);">'+score.toFixed(1)+'</span></div>' : '')+
     '<div class="tagrow">'+(r.cuisines||[]).map(function(c){return '<span class="tag tag-accent">'+esc(c)+'</span>';}).join('')+(r.tags||[]).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('')+'</div>'+
     (r.notes?'<p class="detail-note">'+esc(r.notes)+'</p>':'')+
@@ -2160,6 +2192,7 @@ function selectGeoCandidateFromResult(res){
       if(myToken !== geoSelectToken || !details || details.lat==null || details.lng==null) return;
       editingRestaurant.lat = details.lat; editingRestaurant.lng = details.lng;
       editingRestaurant.address = details.address || "";
+      editingRestaurant.placeId = res.placeId || "";
       var fCity = document.getElementById("f_city");
       if(fCity && details.city) fCity.value = details.city;
       updateGeoHint();
@@ -2821,6 +2854,7 @@ document.addEventListener("click", function(e){
     if(kind2==="list" && cid===FAV_LIST_ID) newData.favorite = true;
     if(kind2==="trip"){
       newData.address = editingRestaurant.address || "";
+      newData.placeId = editingRestaurant.placeId || "";
       newData.city = (document.getElementById("f_city")||{}).value || "";
       newData.neighborhood = (document.getElementById("f_nbhd")||{}).value || "";
       newData.lat = hasLoc(editingRestaurant) ? editingRestaurant.lat : null;
@@ -2915,6 +2949,7 @@ function doSaveRestaurantFromForm(){
     category: categoryId,
     placeType: (document.getElementById("f_placetype").value||"").trim() || "Other",
     address: editingRestaurant.address || "",
+    placeId: editingRestaurant.placeId || "",
     city: document.getElementById("f_city").value.trim(),
     neighborhood: document.getElementById("f_nbhd").value.trim(),
     lat: hasLoc(editingRestaurant) ? editingRestaurant.lat : null,
@@ -2985,6 +3020,7 @@ function doSaveVisitFromForm(){
       category: editingRestaurant.category || "food",
       placeType: editingRestaurant.placeType || "Other",
       address: editingRestaurant.address || "",
+      placeId: editingRestaurant.placeId || "",
       city:document.getElementById("f_city").value.trim(),
       neighborhood:document.getElementById("f_nbhd").value.trim(),
       lat: hasLoc(editingRestaurant) ? editingRestaurant.lat : null,
