@@ -265,6 +265,10 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .detail-actions-secondary{display:flex; gap:8px; flex-wrap:wrap;}
 .tag-accent{background:var(--accent-soft) !important; color:var(--accent) !important;}
 .detail-note{background:var(--surface-2); border-left:3px solid var(--accent); border-radius:0 10px 10px 0; padding:10px 14px; margin:0; font-family:'Fraunces',serif; font-style:italic; font-size:14px; color:var(--ink-soft); line-height:1.45;}
+.partner-part{border:1px dashed var(--line); border-radius:12px; padding:10px 12px;}
+.partner-part summary{cursor:pointer; font-size:13px; font-weight:700; color:var(--accent);}
+.partner-part[open] summary{margin-bottom:10px;}
+.partner-fields{display:flex; flex-direction:column; gap:16px;}
 .join-note{background:var(--accent-soft); color:var(--ink); border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.45;}
 .btn-link{background:none; border:none; padding:0; color:var(--accent); font-weight:700; font-size:13px; cursor:pointer; text-decoration:underline; text-underline-offset:2px;}
 .btn-text-danger{background:none; border:none; color:var(--ink-faint); font-size:12px; cursor:pointer; padding:4px 2px; text-decoration:underline; text-underline-offset:2px; align-self:flex-start;}
@@ -327,6 +331,43 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .sticky-note:hover{transform:rotate(0deg) translateY(-2px);}
 .sticky-title{font-family:'Caveat',cursive; font-size:25px; font-weight:600;}
 .sticky-body{font-size:13px; color:var(--ink-soft); margin-top:2px;}
+
+/* trips */
+.postcards{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:22px; padding:6px 4px;}
+.postcard{position:relative; border-radius:8px; padding:18px 18px 16px; min-height:180px; box-shadow:var(--shadow); cursor:pointer; display:flex; flex-direction:column; gap:3px; transition:transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease;}
+.postcard:hover{transform:rotate(0deg) translateY(-5px) scale(1.02) !important; box-shadow:var(--shadow-lift);}
+.pc-stamp{position:absolute; top:12px; right:12px; width:46px; height:54px; border:2px dashed var(--accent); border-radius:4px; background:var(--surface); color:var(--accent); display:flex; align-items:center; justify-content:center; font-size:22px; transform:rotate(7deg);}
+.pc-status{font-family:'Caveat',cursive; font-size:21px; font-weight:600; color:var(--accent);}
+.pc-dest{font-family:'Fraunces',serif; font-size:28px; font-weight:500; line-height:1.1; padding-right:58px;}
+.pc-dates{font-size:12.5px; color:var(--ink-soft);}
+.pc-progress{margin-top:auto; padding-top:14px;}
+.pc-bar{height:7px; background:var(--surface); border-radius:99px; overflow:hidden;}
+.pc-bar span{display:block; height:100%; background:var(--accent); border-radius:99px;}
+.pc-count{font-family:'Caveat',cursive; font-size:18px; font-weight:600; color:var(--ink-soft); margin-top:3px;}
+.trip-cover{position:relative; border-radius:10px; padding:22px 22px 18px; box-shadow:var(--shadow);}
+.trip-cover .tc-stamp{width:58px; height:68px; font-size:28px; top:16px; right:18px;}
+.tc-dest{font-size:36px; font-weight:500; line-height:1.05; padding-right:70px;}
+.tc-notes{font-family:'Caveat',cursive; font-size:21px; color:var(--ink-soft); margin-top:6px; line-height:1.25;}
+.tc-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;}
+.section-row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:24px 0 10px;}
+.section-row .section-title{margin:0;}
+.stamps{display:flex; flex-wrap:wrap; gap:12px;}
+.stamp{position:relative; width:54px; height:54px; border-radius:50%; border:2px dashed var(--line); background:var(--surface); font-size:22px; display:flex; align-items:center; justify-content:center; padding:0; cursor:pointer; transition:transform .2s ease;}
+.stamp.done{border:2px solid var(--accent); background:var(--accent-soft); transform:rotate(-10deg);}
+.stamp.done::after{content:"✓"; position:absolute; right:-4px; bottom:-4px; width:20px; height:20px; border-radius:50%; background:var(--accent); color:var(--accent-ink); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center;}
+.stamp:hover{transform:scale(1.12) rotate(0deg);}
+.stamp-caption{font-family:'Caveat',cursive; font-size:20px; font-weight:600; color:var(--ink-soft); margin-top:8px;}
+#tripMap{height:260px; width:100%; background:var(--surface-2); position:relative;}
+.bucket-item{display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:8px; transition:transform .2s ease, box-shadow .2s ease, border-color .15s ease;}
+.bi-box{width:22px; height:22px; border:2px solid var(--line); border-radius:6px; flex-shrink:0;}
+.bi-main{flex:1; min-width:0; cursor:pointer;}
+.bi-name{font-family:'Fraunces',serif; font-size:16px; font-weight:500;}
+.bi-meta{font-size:12px; color:var(--ink-soft);}
+.bucket-item.flash{border-color:var(--accent); background:var(--accent-soft);}
+.bucket-item.picked{border-color:var(--accent); box-shadow:var(--shadow-lift); transform:scale(1.02);}
+.bucket-item.picked .bi-main::after{content:"how about this one?"; display:block; font-family:'Caveat',cursive; font-size:19px; font-weight:600; color:var(--accent);}
+.trip-day{display:flex; align-items:center; gap:12px; margin:22px 0 10px; font-family:'Caveat',cursive; font-size:26px; font-weight:600;}
+.trip-day::after{content:""; flex:1; height:1px; background:var(--line);}
 
 @media (max-width:860px){
   .sidebar{position:fixed; z-index:50; transform:translateX(-100%); transition:transform .2s; box-shadow:var(--shadow); padding-top:calc(20px + env(safe-area-inset-top)); padding-bottom:calc(20px + env(safe-area-inset-bottom));}
@@ -538,7 +579,9 @@ function relativeDate(d){
   return fmtDate(d);
 }
 function monthKey(d){ return d ? d.slice(0,7) : ""; }
-function todayStr(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function localDateStr(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function todayStr(){ return localDateStr(new Date()); }
+function daysBetween(a, b){ return Math.round((new Date(b+"T00:00:00") - new Date(a+"T00:00:00"))/86400000); }
 function clamp(n,a,b){ return Math.max(a,Math.min(b,n)); }
 function avg(arr){ arr=arr.filter(function(v){return typeof v==="number";}); if(!arr.length) return null; return arr.reduce(function(a,b){return a+b;},0)/arr.length; }
 function debounce(fn,ms){ var t; return function(){ var a=arguments; clearTimeout(t); t=setTimeout(function(){fn.apply(null,a);},ms); }; }
@@ -546,7 +589,20 @@ function hasLoc(r){ return r && typeof r.lat==="number" && typeof r.lng==="numbe
 var GOOGLE_MAP_ID = "6990fa6021273f152b7796d4";
 var DEFAULT_MAP_CENTER = {lat:53.5461, lng:-113.4938};
 var mapsLib = null, mapsLoading = null;
+window.gm_authFailure = function(){
+  mapsAuthFailed = true;
+  ["browseMap","tripMap","pickerMap"].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.innerHTML = mapErrorHtml(mapsAuthFailureText());
+  });
+};
+var mapsAuthFailed = false;
+function mapsAuthFailureText(){
+  return "Google Maps wouldn't load on "+esc(location.host+location.pathname)+". The map key may not allow this address.";
+}
 function loadMaps(){
+  if(mapsAuthFailed) return Promise.reject(new Error("Google Maps auth failed"));
+  if(!window.google || !google.maps || !google.maps.importLibrary) return Promise.reject(new Error("Google Maps loader missing"));
   if(!mapsLoading){
     mapsLoading = Promise.all(["core","maps","marker"].map(function(n){ return google.maps.importLibrary(n); }))
       .then(function(libs){
@@ -1137,10 +1193,10 @@ function mapPopupHtml(r){
     '<div style="margin-top:9px;"><button class="btn small primary" style="width:100%;justify-content:center;" data-open-restaurant="'+r.id+'">View details</button></div>'+
     '</div></div>';
 }
-// A new Google map is a billable map load, so the browse map is created once and moved into each re-render.
+// A new Google map is a billable map load, so one map is created and moved into whichever view needs it.
 var browseMap = null, browseMapEl = null, browseInfo = null, browseMarkers = [], browseMapPins = "";
-function renderBrowseMap(list){
-  var slot = document.getElementById("browseMap");
+function renderPlacesMap(slotId, list){
+  var slot = document.getElementById(slotId);
   if(!slot) return;
   loadMaps().then(function(g){
     if(!document.body.contains(slot)) return;
@@ -1165,7 +1221,7 @@ function renderBrowseMap(list){
     if(pins !== browseMapPins){ browseMapPins = pins; fitMapTo(g, browseMap, withLoc); }
   }).catch(function(err){
     console.error("Map failed to load", err);
-    slot.innerHTML = mapErrorHtml("Couldn't load the map. Check your connection and try again.");
+    slot.innerHTML = mapErrorHtml(mapsAuthFailed ? mapsAuthFailureText() : "Couldn't load the map. Check your connection and try again.");
   });
 }
 
@@ -1305,51 +1361,128 @@ function viewListDetail(l){
   return html;
 }
 
-/* ---------- TRIPS (travel mode) ---------- */
+/* ---------- TRIPS (trip journal) ---------- */
+function tripDays(t){
+  if(!t.startDate) return [];
+  var end = t.endDate && t.endDate >= t.startDate ? t.endDate : t.startDate;
+  var out = [], d = new Date(t.startDate+"T00:00:00"), last = new Date(end+"T00:00:00");
+  while(d <= last && out.length < 60){ out.push(localDateStr(d)); d.setDate(d.getDate()+1); }
+  return out;
+}
+function tripStatus(t){
+  var days = tripDays(t), today = todayStr();
+  if(!days.length) return {kind:"someday", label:"someday"};
+  if(today < days[0]){ var n = daysBetween(today, days[0]); return {kind:"upcoming", label: n===1 ? "tomorrow!" : n+" days to go"}; }
+  if(today > days[days.length-1]) return {kind:"past", label:"trip complete"};
+  return {kind:"now", label:"day "+(days.indexOf(today)+1)+" of "+days.length};
+}
+function tripDateRange(t){
+  if(!t.startDate) return "Dates not set";
+  return fmtDate(t.startDate)+(t.endDate && t.endDate!==t.startDate ? " – "+fmtDate(t.endDate) : "");
+}
+function tripSpots(t){ return allRestaurants().filter(function(r){ return r.tripId===t.id; }); }
+function tripVisitsFor(t, rid){
+  var days = tripDays(t);
+  return visitsFor(rid).filter(function(v){ return !days.length || days.indexOf(v.date)>=0; });
+}
+// Logging from a trip should land inside the trip's dates, or the visit won't appear on the trip.
+function tripLogDate(t){
+  var days = tripDays(t), today = todayStr();
+  return !days.length || days.indexOf(today)>=0 ? today : days[0];
+}
+function tripTilt(t){ return (placeHash(t)%5)-2; }
 function viewTrips(){
   if(state.activeTripId && state.trips[state.activeTripId]) return viewTripDetail(state.trips[state.activeTripId]);
-  var trips = Object.keys(state.trips).map(function(k){return state.trips[k];}).sort(function(a,b){return (b.startDate||"").localeCompare(a.startDate||"");});
+  var order = {now:0, upcoming:1, someday:2, past:3};
+  var trips = Object.keys(state.trips).map(function(k){ var t = state.trips[k]; return {t:t, s:tripStatus(t)}; })
+    .sort(function(a,b){
+      if(order[a.s.kind]!==order[b.s.kind]) return order[a.s.kind]-order[b.s.kind];
+      var cmp = (a.t.startDate||"").localeCompare(b.t.startDate||"");
+      return a.s.kind==="past" ? -cmp : cmp;
+    });
   if(state.search){
     var qTrips = state.search.toLowerCase();
-    trips = trips.filter(function(t){ return ((t.destination||"")+" "+(t.notes||"")).toLowerCase().indexOf(qTrips)>=0; });
+    trips = trips.filter(function(x){ return ((x.t.destination||"")+" "+(x.t.notes||"")).toLowerCase().indexOf(qTrips)>=0; });
   }
-  var html = '<div class="page-head"><div><h1>Trips</h1><div class="sub">Plan food itineraries by destination</div></div><button class="btn primary" id="btnNewTrip">+ New trip</button></div>';
+  var upcoming = trips.filter(function(x){ return x.s.kind==="upcoming" || x.s.kind==="now"; }).length;
+  var html = '<div class="page-head"><div><h1>Our trips</h1><div class="journal-sub">'+
+    (trips.length ? plural(trips.length,"trip")+(upcoming ? ", "+upcoming+" coming up" : "") : "every trip is a food trip")+
+    '</div></div><button class="btn primary" id="btnNewTrip">+ New trip</button></div>';
   html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search trips…" value="'+esc(state.search)+'"></div></div>';
-  html += trips.length ? '<div class="grid-cards">'+trips.map(function(t){
-    var items = allRestaurants().filter(function(r){return r.tripId===t.id;});
-    var visited = items.filter(function(r){return visitsFor(r.id).length>0;}).length;
-    return '<div class="rcard" data-open-trip="'+t.id+'"><div class="body">'+
-      '<div class="name">✈ '+esc(t.destination)+'</div>'+
-      '<div class="meta">'+(t.startDate?fmtDate(t.startDate):"")+(t.endDate?' – '+fmtDate(t.endDate):"")+'</div>'+
-      '<div class="meta">'+items.length+' spot'+(items.length!==1?'s':'')+' · '+visited+' visited</div>'+
-      '</div></div>';
-  }).join('')+'</div>' : emptyState("✈","No trips yet","Plan a food itinerary before your next trip.");
+  if(!trips.length) return html + emptyState("✈","Plan your first food trip","Add a destination and the spots you want to try there.");
+  html += '<div class="postcards">'+trips.map(function(x){
+    var t = x.t, spots = tripSpots(t);
+    var tried = spots.filter(function(r){ return tripVisitsFor(t, r.id).length; }).length;
+    var pct = spots.length ? Math.round(tried/spots.length*100) : 0;
+    return '<div class="postcard '+placeTint(t)+'" data-open-trip="'+t.id+'" style="transform:rotate('+tripTilt(t)+'deg)">'+
+      '<div class="pc-stamp">✈</div>'+
+      '<div class="pc-status">'+esc(x.s.label)+'</div>'+
+      '<div class="pc-dest">'+esc(t.destination)+'</div>'+
+      '<div class="pc-dates">'+esc(tripDateRange(t))+'</div>'+
+      '<div class="pc-progress"><div class="pc-bar"><span style="width:'+pct+'%"></span></div>'+
+        '<div class="pc-count">'+(spots.length ? tried+" of "+plural(spots.length,"spot")+" tried" : "no spots yet")+'</div></div>'+
+    '</div>';
+  }).join('')+'</div>';
   return html;
 }
 function viewTripDetail(t){
-  var items = allRestaurants().filter(function(r){return r.tripId===t.id;});
-  if(state.search) items = items.filter(function(r){ return matchesSearch(r,state.search); });
-  var toTry = items.filter(function(r){return visitsFor(r.id).length===0;});
-  var visited = items.filter(function(r){return visitsFor(r.id).length>0;});
-  var html = '<div class="page-head"><div>'+
-    '<button class="btn ghost small" data-back-trips="1">← All trips</button>'+
-    '<h1 style="margin-top:6px;">✈ '+esc(t.destination)+'</h1>'+
-    '<div class="sub">'+(t.startDate?fmtDate(t.startDate):"")+(t.endDate?' – '+fmtDate(t.endDate):"")+(t.notes?' · '+esc(t.notes):"")+'</div></div>'+
-    '<div style="display:flex;gap:8px;"><button class="btn small" data-add-to-trip="'+t.id+'">+ Add spot</button><button class="btn small danger" data-delete-trip="'+t.id+'">Delete trip</button></div></div>';
-  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search this trip…" value="'+esc(state.search)+'"></div></div>';
-  html += '<div class="section-title">Itinerary — to visit ('+toTry.length+')</div>';
-  if(!toTry.length){ html += emptyState("☆","Nothing queued yet","Add places you want to visit on this trip."); }
-  else { groupRestaurantsByCategory(toTry).forEach(function(g){
-    var inner = '<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
-    html += categorySectionBlockHtml(g.cat, g.items.length, "trip:"+t.id+":tovisit:"+g.cat.id, inner);
-  }); }
-  html += '<div class="section-title">Visited on this trip ('+visited.length+')</div>';
-  if(!visited.length){ html += emptyState("🍽","Not yet visited","Log a visit once you've been."); }
-  else { groupRestaurantsByCategory(visited).forEach(function(g){
-    var inner = '<div class="grid-cards">'+g.items.map(restaurantCard).join('')+'</div>';
-    html += categorySectionBlockHtml(g.cat, g.items.length, "trip:"+t.id+":visited:"+g.cat.id, inner);
-  }); }
-  return html;
+  var s = tripStatus(t), days = tripDays(t);
+  var spots = tripSpots(t);
+  if(state.search) spots = spots.filter(function(r){ return matchesSearch(r,state.search); });
+  var isTried = function(r){ return tripVisitsFor(t, r.id).length > 0; };
+  var tried = spots.filter(isTried), toTry = spots.filter(function(r){ return !isTried(r); });
+  var html = '<button class="btn ghost small" data-back-trips="1" style="margin-bottom:10px;">← All trips</button>'+
+    '<div class="trip-cover '+placeTint(t)+'">'+
+      '<div class="pc-stamp tc-stamp">✈</div>'+
+      '<div class="pc-status">'+esc(s.label)+'</div>'+
+      '<h1 class="tc-dest">'+esc(t.destination)+'</h1>'+
+      '<div class="pc-dates">'+esc(tripDateRange(t))+'</div>'+
+      (t.notes ? '<div class="tc-notes">'+esc(t.notes)+'</div>' : '')+
+      '<div class="tc-actions"><button class="btn small primary" data-add-to-trip="'+t.id+'">+ Add a spot</button>'+
+        '<button class="btn small" data-edit-trip="'+t.id+'">Edit trip</button></div>'+
+    '</div>';
+  html += '<div class="toolbar" style="margin-top:14px;"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search this trip…" value="'+esc(state.search)+'"></div></div>';
+  if(!spots.length){
+    return html + emptyState("✈", state.search ? "No spots match" : "Where are we eating?", state.search ? "Try a different search." : "Add the spots you want to try on this trip.") +
+      '<button type="button" class="btn-text-danger" data-delete-trip="'+t.id+'">Delete this trip</button>';
+  }
+  html += '<div class="section-title">Our stamp card</div>'+
+    '<div class="stamps">'+spots.map(function(r){
+      return '<button type="button" class="stamp'+(isTried(r)?' done':'')+'" data-open-restaurant="'+r.id+'" title="'+esc(r.name)+'">'+categoryOf(r).icon+'</button>';
+    }).join('')+'</div>'+
+    '<div class="stamp-caption">'+tried.length+' of '+plural(spots.length,"spot")+' tried'+(toTry.length ? '' : ' — every stamp collected!')+'</div>';
+  if(spots.some(hasLoc)) html += '<div class="mapwrap" style="margin-top:14px;"><div id="tripMap"></div></div>';
+  if(toTry.length){
+    html += '<div class="section-row"><div class="section-title">Still to try</div>'+
+      (toTry.length > 1 ? '<button type="button" class="btn small" id="btnTripPick">🎲 Where to next?</button>' : '')+'</div>'+
+      toTry.map(function(r){
+        return '<div class="bucket-item" data-bucket="'+r.id+'">'+
+          '<span class="bi-box"></span>'+
+          '<div class="bi-main" data-open-restaurant="'+r.id+'"><div class="bi-name">'+categoryOf(r).icon+' '+esc(r.name)+'</div>'+
+          '<div class="bi-meta">'+esc([r.neighborhood, r.placeType].filter(Boolean).join(" · "))+'</div></div>'+
+          '<button type="button" class="btn small primary" data-log-visit-for="'+r.id+'" data-log-date="'+tripLogDate(t)+'">Tried it!</button>'+
+        '</div>';
+      }).join('');
+  }
+  var byDate = {};
+  tried.forEach(function(r){
+    tripVisitsFor(t, r.id).forEach(function(v){
+      byDate[v.date] = byDate[v.date] || {};
+      (byDate[v.date][r.id] = byDate[v.date][r.id] || []).push(v);
+    });
+  });
+  var visitDates = Object.keys(byDate).sort();
+  html += '<div class="section-title">Trip journal</div>';
+  if(!visitDates.length){
+    html += '<p class="stamp-caption" style="margin-top:0;">'+(s.kind==="upcoming" || s.kind==="someday" ? "The pages fill in once you're there. Tap \"Tried it!\" on a spot to add it." : "Tap \"Tried it!\" on a spot and it'll show up here, day by day.")+'</p>';
+  }
+  visitDates.forEach(function(d){
+    var dayIdx = days.indexOf(d);
+    html += '<div class="trip-day">'+(dayIdx>=0 ? 'Day '+(dayIdx+1)+' · ' : '')+esc(new Date(d+"T00:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}))+'</div>';
+    var places = Object.keys(byDate[d]).map(function(rid){ return {r:state.restaurants[rid], v:mergeVisitData(byDate[d][rid])}; });
+    html += places.length===1 ? journalCardHtml(places[0].r, places[0].v) : journalDayHtml(places);
+  });
+  return html + '<button type="button" class="btn-text-danger" data-delete-trip="'+t.id+'" style="margin-top:24px;">Delete this trip</button>';
 }
 
 /* ---------- STATS ---------- */
@@ -1628,7 +1761,7 @@ function initPickerMap(){
     });
   }).catch(function(err){
     console.error("Map failed to load", err);
-    container.innerHTML = mapErrorHtml("Couldn't load the map. You can still save without a pin.");
+    container.innerHTML = mapErrorHtml(mapsAuthFailed ? mapsAuthFailureText() : "Couldn't load the map. You can still save without a pin.");
   });
 }
 function placeSelectedMarker(lat,lng){
@@ -1728,43 +1861,65 @@ function selectGeoCandidateFromResult(res){
 var editingVisit = null;
 function categoryExtraFieldsHtml(cat, v){
   var extra = CATEGORY_VISIT_FIELDS[cat.id] || [];
-  var html = extra.map(function(f){
+  return extra.map(function(f){
     var val = f.list ? (v[f.key]||[]).join(", ") : (v[f.key]||"");
     return field(f.label, '<input type="text" id="f_extra_'+f.key+'" value="'+esc(val)+'">');
   }).join('');
-  if(cat.id==="food"){
-    html += '<div class="field-row">'+
-      field(esc(state.profiles.A)+"'s favourite dish",'<input type="text" id="f_favdishA" value="'+esc(v.favDishA||v.favDish||"")+'" placeholder="The one they\'d order again">')+
-      field(esc(state.profiles.B)+"'s favourite dish",'<input type="text" id="f_favdishB" value="'+esc(v.favDishB||"")+'" placeholder="The one they\'d order again">')+
-    '</div>';
-  }
-  return html;
 }
 function visitNotes(v, who){
   if(v.notesA!=null || v.notesB!=null) return v["notes"+who] || "";
   return (v.loggedBy||"A")===who ? (v.notes||"") : "";
 }
-function notesFieldHtml(cat, v){
-  var label = (cat ? (NOTES_LABEL[cat.id]||"Notes") : "Notes").toLowerCase();
-  return ["A","B"].map(function(who){
-    return field(esc(state.profiles[who])+"'s "+label, '<textarea id="f_notes'+who+'" placeholder="How was it? Anything memorable?">'+esc(visitNotes(v, who))+'</textarea>');
-  }).join('');
+function personPartHtml(who, cat, v){
+  var name = who===(state.me||"A") ? "Your" : esc(state.profiles[who])+"'s";
+  var notesLabel = (cat ? (NOTES_LABEL[cat.id]||"Notes") : "Notes").toLowerCase();
+  return '<div class="rate-row"><span class="who">'+name+' rating</span>'+renderStarEditor2("rating"+who, v["rating"+who])+'</div>'+
+    (cat && cat.id==="food" ? field(name+" favourite dish",'<input type="text" id="f_favdish'+who+'" value="'+esc(v["favDish"+who]||(who==="A"?v.favDish:"")||"")+'" placeholder="The one worth ordering again">') : '')+
+    field(name+" "+notesLabel,'<textarea id="f_notes'+who+'" placeholder="How was it? Anything memorable?">'+esc(visitNotes(v, who))+'</textarea>');
 }
-var JOIN_WINDOW_DAYS = 14;
-function recentIncompleteVisit(rid){
-  var cutoff = new Date(Date.now() - JOIN_WINDOW_DAYS*86400000).toISOString().slice(0,10);
+function personPartsHtml(cat, v){
+  var me = state.me || "A", partner = me==="A" ? "B" : "A";
+  var partnerHas = v["rating"+partner]!=null || !!visitNotes(v, partner) || !!v["favDish"+partner];
+  return personPartHtml(me, cat, v)+
+    '<details class="partner-part"'+(partnerHas?' open':'')+'><summary>'+(partnerHas ? esc(state.profiles[partner])+"'s rating and notes" : "Add "+esc(state.profiles[partner])+"'s rating too")+'</summary>'+
+      '<div class="partner-fields">'+personPartHtml(partner, cat, v)+'</div></details>';
+}
+var MY_RATING_LOOKBACK_DAYS = 7;
+function recentVisitMissingMyRating(rid){
+  var me = state.me || "A";
+  var cutoff = new Date(Date.now() - MY_RATING_LOOKBACK_DAYS*86400000).toISOString().slice(0,10);
   return visitsFor(rid)
-    .filter(function(v){ return (v.date||"") >= cutoff && (v.ratingA==null || v.ratingB==null); })
+    .filter(function(v){ return (v.date||"") >= cutoff && v["rating"+me]==null; })
     .sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); })[0] || null;
+}
+function sameDayVisit(rid, date, excludeId){
+  if(!rid || !date) return null;
+  return visitsFor(rid).filter(function(v){ return v.id!==excludeId && v.date===date; }).sort(byCreatedAt)[0] || null;
 }
 function sameDayVisitGroups(vs){
   var byDate = {};
   vs.forEach(function(v){ if(v.date) (byDate[v.date] = byDate[v.date] || []).push(v.id); });
   return Object.keys(byDate).filter(function(d){ return byDate[d].length > 1; }).map(function(d){ return byDate[d]; });
 }
-function startLogVisit(rid){
-  var joinable = recentIncompleteVisit(rid);
-  modalLogVisit(rid, joinable, null, !!joinable);
+function mergeEntryIntoVisit(existing, entry){
+  var merged = mergeVisitData([existing]);
+  ["ratingA","ratingB","wouldReturn","price"].forEach(function(k){ if(entry[k]!=null) merged[k] = entry[k]; });
+  ["favDishA","favDishB","notesA","notesB","favFinds","toLookFor","highlights","favExhibits"].forEach(function(k){ if(entry[k]) merged[k] = entry[k]; });
+  ["photos","dishes","itemsPurchased"].forEach(function(k){
+    (entry[k]||[]).forEach(function(x){ if(merged[k].indexOf(x)<0) merged[k].push(x); });
+  });
+  return merged;
+}
+function visitFormPlaceId(){
+  var sel = document.getElementById("f_visit_restaurant");
+  return editingVisit.restaurantId || (sel && sel.value && sel.value!=="__new__" ? sel.value : null);
+}
+function updateSameDayNote(){
+  var el = document.getElementById("sameDayNote");
+  if(!el) return;
+  var v = sameDayVisit(visitFormPlaceId(), document.getElementById("f_date").value, editingVisit.id);
+  el.hidden = !v;
+  el.textContent = v ? (v.loggedBy===state.me ? "You" : (state.profiles[v.loggedBy]||"Your partner"))+" already logged a visit here on "+fmtDate(v.date)+", so this will be added to it. Change the date if it was a different day." : "";
 }
 function byCreatedAt(a,b){ return (a.createdAt||"").localeCompare(b.createdAt||""); }
 function combineVisits(ids){
@@ -1792,8 +1947,10 @@ function favFieldHtml(r){
   if(!r) return "";
   return field("Favourite", '<button type="button" class="btn small" id="btnToggleVisitFav">'+(r.favorite?"♥ Favourited":"♡ Mark as favourite")+'</button>');
 }
-function modalLogVisit(restaurantId, existingVisit, presetPlace, joining){
-  editingVisit = existingVisit ? Object.assign({}, existingVisit, {dishes:(existingVisit.dishes||[]).slice(), photos:(existingVisit.photos||[]).slice()}) : {restaurantId: restaurantId||null, date: todayStr(), ratingA:null, ratingB:null, wouldReturn:null, dishes:[], favDishA:"", favDishB:"", notesA:"", notesB:"", price:null, photos:[]};
+function modalLogVisit(restaurantId, existingVisit, presetPlace, defaultDate){
+  editingVisit = existingVisit ? Object.assign({}, existingVisit, {dishes:(existingVisit.dishes||[]).slice(), photos:(existingVisit.photos||[]).slice()}) : {restaurantId: restaurantId||null, date: defaultDate || todayStr(), ratingA:null, ratingB:null, wouldReturn:null, dishes:[], favDishA:"", favDishB:"", notesA:"", notesB:"", price:null, photos:[]};
+  var pendingVisit = !existingVisit && restaurantId ? recentVisitMissingMyRating(restaurantId) : null;
+  if(pendingVisit) editingVisit.date = pendingVisit.date;
   var targetRestaurant = restaurantId ? state.restaurants[restaurantId] : (existingVisit ? state.restaurants[existingVisit.restaurantId] : null);
   var isWizardNewPlace = !restaurantId && !existingVisit && !!presetPlace;
   if(targetRestaurant){ editingRestaurant = Object.assign({}, targetRestaurant); }
@@ -1803,9 +1960,8 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace, joining){
   var initialCategory = editingRestaurant ? categoryOf(editingRestaurant) : null;
   var restaurantOptions = allRestaurants().sort(function(a,b){return a.name.localeCompare(b.name);});
   var html = '<div class="modal">'+
-    '<div class="modal-head"><h2>'+(joining?"Add to this visit":existingVisit?"Edit visit":"Log a visit")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-head"><h2>'+(existingVisit?"Edit visit":"Log a visit")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
     '<div class="modal-body">'+
-    (joining ? '<div class="join-note">'+esc(state.profiles[existingVisit.loggedBy]||"Your partner")+' logged this visit on '+fmtDate(existingVisit.date)+'. Add your rating and notes to it. <button type="button" class="btn-link" data-log-new-visit-for="'+restaurantId+'">Log a separate visit</button></div>' : '')+
     (showDropdown ? field("Place", '<select id="f_visit_restaurant">'+
         '<option value="">— choose a place —</option>'+
         '<option value="__new__">+ Add a new place…</option>'+
@@ -1823,19 +1979,20 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace, joining){
       field("Date",'<input type="date" id="f_date" value="'+esc(editingVisit.date||todayStr())+'">')+
       field("Amount spent (optional)",'<input type="number" id="f_price" min="0" step="1" value="'+(editingVisit.price!=null?editingVisit.price:"")+'" placeholder="$">')+
     '</div>'+
-    '<div class="rate-row"><span class="who">'+esc(state.profiles.A)+'\'s rating</span>'+renderStarEditor2("ratingA", editingVisit.ratingA)+'</div>'+
-    '<div class="rate-row"><span class="who">'+esc(state.profiles.B)+'\'s rating</span>'+renderStarEditor2("ratingB", editingVisit.ratingB)+'</div>'+
+    '<div class="join-note" id="sameDayNote" hidden></div>'+
+    '<div id="personPartsWrap">'+personPartsHtml(initialCategory, editingVisit)+'</div>'+
     field("Would return?", '<div class="wr-row">'+
       ['yes','maybe','no'].map(function(w){return '<button type="button" data-set-wr="'+w+'" class="'+(editingVisit.wouldReturn===w?"on-"+w:"")+'">'+({yes:"Yes",maybe:"Maybe",no:"No"})[w]+'</button>';}).join('')+
     '</div>')+
     '<div id="favFieldWrap">'+favFieldHtml(editingRestaurant)+'</div>'+
     '<div id="categoryFieldsWrap">'+(initialCategory?categoryExtraFieldsHtml(initialCategory, editingVisit):'')+'</div>'+
-    '<div id="notesFieldWrap">'+notesFieldHtml(initialCategory, editingVisit)+'</div>'+
     field("Photos (up to "+MAX_PHOTOS+")", '<div class="photo-row" id="photoRow">'+photoRowHtml()+'</div><input type="file" id="f_photoInput" accept="image/*" style="display:none;">')+
     '</div>'+
-    '<div class="modal-foot">'+(existingVisit && !joining?'<button class="btn danger" data-delete-visit="'+existingVisit.id+'">Delete visit</button>':'')+'<button class="btn primary" id="btnSaveVisit">Save visit</button></div>'+
+    '<div class="modal-foot">'+(existingVisit?'<button class="btn danger" data-delete-visit="'+existingVisit.id+'">Delete visit</button>':'')+'<button class="btn primary" id="btnSaveVisit">Save visit</button></div>'+
   '</div>';
   openModal(html);
+  updateSameDayNote();
+  document.getElementById("f_date").addEventListener("input", updateSameDayNote);
   if(isWizardNewPlace){ initPickerMap(); updateGeoHint(); }
   if(showDropdown){
     var sel = document.getElementById("f_visit_restaurant");
@@ -1845,17 +2002,19 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace, joining){
         editingRestaurant = null;
         document.getElementById("favFieldWrap").innerHTML = "";
         document.getElementById("categoryFieldsWrap").innerHTML = "";
-        document.getElementById("notesFieldWrap").innerHTML = notesFieldHtml(null, editingVisit);
+        document.getElementById("personPartsWrap").innerHTML = personPartsHtml(null, editingVisit);
+        updateSameDayNote();
         return;
       }
-      var joinable = recentIncompleteVisit(sel.value);
-      if(joinable){ closeModal(); modalLogVisit(sel.value, joinable, null, true); return; }
+      var pending = recentVisitMissingMyRating(sel.value);
+      if(pending) document.getElementById("f_date").value = pending.date;
       var r = state.restaurants[sel.value];
       editingRestaurant = Object.assign({}, r);
       var cat = categoryOf(r);
       document.getElementById("favFieldWrap").innerHTML = favFieldHtml(editingRestaurant);
       document.getElementById("categoryFieldsWrap").innerHTML = categoryExtraFieldsHtml(cat, editingVisit);
-      document.getElementById("notesFieldWrap").innerHTML = notesFieldHtml(cat, editingVisit);
+      document.getElementById("personPartsWrap").innerHTML = personPartsHtml(cat, editingVisit);
+      updateSameDayNote();
     });
   }
 }
@@ -2040,7 +2199,9 @@ function renderAll(){
     default: html = viewBrowse();
   }
   el.innerHTML = html;
-  if(state.route==="browse" && state.browseMode==="map") renderBrowseMap(lastBrowseList);
+  if(state.route==="browse" && state.browseMode==="map") renderPlacesMap("browseMap", lastBrowseList);
+  var activeTrip = state.route==="trips" && state.trips[state.activeTripId];
+  if(activeTrip) renderPlacesMap("tripMap", tripSpots(activeTrip));
 }
 
 /* ---------- event delegation ---------- */
@@ -2125,9 +2286,7 @@ document.addEventListener("click", function(e){
     return;
   }
   var logFor = t.closest("[data-log-visit-for]");
-  if(logFor){ startLogVisit(logFor.getAttribute("data-log-visit-for")); return; }
-  var logNew = t.closest("[data-log-new-visit-for]");
-  if(logNew){ modalLogVisit(logNew.getAttribute("data-log-new-visit-for"), null); return; }
+  if(logFor){ modalLogVisit(logFor.getAttribute("data-log-visit-for"), null, null, logFor.getAttribute("data-log-date")); return; }
   var combineBtn = t.closest("[data-combine-visits]");
   if(combineBtn){
     var combineIds = combineBtn.getAttribute("data-combine-visits").split(",");
@@ -2257,6 +2416,25 @@ document.addEventListener("click", function(e){
   var openTrip = t.closest("[data-open-trip]");
   if(openTrip){ state.activeTripId = openTrip.getAttribute("data-open-trip"); state.search=""; renderAll(); return; }
   if(t.closest("[data-back-trips]")){ state.activeTripId = null; state.search=""; renderAll(); return; }
+  var editTrip = t.closest("[data-edit-trip]");
+  if(editTrip){ modalTripForm(state.trips[editTrip.getAttribute("data-edit-trip")]); return; }
+  if(t.closest("#btnTripPick")){
+    var bucket = Array.prototype.slice.call(document.querySelectorAll(".bucket-item"));
+    bucket.forEach(function(el){ el.classList.remove("picked"); });
+    var spins = 0, lit = null;
+    var spin = setInterval(function(){
+      if(lit) lit.classList.remove("flash");
+      lit = bucket[Math.floor(Math.random()*bucket.length)];
+      lit.classList.add("flash");
+      if(++spins >= 9){
+        clearInterval(spin);
+        lit.classList.remove("flash");
+        lit.classList.add("picked");
+        lit.scrollIntoView({behavior:"smooth", block:"center"});
+      }
+    }, 90);
+    return;
+  }
   var delTrip = t.closest("[data-delete-trip]");
   if(delTrip){ if(confirm("Delete this trip?")){ deleteTrip(delTrip.getAttribute("data-delete-trip")); state.activeTripId=null; renderAll(); } return; }
   var addToTrip = t.closest("[data-add-to-trip]");
@@ -2434,7 +2612,12 @@ function doSaveVisitFromForm(){
     return data;
   }
   function proceed(rid){
-    var savePromise = saveVisit(collectVisitData(rid), editingVisit.id);
+    var data = collectVisitData(rid);
+    var sameDay = sameDayVisit(rid, data.date, editingVisit.id);
+    var savePromise = !sameDay ? saveVisit(data, editingVisit.id)
+      : saveVisit(mergeEntryIntoVisit(sameDay, data), sameDay.id).then(function(r){
+          return editingVisit.id ? deleteVisit(editingVisit.id).then(function(){ return r; }) : r;
+        });
     if(editingRestaurant){
       savePromise = savePromise.then(function(r){ return updateRestaurant(rid, {favorite: !!editingRestaurant.favorite}).then(function(){ return r; }); });
     }
