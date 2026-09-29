@@ -1,11 +1,11 @@
 {
   "name": "Keepsake",
   "short_name": "Keepsake",
-  "description": "A two-person food log",
+  "description": "Our food journal",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#eeeae0",
-  "theme_color": "#c1432a",
+  "background_color": "#FBF6F3",
+  "theme_color": "#C8446A",
   "icons": [
     { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
