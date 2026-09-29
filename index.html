@@ -21,7 +21,7 @@
   --accent:#C8446A; --accent-ink:#FFFFFF; --accent-soft:#FBE3EA;
   --olive:#2F6B4F; --olive-soft:#DCF0E4;
   --gold:#9A6512; --gold-soft:#FBEFC6;
-  --star:#E89A2C; --honey-ink:#B36B12; --tape:rgba(240,222,178,.8); --note-pill:rgba(255,255,255,.62);
+  --star:#E89A2C; --honey-ink:#B36B12; --tape:rgba(240,222,178,.8); --note-pill:rgba(255,255,255,.62); --dock-bg:rgba(255,255,255,.86);
   --tint-1:#FDE3D2; --tint-2:#D9F0E4; --tint-3:#E7DEF7; --tint-4:#FBEFC6; --tint-5:#D8E9F7;
   --shadow: 0 1px 2px rgba(51,40,58,.05), 0 8px 24px -12px rgba(51,40,58,.16);
   --shadow-lift: 0 4px 10px rgba(51,40,58,.08), 0 20px 36px -14px rgba(51,40,58,.24);
@@ -36,7 +36,7 @@
     --accent:#F07FA0; --accent-ink:#2A0F18; --accent-soft:#3A2231;
     --olive:#8FD1AE; --olive-soft:#213329;
     --gold:#F5BE5E; --gold-soft:#38331F;
-    --star:#F5BE5E; --honey-ink:#F5BE5E; --tape:rgba(140,118,80,.55); --note-pill:rgba(0,0,0,.3);
+    --star:#F5BE5E; --honey-ink:#F5BE5E; --tape:rgba(140,118,80,.55); --note-pill:rgba(0,0,0,.3); --dock-bg:rgba(35,29,42,.86);
     --tint-1:#3A2A26; --tint-2:#213329; --tint-3:#2C2640; --tint-4:#38331F; --tint-5:#22303D;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
     --shadow-lift: 0 4px 10px rgba(0,0,0,.4), 0 22px 40px -14px rgba(0,0,0,.65);
@@ -50,7 +50,7 @@
   --accent:#F07FA0; --accent-ink:#2A0F18; --accent-soft:#3A2231;
   --olive:#8FD1AE; --olive-soft:#213329;
   --gold:#F5BE5E; --gold-soft:#38331F;
-  --star:#F5BE5E; --honey-ink:#F5BE5E; --tape:rgba(140,118,80,.55); --note-pill:rgba(0,0,0,.3);
+  --star:#F5BE5E; --honey-ink:#F5BE5E; --tape:rgba(140,118,80,.55); --note-pill:rgba(0,0,0,.3); --dock-bg:rgba(35,29,42,.86);
   --tint-1:#3A2A26; --tint-2:#213329; --tint-3:#2C2640; --tint-4:#38331F; --tint-5:#22303D;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
   --shadow-lift: 0 4px 10px rgba(0,0,0,.4), 0 22px 40px -14px rgba(0,0,0,.65);
@@ -66,39 +66,60 @@ a{color:inherit;}
 button, input, select, textarea{font-family:inherit;}
 button{cursor:pointer;}
 ::selection{background:var(--accent-soft);}
-.app{display:flex; min-height:100vh;}
+.app{min-height:100vh;}
 
-/* Sidebar */
-.sidebar{width:230px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--line); display:flex; flex-direction:column; padding:20px 14px; gap:18px; position:sticky; top:0; height:100vh; overflow-y:auto;}
-.brand{display:flex; align-items:center; gap:10px; padding:0 6px; width:100%;}
+/* Top bar */
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px;}
+.brand{display:flex; align-items:center; gap:10px; border:none; background:transparent; padding:0; cursor:pointer; text-align:left; color:var(--ink);}
+.brand-text{display:flex; flex-direction:column; gap:2px;}
 .brand-mark{transition:transform .2s ease;}
-.brand:hover .brand-mark, .mobile-brand:hover .brand-mark{transform:rotate(-8deg);}
+.brand:hover .brand-mark{transform:rotate(-8deg);}
+.topbar-actions{display:flex; align-items:center; gap:8px;}
+.who-btn{display:flex; align-items:center; gap:7px; border:1px solid var(--line); background:var(--surface); border-radius:99px; padding:4px 13px 4px 4px; font-family:'Fredoka',sans-serif; font-size:15px; font-weight:600; color:var(--ink); transition:border-color .15s ease;}
+.who-btn:hover{border-color:var(--ink-faint);}
+.who-btn .who-dot{width:28px; height:28px; font-size:12px;}
+.icon-btn.round{border-radius:50%; padding:9px;}
 .brand-mark{width:34px; height:34px; display:block; flex-shrink:0;}
 .brand-name{font-family:'Fredoka',sans-serif; font-weight:600; font-size:23px; line-height:1; color:var(--accent);}
 .brand-sub{font-family:'Caveat',cursive; font-size:17px; font-weight:600; color:var(--honey-ink); line-height:1.1;}
-.mobile-brand{display:flex; align-items:center; gap:8px; border:none; background:transparent; padding:0; color:var(--ink); cursor:pointer;}
-.mobile-brand .brand-mark{width:28px; height:28px;}
 .loading-page{display:flex; flex-direction:column; align-items:center; gap:10px; padding:90px 0; font-family:'Caveat',cursive; font-size:24px; font-weight:600; color:var(--ink-faint);}
 .loading-page .brand-mark{width:48px; height:48px; animation:locket-bob 1.4s ease-in-out infinite;}
 @keyframes locket-bob{0%,100%{transform:translateY(0) rotate(-4deg);} 50%{transform:translateY(-6px) rotate(4deg);}}
-.profile-label{font-size:11.5px; color:var(--ink-faint); padding:0 4px;}
-.nav{display:flex; flex-direction:column; gap:2px;}
-.nav-btn{display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:9px; border:none; background:transparent; color:var(--ink-soft); font-size:14.5px; font-weight:600; text-align:left;}
-.nav-btn:hover{background:var(--surface-2); color:var(--ink);}
-.nav-btn.active{background:var(--accent-soft); color:var(--accent);}
-.nav-btn .ic{width:18px; height:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
-.nav-sep{height:1px; background:var(--line-soft); margin:8px 4px;}
-.sidebar-foot{margin-top:auto; display:flex; flex-direction:column; gap:8px;}
-.profile-switch{display:flex; gap:6px; background:var(--surface-2); border-radius:10px; padding:4px;}
-.profile-pill{flex:1; text-align:center; padding:7px 4px; border-radius:7px; border:none; background:transparent; font-size:12.5px; font-weight:700; color:var(--ink-faint);}
-.profile-pill.active{background:var(--surface); color:var(--accent); box-shadow:var(--shadow);}
+/* Floating dock: tucks away while scrolling down and comes back on the way up */
+.dock{position:fixed; left:50%; bottom:calc(16px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:60; display:flex; align-items:center; gap:10px; transition:transform .3s ease, opacity .3s ease;}
+.dock.tucked{transform:translate(-50%, calc(100% + 40px)); opacity:0; pointer-events:none;}
+.dock-pill{display:flex; gap:2px; padding:5px; background:var(--dock-bg); border:1px solid var(--line); border-radius:99px; box-shadow:var(--shadow-lift); -webkit-backdrop-filter:blur(14px) saturate(1.4); backdrop-filter:blur(14px) saturate(1.4);}
+.dock-btn{display:flex; align-items:center; gap:6px; height:42px; padding:0 14px; border:none; border-radius:99px; background:transparent; color:var(--ink-soft); font-size:13.5px; font-weight:700; transition:background .2s ease, color .2s ease;}
+.dock-btn:hover{color:var(--ink); background:var(--surface-2);}
+.dock-btn.active{background:var(--accent-soft); color:var(--accent);}
+.dock-btn .ic{display:flex;}
+.dock-add{width:52px; height:52px; border-radius:50%; border:none; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-lift); transition:transform .2s ease;}
+.dock-add:hover{transform:scale(1.06) rotate(90deg);}
+
+/* Who's here: asked each time the app opens, like a streaming service's profile picker */
+.whos{position:fixed; inset:0; z-index:200; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:24px; animation:whos-in .3s ease;}
+.whos.leaving{animation:whos-out .26s ease forwards;}
+@keyframes whos-in{from{opacity:0;} to{opacity:1;}}
+@keyframes whos-out{to{opacity:0; transform:scale(1.03);}}
+.whos-inner{text-align:center; width:100%; max-width:520px;}
+.whos-mark{width:56px; height:56px; margin:0 auto 18px;}
+.whos-title{font-family:'Fraunces',serif; font-size:42px; font-weight:500; line-height:1.05;}
+.whos-sub{font-family:'Caveat',cursive; font-size:23px; font-weight:600; color:var(--ink-soft); margin-top:6px;}
+.whos-people{display:flex; justify-content:center; gap:36px; margin:38px 0 30px;}
+.whos-person{position:relative; display:flex; flex-direction:column; align-items:center; gap:12px; border:none; background:transparent; padding:0; color:var(--ink); transform:rotate(var(--tilt,0deg)); transition:transform .22s cubic-bezier(.2,.8,.2,1);}
+.whos-person::before{content:""; position:absolute; top:-9px; left:50%; width:56px; height:18px; margin-left:-28px; background:var(--tape); transform:rotate(-4deg); z-index:2;}
+.whos-person:hover,.whos-person:focus-visible{transform:rotate(0deg) translateY(-6px) scale(1.04); outline:none;}
+.whos-av{width:132px; height:132px; border-radius:28px; display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-size:58px; font-weight:500; border:6px solid var(--surface); box-shadow:var(--shadow-lift); transition:box-shadow .2s ease;}
+.whos-person:hover .whos-av,.whos-person:focus-visible .whos-av{box-shadow:0 0 0 3px var(--accent), var(--shadow-lift);}
+.whos-name{font-family:'Fredoka',sans-serif; font-size:22px; font-weight:600;}
+.whos-edit{border:none; background:none; color:var(--ink-faint); font-size:13px; text-decoration:underline; text-underline-offset:3px;}
+.whos-edit:hover{color:var(--ink-soft);}
 .icon-btn{border:1px solid var(--line); background:var(--surface); border-radius:9px; padding:8px; color:var(--ink-soft); font-size:13px;}
 .icon-btn:hover{color:var(--ink); border-color:var(--ink-faint);}
 .icon-btn svg{display:block;}
-#btnSettings{display:flex; align-items:center; gap:8px;}
 
 /* Main */
-.main{flex:1; min-width:0; padding:26px 34px 60px;}
+.main{max-width:1120px; margin:0 auto; padding:18px 34px 130px;}
 .page-head{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap;}
 .page-head h1{font-size:28px;}
 .page-head .sub{color:var(--ink-soft); font-size:14px; margin-top:4px;}
@@ -512,16 +533,20 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 
 
 @media (max-width:860px){
-  .sidebar{position:fixed; z-index:50; transform:translateX(-100%); transition:transform .2s; box-shadow:var(--shadow); padding-top:calc(20px + env(safe-area-inset-top)); padding-bottom:calc(20px + env(safe-area-inset-bottom));}
-  .sidebar.open{transform:translateX(0);}
-  .main{padding:calc(18px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));}
-  .mobile-topbar{display:grid; grid-template-columns:1fr auto 1fr; align-items:center; margin-bottom:14px;}
-  .mobile-topbar #btnMenu{justify-self:start;}
-  .mobile-topbar #btnAddVisitMobile{justify-self:end;}
-  .sidebar-backdrop{position:fixed; inset:0; background:rgba(15,12,9,.45); z-index:49; opacity:0; pointer-events:none; transition:opacity .2s;}
-  .sidebar-backdrop.open{opacity:1; pointer-events:auto;}
+  .main{padding:calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(116px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));}
+  .brand-sub{display:none;}
+  .brand .brand-mark{width:30px; height:30px;}
+  .dock-btn{padding:0 12px;}
+  .dock-btn:not(.active) .dl{display:none;}
 }
-@media (min-width:861px){ .mobile-topbar{display:none;} }
+@media (max-width:560px){
+  .whos-av{width:112px; height:112px; font-size:48px;}
+  .whos-people{gap:24px;}
+  .whos-title{font-size:34px;}
+  .dock{gap:8px;}
+  .dock-btn{height:40px; padding:0 11px; font-size:13px;}
+  .dock-add{width:48px; height:48px;}
+}
 @media (max-width:560px){
   .grid-cards{grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px;}
   .jentry{grid-template-columns:40px minmax(0,1fr); gap:8px;}
@@ -570,34 +595,25 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
   </symbol>
 </svg>
 <div class="app">
-  <nav class="sidebar" id="sidebar">
-    <button class="brand" id="btnHome" type="button" style="border:none; background:transparent; cursor:pointer; text-align:left;">
-      <svg class="brand-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg>
-      <div>
-        <div class="brand-name">keepsake</div>
-        <div class="brand-sub">our food journal</div>
-      </div>
-    </button>
-    <div class="nav" id="nav"></div>
-    <div class="nav-sep"></div>
-    <button class="btn primary" id="btnAddVisit" style="justify-content:center;">+ Add</button>
-    <div class="sidebar-foot">
-      <div class="profile-label">Logging as</div>
-      <div class="profile-switch" id="profileSwitch"></div>
-      <button class="icon-btn" id="btnSettings"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/></svg>Settings</button>
-      <div id="syncState" style="font-size:11px; color:var(--ink-faint); padding:2px 4px;"></div>
-    </div>
-  </nav>
-  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
   <main class="main">
-    <div class="mobile-topbar">
-      <button class="icon-btn" id="btnMenu" aria-label="Menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-      <button class="mobile-brand" id="btnHomeMobile" type="button"><svg class="brand-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg><span class="brand-name">keepsake</span></button>
-      <button class="btn small primary" id="btnAddVisitMobile">+ Add</button>
-    </div>
+    <header class="topbar">
+      <button class="brand" id="btnHome" type="button">
+        <svg class="brand-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg>
+        <span class="brand-text"><span class="brand-name">keepsake</span><span class="brand-sub">our food journal</span></span>
+      </button>
+      <div class="topbar-actions">
+        <button type="button" class="who-btn" id="btnWho" title="Switch who's logging"></button>
+        <button type="button" class="icon-btn round" id="btnSettings" aria-label="Settings"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/></svg></button>
+      </div>
+    </header>
     <div id="view"></div>
   </main>
+  <nav class="dock" id="dock" aria-label="Main">
+    <div class="dock-pill" id="nav"></div>
+    <button type="button" class="dock-add" id="btnAddVisit" aria-label="Add a place or visit" title="Add a place or visit"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  </nav>
 </div>
+<div id="whoRoot"></div>
 <div id="modalRoot"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -702,7 +718,7 @@ function categoryStatCardHtml(b, savedCount){
     '<div class="cs-row"><span>Places visited</span><span class="mono">'+b.placeCount+'</span></div>'+
     '<div class="cs-row"><span>Visits logged</span><span class="mono">'+b.visitCount+'</span></div>'+
     (b.avgRating!=null?'<div class="cs-row"><span>Average rating</span><span class="mono">'+b.avgRating.toFixed(1)+' ★</span></div>':'')+
-    (savedCount?'<div class="cs-row"><span>Still to try</span><span class="mono">'+savedCount+'</span></div>':'')+
+    (savedCount?'<div class="cs-row"><span>Still to visit</span><span class="mono">'+savedCount+'</span></div>':'')+
   '</div>';
 }
 
@@ -852,9 +868,14 @@ function compressImage(file){
 }
 
 /* ---------- state ---------- */
+// Names are cached so the who's-here picker can show them before Firestore answers.
+function cachedProfiles(){
+  try{ var p = JSON.parse(localStorage.getItem("pp_profiles")||"null"); if(p && p.A && p.B) return p; }catch(e){}
+  return {A:"Kat", B:"Albie"};
+}
 var state = {
   restaurants: {}, visits: {}, lists: {}, trips: {},
-  profiles: {A:"Kat", B:"Albie"},
+  profiles: cachedProfiles(),
   me: localStorage.getItem("pp_me") || null,
   theme: localStorage.getItem("pp_theme") || "system",
   route: "journal",
@@ -906,16 +927,16 @@ function allVisits(){ return Object.keys(state.visits).map(function(k){return st
 /* ---------- db wiring (Firebase Firestore) ---------- */
 function initDb(){
   if(!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.indexOf("YOUR_")===0 || !window.firebase){
-    state.dbReady=false; state.loading=false; renderSync(); return;
+    state.dbReady=false; state.loading=false; return;
   }
   try{
     firebase.initializeApp(FIREBASE_CONFIG);
-  }catch(e){ console.error("Firebase init failed", e); state.dbReady=false; state.loading=false; renderSync(); return; }
+  }catch(e){ console.error("Firebase init failed", e); state.dbReady=false; state.loading=false; return; }
   var fs = firebase.firestore();
   firebase.auth().signInAnonymously().catch(function(err){ console.error("Anonymous sign-in failed", err); });
   firebase.auth().onAuthStateChanged(function(user){
     if(!user) return;
-    state.db = fs; state.dbReady = true; renderSync();
+    state.db = fs; state.dbReady = true;
     fs.collection("restaurants").onSnapshot(function(snap){
       var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
       state.restaurants=m; markLoaded("restaurants"); scheduleRender();
@@ -933,16 +954,14 @@ function initDb(){
       state.trips=m; scheduleRender();
     }, function(err){ console.error(err); });
     fs.doc("settings/profiles").onSnapshot(function(snap){
-      if(snap.exists){ state.profiles = Object.assign({A:"Kat",B:"Albie"}, snap.data()); }
+      if(snap.exists){
+        state.profiles = Object.assign({A:"Kat",B:"Albie"}, snap.data());
+        try{ localStorage.setItem("pp_profiles", JSON.stringify(state.profiles)); }catch(e){}
+        if(document.getElementById("whosPicker")) showWhoPicker();
+      }
       scheduleRender();
     }, function(err){ console.error(err); });
   });
-}
-function renderSync(){
-  var el = document.getElementById("syncState");
-  if(!el) return;
-  el.textContent = state.dbReady ? "● synced" : "○ local demo (add Firebase config to sync)";
-  el.style.color = state.dbReady ? "var(--olive)" : "var(--ink-faint)";
 }
 
 /* local fallback so the page previews sensibly before Firebase is configured */
@@ -1057,26 +1076,41 @@ var NAV = [
   {id:"lists", label:"Lists", ic:navIcon('<path d="M3.5 5.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 11.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 17.5l1.5 1.5l2.5 -2.5"/><path d="M11 6l9 0"/><path d="M11 12l9 0"/><path d="M11 18l9 0"/>')},
   {id:"stats", label:"Stats", ic:navIcon('<path d="M20 12l-2 .5a6 6 0 0 1 -6.5 -6.5l.5 -2l8 8"/><path d="M20 12a8 8 0 1 1 -8 -8"/>')}
 ];
-function toggleSidebar(){
-  var isOpen = document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("sidebarBackdrop").classList.toggle("open", isOpen);
-}
-function closeSidebar(){
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("sidebarBackdrop").classList.remove("open");
-}
 function renderNav(){
-  var el = document.getElementById("nav");
-  el.innerHTML = NAV.map(function(n){
-    return '<button class="nav-btn'+(state.route===n.id?' active':'')+'" data-route="'+n.id+'"><span class="ic">'+n.ic+'</span>'+n.label+'</button>';
+  document.getElementById("nav").innerHTML = NAV.map(function(n){
+    return '<button type="button" class="dock-btn'+(state.route===n.id?' active':'')+'" data-route="'+n.id+'" aria-label="'+n.label+'"><span class="ic">'+n.ic+'</span><span class="dl">'+n.label+'</span></button>';
   }).join("");
 }
-function renderProfileSwitch(){
-  var el = document.getElementById("profileSwitch");
-  el.innerHTML = ["A","B"].map(function(k){
-    return '<button class="profile-pill'+(state.me===k?' active':'')+'" data-me="'+k+'">'+esc(state.profiles[k]||("Person "+k))+'</button>';
-  }).join("");
+function renderWhoButton(){
+  document.getElementById("btnWho").innerHTML = whoDot(state.me)+esc(state.profiles[state.me]||"");
 }
+function showWhoPicker(){
+  document.getElementById("whoRoot").innerHTML = '<div class="whos" id="whosPicker"><div class="whos-inner">'+
+    '<svg class="brand-mark whos-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg>'+
+    '<h1 class="whos-title">Who\'s here?</h1>'+
+    '<div class="whos-sub">tap your name so your ratings stay yours</div>'+
+    '<div class="whos-people">'+["A","B"].map(function(k, i){
+      return '<button type="button" class="whos-person" data-pick-me="'+k+'" style="--tilt:'+(i ? 3 : -3)+'deg">'+
+        '<span class="whos-av who-'+k.toLowerCase()+'">'+esc((state.profiles[k]||"?").charAt(0).toUpperCase())+'</span>'+
+        '<span class="whos-name">'+esc(state.profiles[k])+'</span></button>';
+    }).join('')+'</div>'+
+    '<button type="button" class="whos-edit" data-whos-settings="1">edit names</button>'+
+  '</div></div>';
+}
+function hideWhoPicker(){
+  var el = document.getElementById("whosPicker");
+  if(!el) return;
+  el.classList.add("leaving");
+  setTimeout(function(){ document.getElementById("whoRoot").innerHTML = ""; }, 260);
+}
+var lastScrollY = 0;
+window.addEventListener("scroll", function(){
+  var y = window.scrollY, dock = document.getElementById("dock");
+  var atEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 40;
+  if(y > lastScrollY + 8 && y > 120 && !atEnd) dock.classList.add("tucked");
+  else if(y < lastScrollY - 8 || y <= 120 || atEnd) dock.classList.remove("tucked");
+  lastScrollY = y;
+}, {passive:true});
 
 /* ---------- search ---------- */
 function matchesSearch(r, q){
@@ -1252,7 +1286,7 @@ function viewPinboard(){
   var triedCount = all.filter(isTried).length;
   var res = boardPlaces(), list = res.list;
   lastBoardList = list;
-  var html = '<div class="page-head"><div><h1>Our pinboard</h1><div class="journal-sub">'+(all.length ? triedCount+" tried, "+(all.length-triedCount)+" still on our list" : "every place we want to go")+'</div></div>'+
+  var html = '<div class="page-head"><div><h1>Our pinboard</h1><div class="journal-sub">'+(all.length ? triedCount+" visited, "+(all.length-triedCount)+" still on our list" : "every place we want to go")+'</div></div>'+
     '<button class="btn primary" id="btnAddWant">+ Pin a place</button></div>';
   html += '<div class="toolbar board-toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search places, dishes, areas…" value="'+esc(state.search)+'"></div>'+
     '<div class="viewtoggle"><button data-board-mode="board" class="'+(state.boardMode==="board"?"active":"")+'">Board</button><button data-board-mode="map" class="'+(state.boardMode==="map"?"active":"")+'">Map</button></div>'+
@@ -1264,7 +1298,7 @@ function viewPinboard(){
   var count = function(status){ return inCat.filter(function(r){ return boardStatusMatch(r, status); }).length; };
   html += '<div class="bchips">'+
     bchip("data-board-status","all",'All <span class="n">'+count("all")+'</span>', b.status==="all")+
-    bchip("data-board-status","try",'To try <span class="n">'+count("try")+'</span>', b.status==="try")+
+    bchip("data-board-status","try",'To visit <span class="n">'+count("try")+'</span>', b.status==="try")+
     bchip("data-board-status","been",'Been <span class="n">'+count("been")+'</span>', b.status==="been")+
     bchip("data-board-status","fav",'♥ Faves <span class="n">'+count("fav")+'</span>', b.status==="fav");
   var cats = CATEGORIES.filter(function(c){ return scope.some(function(r){ return categoryOf(r).id===c.id; }); });
@@ -1284,7 +1318,7 @@ function viewPinboard(){
 
   if(state.boardMode==="map"){
     var unplaced = list.filter(function(r){ return !hasLoc(r); });
-    html += '<div class="map-legend"><span><i class="lg-dot been"></i>been</span><span><i class="lg-dot try"></i>to try</span><span class="lg-heart">♥ favourite</span></div>'+
+    html += '<div class="map-legend"><span><i class="lg-dot been"></i>been</span><span><i class="lg-dot try"></i>to visit</span><span class="lg-heart">♥ favourite</span></div>'+
       '<div class="paper-map"><div id="boardMap"></div><div class="map-card" id="boardMapCard" hidden></div></div>';
     if(unplaced.length) html += '<div class="unplaced">Not on the map yet: '+unplaced.map(function(r){ return '<button type="button" class="chip" data-open-restaurant="'+r.id+'">'+esc(r.name)+'</button>'; }).join('')+'</div>';
     return html;
@@ -1292,12 +1326,12 @@ function viewPinboard(){
   if(!list.length){
     if(b.area==="near" && !state.myLoc) return html;
     return html + emptyState("📌", all.length ? "Nothing pinned here" : "Your pinboard is empty",
-      all.length ? "Try another filter, or pin a new place." : "Pin the places you want to try. They turn into polaroids once you go.");
+      all.length ? "Try another filter, or pin a new place." : "Pin the places you want to visit. They turn into polaroids once you go.");
   }
-  // Want to try comes first and apart from Been there, so the places still to go are easy to scan.
+  // Want to visit comes first and apart from Been there, so the places still to go are easy to scan.
   var ordered = b.area==="near" ? list : boardOrder(list);
   var zones = [
-    {title:"Want to try", icon:"📝", items:ordered.filter(function(r){ return !isTried(r); })},
+    {title:"Want to visit", icon:"📝", items:ordered.filter(function(r){ return !isTried(r); })},
     {title:"Been there", icon:"📸", items:ordered.filter(isTried)}
   ];
   var areaOrder = boardAreas().map(function(a){ return a.name; });
@@ -1354,7 +1388,7 @@ function pickForUs(){
 function modalPickWhere(){
   var opts = boardAreas().map(function(a){
     var fresh = allRestaurants().filter(function(r){ return placeCity(r)===a.name && !isTried(r); }).length;
-    return '<button type="button" class="where-opt" data-pick-area="'+esc(a.name)+'"><span class="wo-name">'+esc(a.name)+'</span><span class="wo-count">'+fresh+' to try</span></button>';
+    return '<button type="button" class="where-opt" data-pick-area="'+esc(a.name)+'"><span class="wo-name">'+esc(a.name)+'</span><span class="wo-count">'+fresh+' to visit</span></button>';
   }).join('');
   openModal('<div class="modal"><div class="modal-head"><h2>Where are we?</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
     '<div class="modal-body"><button type="button" class="where-opt near" data-pick-area="near"><span class="wo-name">📍 Near me</span><span class="wo-count">use my location</span></button>'+opts+'</div></div>');
@@ -1489,7 +1523,7 @@ function notepadHtml(l){
     '<div class="np-title">'+esc(l.name)+'</div>'+
     (lines || '<div class="np-line np-empty">'+(l.builtIn ? "heart a place to add it" : "nothing here yet")+'</div>')+
     (places.length > 4 ? '<div class="np-more">+ '+(places.length-4)+' more</div>' : '')+
-    (places.length ? '<div class="np-count">'+tried+' of '+places.length+' tried</div>' : '')+
+    (places.length ? '<div class="np-count">'+tried+' of '+places.length+' visited</div>' : '')+
   '</div>';
 }
 function viewLists(){
@@ -1514,7 +1548,7 @@ function viewListDetail(l){
   if(all.length > 8) html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search this list…" value="'+esc(state.search)+'"></div></div>';
   html += '<div class="list-page'+(l.builtIn?' favs':'')+'">'+(l.builtIn ? '<span class="heart-pin">♥</span>' : '<span class="tape-strip"></span>')+
     '<div class="lp-head"><div><h1 class="lp-title">'+esc(l.name)+'</h1>'+(l.description ? '<div class="lp-desc">'+esc(l.description)+'</div>' : '')+
-      (all.length ? '<div class="lp-progress">'+tried+' of '+plural(all.length,"place")+' tried</div>' : '')+'</div>'+
+      (all.length ? '<div class="lp-progress">'+tried+' of '+plural(all.length,"place")+' visited</div>' : '')+'</div>'+
     '<div class="lp-actions"><button class="btn small primary" data-add-to-list="'+l.id+'">+ Add a place</button>'+
       (l.builtIn ? '' : '<button class="btn small" data-edit-list="'+l.id+'">Edit</button>')+'</div></div>';
   if(!places.length){
@@ -1522,7 +1556,7 @@ function viewListDetail(l){
   }
   html += places.map(function(r){
     var score = restaurantScore(r.id), votes = (l.votes&&l.votes[r.id])||[], myVote = votes.indexOf(state.me)>=0;
-    var meta = [r.neighborhood || r.city, isTried(r) ? (score!=null ? score.toFixed(1)+" ★" : "tried") : "not tried yet"].filter(Boolean).join(" · ");
+    var meta = [r.neighborhood || r.city, isTried(r) ? (score!=null ? score.toFixed(1)+" ★" : "visited") : "not visited yet"].filter(Boolean).join(" · ");
     return '<div class="lp-item">'+
       '<span class="np-box'+(isTried(r)?' done':'')+'"></span>'+
       '<div class="lp-main" data-open-restaurant="'+r.id+'"><div class="lp-name">'+esc(r.name)+'</div><div class="lp-meta">'+esc(meta)+'</div></div>'+
@@ -1583,7 +1617,7 @@ function viewTrips(){
     (trips.length ? plural(trips.length,"trip")+(upcoming ? ", "+upcoming+" coming up" : "") : "every trip is a food trip")+
     '</div></div><button class="btn primary" id="btnNewTrip">+ New trip</button></div>';
   html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search trips…" value="'+esc(state.search)+'"></div></div>';
-  if(!trips.length) return html + emptyState("✈","Plan your first food trip","Add a destination and the spots you want to try there.");
+  if(!trips.length) return html + emptyState("✈","Plan your first food trip","Add a destination and the spots you want to visit there.");
   html += '<div class="postcards">'+trips.map(function(x){
     var t = x.t, spots = tripSpots(t);
     var tried = spots.filter(function(r){ return tripVisitsFor(t, r.id).length; }).length;
@@ -1594,7 +1628,7 @@ function viewTrips(){
       '<div class="pc-dest">'+esc(t.destination)+'</div>'+
       '<div class="pc-dates">'+esc(tripDateRange(t))+'</div>'+
       '<div class="pc-progress"><div class="pc-bar"><span style="width:'+pct+'%"></span></div>'+
-        '<div class="pc-count">'+(spots.length ? tried+" of "+plural(spots.length,"spot")+" tried" : "no spots yet")+'</div></div>'+
+        '<div class="pc-count">'+(spots.length ? tried+" of "+plural(spots.length,"spot")+" visited" : "no spots yet")+'</div></div>'+
     '</div>';
   }).join('')+'</div>';
   return html;
@@ -1617,24 +1651,24 @@ function viewTripDetail(t){
     '</div>';
   html += '<div class="toolbar" style="margin-top:14px;"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search this trip…" value="'+esc(state.search)+'"></div></div>';
   if(!spots.length){
-    return html + emptyState("✈", state.search ? "No spots match" : "Where are we eating?", state.search ? "Try a different search." : "Add the spots you want to try on this trip.") +
+    return html + emptyState("✈", state.search ? "No spots match" : "Where are we eating?", state.search ? "Try a different search." : "Add the spots you want to visit on this trip.") +
       '<button type="button" class="btn-text-danger" data-delete-trip="'+t.id+'">Delete this trip</button>';
   }
   html += '<div class="section-title">Our stamp card</div>'+
     '<div class="stamps">'+spots.map(function(r){
       return '<button type="button" class="stamp'+(isTried(r)?' done':'')+'" data-open-restaurant="'+r.id+'" title="'+esc(r.name)+'">'+categoryOf(r).icon+'</button>';
     }).join('')+'</div>'+
-    '<div class="stamp-caption">'+tried.length+' of '+plural(spots.length,"spot")+' tried'+(toTry.length ? '' : ' — every stamp collected!')+'</div>';
+    '<div class="stamp-caption">'+tried.length+' of '+plural(spots.length,"spot")+' visited'+(toTry.length ? '' : ' — every stamp collected!')+'</div>';
   if(spots.some(hasLoc)) html += '<div class="paper-map" style="margin-top:22px;"><div id="tripMap"></div><div class="map-card" id="tripMapCard" hidden></div></div>';
   if(toTry.length){
-    html += '<div class="section-row"><div class="section-title">Still to try</div>'+
+    html += '<div class="section-row"><div class="section-title">Still to visit</div>'+
       (toTry.length > 1 ? '<button type="button" class="btn small" id="btnTripPick">🎲 Where to next?</button>' : '')+'</div>'+
       toTry.map(function(r){
         return '<div class="bucket-item" data-bucket="'+r.id+'">'+
           '<span class="bi-box"></span>'+
           '<div class="bi-main" data-open-restaurant="'+r.id+'"><div class="bi-name">'+categoryOf(r).icon+' '+esc(r.name)+'</div>'+
           '<div class="bi-meta">'+esc([r.neighborhood, r.placeType].filter(Boolean).join(" · "))+'</div></div>'+
-          '<button type="button" class="btn small primary" data-log-visit-for="'+r.id+'" data-log-date="'+tripLogDate(t)+'">Tried it!</button>'+
+          '<button type="button" class="btn small primary" data-log-visit-for="'+r.id+'" data-log-date="'+tripLogDate(t)+'">We went!</button>'+
         '</div>';
       }).join('');
   }
@@ -1648,7 +1682,7 @@ function viewTripDetail(t){
   var visitDates = Object.keys(byDate).sort();
   html += '<div class="section-title">Trip journal</div>';
   if(!visitDates.length){
-    html += '<p class="stamp-caption" style="margin-top:0;">'+(s.kind==="upcoming" || s.kind==="someday" ? "The pages fill in once you're there. Tap \"Tried it!\" on a spot to add it." : "Tap \"Tried it!\" on a spot and it'll show up here, day by day.")+'</p>';
+    html += '<p class="stamp-caption" style="margin-top:0;">'+(s.kind==="upcoming" || s.kind==="someday" ? "The pages fill in once you're there. Tap \"We went!\" on a spot to add it." : "Tap \"We went!\" on a spot and it'll show up here, day by day.")+'</p>';
   }
   visitDates.forEach(function(d){
     var dayIdx = days.indexOf(d);
@@ -1697,10 +1731,10 @@ function statStickersHtml(s){
   var areas = {};
   allVisits().forEach(function(v){ var r = state.restaurants[v.restaurantId]; if(r && r.neighborhood) areas[r.neighborhood] = 1; });
   var toTry = allRestaurants().filter(function(r){ return !isTried(r); }).length;
-  var items = [[s.totalVisits,"meal"],[s.restaurantCount,"place"],[Object.keys(areas).length,"area"],[toTry,"to try"],[s.totalPhotos,"photo"],[s.cuisineCount,"cuisine"]];
+  var items = [[s.totalVisits,"meal"],[s.restaurantCount,"place"],[Object.keys(areas).length,"area"],[toTry,"to visit"],[s.totalPhotos,"photo"],[s.cuisineCount,"cuisine"]];
   var tilts = [-6,4,-3,5,-4,3];
   return '<div class="stickers">'+items.map(function(x,i){
-    var label = x[1]==="to try" || x[0]===1 ? x[1] : x[1]+"s";
+    var label = x[1]==="to visit" || x[0]===1 ? x[1] : x[1]+"s";
     return '<div class="stk tint-'+(i%5+1)+'" style="--tilt:'+tilts[i]+'deg"><span class="stk-n">'+x[0]+'</span><span class="stk-l">'+label+'</span></div>';
   }).join('')+'</div>';
 }
@@ -2437,7 +2471,7 @@ function modalSettings(){
     '</div>')+
     field("Profile A name",'<input type="text" id="f_profA" value="'+esc(state.profiles.A)+'">')+
     field("Profile B name",'<input type="text" id="f_profB" value="'+esc(state.profiles.B)+'">')+
-    '<p style="font-size:12px;color:var(--ink-faint);">Use the switcher in the sidebar to say who\'s logging each entry — it\'s remembered per device.</p>'+
+    '<p style="font-size:12px;color:var(--ink-faint);">Tap your name at the top of the app to switch who\'s logging.</p>'+
     field("Your data", '<button type="button" class="btn small" id="btnExportData"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download a backup (JSON)</button>')+
     '</div><div class="modal-foot"><button class="btn primary" id="btnSaveProfiles">Save</button></div></div>';
   openModal(html);
@@ -2469,7 +2503,7 @@ function modalPhotoZoom(url){
 
 /* ---------- main render ---------- */
 function renderAll(){
-  renderNav(); renderProfileSwitch(); renderSync();
+  renderNav(); renderWhoButton();
   var el = document.getElementById("view");
   if(state.loading){ el.innerHTML = '<div class="loading-page"><svg class="brand-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg>opening our journal…</div>'; return; }
   var html;
@@ -2496,15 +2530,20 @@ document.addEventListener("click", function(e){
     state.route = routeBtn.getAttribute("data-route"); state.search=""; state.activeListId=null; state.activeTripId=null;
     state.showWrapped = false; state.pickedId = null; state.mapCardId = null;
     if(routeBtn.getAttribute("data-board-status")){ state.board.status = routeBtn.getAttribute("data-board-status"); state.boardMode = "board"; }
-    closeSidebar(); renderAll(); return;
+    renderAll(); window.scrollTo(0,0); document.getElementById("dock").classList.remove("tucked"); return;
   }
 
-  if(t.closest("#btnMenu")){ toggleSidebar(); return; }
-  if(t.closest("#sidebarBackdrop")){ closeSidebar(); return; }
-  if(t.closest("#btnHome") || t.closest("#btnHomeMobile")){ state.route="journal"; state.search=""; state.activeListId=null; state.activeTripId=null; state.showWrapped=false; closeSidebar(); renderAll(); return; }
+  if(t.closest("#btnHome")){ state.route="journal"; state.search=""; state.activeListId=null; state.activeTripId=null; state.showWrapped=false; renderAll(); window.scrollTo(0,0); return; }
 
-  var meBtn = t.closest("[data-me]");
-  if(meBtn){ state.me = meBtn.getAttribute("data-me"); localStorage.setItem("pp_me", state.me); renderAll(); return; }
+  var pickMe = t.closest("[data-pick-me]");
+  if(pickMe){
+    state.me = pickMe.getAttribute("data-pick-me");
+    localStorage.setItem("pp_me", state.me);
+    try{ sessionStorage.setItem("pp_session_me", state.me); }catch(err){}
+    hideWhoPicker(); renderAll(); return;
+  }
+  if(t.closest("#btnWho")){ showWhoPicker(); return; }
+  if(t.closest("[data-whos-settings]")){ hideWhoPicker(); modalSettings(); return; }
 
   if(t.closest("#btnSettings")){ modalSettings(); return; }
   var themeBtn = t.closest("[data-set-theme]");
@@ -2516,7 +2555,7 @@ document.addEventListener("click", function(e){
     return;
   }
   if(t.closest("#btnExportData")){ exportAllData(); return; }
-  if(t.closest("#btnAddVisit") || t.closest("#btnAddVisitMobile")){ modalQuickAdd(); return; }
+  if(t.closest("#btnAddVisit")){ modalQuickAdd(); return; }
   if(t.closest("#btnQuickLogVisit")){ closeModal(); modalLogVisit(null,null); return; }
   if(t.closest("#btnQuickSaveLater")){ closeModal(); modalPickCategory("save"); return; }
   if(t.closest("#btnBackToQuickAdd")){ closeModal(); modalQuickAdd(); return; }
@@ -2965,6 +3004,10 @@ if(!state.me){ state.me = "A"; localStorage.setItem("pp_me","A"); }
 applyTheme(state.theme);
 renderAll();
 initDb();
+// Like a streaming app's "who's watching", ask once each time the app is opened.
+var sessionMe = null;
+try{ sessionMe = sessionStorage.getItem("pp_session_me"); }catch(e){}
+if(!sessionMe) showWhoPicker();
 setTimeout(function(){ if(!state.dbReady && !state.loading){ seedLocalDemo(); renderAll(); } }, 900);
 // Don't leave the loading screen up forever if the connection never answers.
 setTimeout(function(){ if(state.loading){ state.loading = false; renderAll(); } }, 8000);
