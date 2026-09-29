@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Keepsake</title>
+<title>keepsake</title>
 <link rel="icon" href="icon-512.png?v=2">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="manifest" href="manifest.json">
@@ -11,8 +11,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Keepsake">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Nunito:wght@400;500;600;700;800&family=Caveat:wght@500;600&display=swap">
+<meta name="apple-mobile-web-app-title" content="keepsake">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Nunito:wght@400;500;600;700;800&family=Caveat:wght@500;600&family=Fredoka:wght@600&display=swap">
 <style>
 :root{
   --bg:#FBF6F3; --surface:#FFFFFF; --surface-2:#F7EFEB;
@@ -21,7 +21,7 @@
   --accent:#C8446A; --accent-ink:#FFFFFF; --accent-soft:#FBE3EA;
   --olive:#2F6B4F; --olive-soft:#DCF0E4;
   --gold:#9A6512; --gold-soft:#FBEFC6;
-  --star:#E89A2C;
+  --star:#E89A2C; --honey-ink:#B36B12;
   --tint-1:#FDE3D2; --tint-2:#D9F0E4; --tint-3:#E7DEF7; --tint-4:#FBEFC6; --tint-5:#D8E9F7;
   --shadow: 0 1px 2px rgba(51,40,58,.05), 0 8px 24px -12px rgba(51,40,58,.16);
   --shadow-lift: 0 4px 10px rgba(51,40,58,.08), 0 20px 36px -14px rgba(51,40,58,.24);
@@ -36,7 +36,7 @@
     --accent:#F07FA0; --accent-ink:#2A0F18; --accent-soft:#3A2231;
     --olive:#8FD1AE; --olive-soft:#213329;
     --gold:#F5BE5E; --gold-soft:#38331F;
-    --star:#F5BE5E;
+    --star:#F5BE5E; --honey-ink:#F5BE5E;
     --tint-1:#3A2A26; --tint-2:#213329; --tint-3:#2C2640; --tint-4:#38331F; --tint-5:#22303D;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
     --shadow-lift: 0 4px 10px rgba(0,0,0,.4), 0 22px 40px -14px rgba(0,0,0,.65);
@@ -50,7 +50,7 @@
   --accent:#F07FA0; --accent-ink:#2A0F18; --accent-soft:#3A2231;
   --olive:#8FD1AE; --olive-soft:#213329;
   --gold:#F5BE5E; --gold-soft:#38331F;
-  --star:#F5BE5E;
+  --star:#F5BE5E; --honey-ink:#F5BE5E;
   --tint-1:#3A2A26; --tint-2:#213329; --tint-3:#2C2640; --tint-4:#38331F; --tint-5:#22303D;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
   --shadow-lift: 0 4px 10px rgba(0,0,0,.4), 0 22px 40px -14px rgba(0,0,0,.65);
@@ -63,17 +63,19 @@ h1,h2,h3,h4{font-family:'Fraunces',Georgia,serif; margin:0; text-wrap:balance;}
 .mono{font-variant-numeric:tabular-nums;}
 .hand{font-family:'Caveat',cursive; font-weight:600;}
 a{color:inherit;}
-button{font-family:inherit; cursor:pointer;}
+button, input, select, textarea{font-family:inherit;}
+button{cursor:pointer;}
 ::selection{background:var(--accent-soft);}
 .app{display:flex; min-height:100vh;}
 
 /* Sidebar */
 .sidebar{width:230px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--line); display:flex; flex-direction:column; padding:20px 14px; gap:18px; position:sticky; top:0; height:100vh; overflow-y:auto;}
 .brand{display:flex; align-items:center; gap:10px; padding:0 6px; width:100%;}
-.brand:hover .brand-name{color:var(--accent);}
+.brand-mark{transition:transform .2s ease;}
+.brand:hover .brand-mark, .mobile-brand:hover .brand-mark{transform:rotate(-8deg);}
 .brand-mark{width:34px; height:34px; display:block; flex-shrink:0;}
-.brand-name{font-family:'Fraunces',serif; font-weight:600; font-size:19px; line-height:1.1;}
-.brand-sub{font-family:'Caveat',cursive; font-size:16px; font-weight:600; color:var(--accent); line-height:1.1;}
+.brand-name{font-family:'Fredoka',sans-serif; font-weight:600; font-size:23px; line-height:1; color:var(--accent);}
+.brand-sub{font-family:'Caveat',cursive; font-size:17px; font-weight:600; color:var(--honey-ink); line-height:1.1;}
 .mobile-brand{display:flex; align-items:center; gap:8px; border:none; background:transparent; padding:0; color:var(--ink); cursor:pointer;}
 .mobile-brand .brand-mark{width:28px; height:28px;}
 .loading-page{display:flex; flex-direction:column; align-items:center; gap:10px; padding:90px 0; font-family:'Caveat',cursive; font-size:24px; font-weight:600; color:var(--ink-faint);}
@@ -116,7 +118,7 @@ button{font-family:inherit; cursor:pointer;}
 .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px;}
 .search-box{flex:1; min-width:180px; position:relative;}
 .search-box input{width:100%; padding:10px 12px 10px 34px; border-radius:10px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:16px;}
-.search-box .sicon{position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--ink-faint); font-size:13px;}
+.search-box .sicon{position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--ink-faint); display:flex; pointer-events:none;}
 select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:16px; font-weight:600;}
 .chiprow{display:flex; gap:7px; flex-wrap:wrap; margin:0 0 16px;}
 .chip{padding:5px 11px; border-radius:99px; background:var(--surface-2); border:1px solid var(--line-soft); font-size:12px; font-weight:700; color:var(--ink-soft); display:inline-flex; align-items:center; gap:6px;}
@@ -426,7 +428,7 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
     <button class="brand" id="btnHome" type="button" style="border:none; background:transparent; cursor:pointer; text-align:left;">
       <svg class="brand-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg>
       <div>
-        <div class="brand-name">Keepsake</div>
+        <div class="brand-name">keepsake</div>
         <div class="brand-sub">our food journal</div>
       </div>
     </button>
@@ -444,7 +446,7 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
   <main class="main">
     <div class="mobile-topbar">
       <button class="icon-btn" id="btnMenu">☰</button>
-      <button class="mobile-brand" id="btnHomeMobile" type="button"><svg class="brand-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg><span class="brand-name">Keepsake</span></button>
+      <button class="mobile-brand" id="btnHomeMobile" type="button"><svg class="brand-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg><span class="brand-name">keepsake</span></button>
       <button class="btn small primary" id="btnAddVisitMobile">+ Add</button>
     </div>
     <div id="view"></div>
@@ -494,6 +496,7 @@ var TAGS = ["Brunch","Bakery","Fine Dining","Hidden Gem","Date Night","Late Nigh
 var FAV_CATS = ["Dessert","Cocktail Bar","Coffee Shop","Bakery","Fine Dining","Brunch"];
 var PRICE_LABELS = {1:"$",2:"$$",3:"$$$",4:"$$$$"};
 var MAX_PHOTOS = 3;
+var SEARCH_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>';
 
 var CATEGORIES = [
   {id:"food", label:"Food & Drink", icon:"🍽", types:["Restaurant","Café","Bakery","Dessert","Bar","Market","Food Truck"]},
@@ -1139,7 +1142,7 @@ function viewBrowse(){
     '<div class="viewtoggle"><button data-browse-mode="list" class="'+(state.browseMode==="list"?"active":"")+'">▦ Grid</button><button data-browse-mode="map" class="'+(state.browseMode==="map"?"active":"")+'">◎ Map</button></div></div>';
 
   html += '<div class="toolbar">'+
-    '<div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search restaurants, dishes, cuisines, neighbourhoods…" value="'+esc(state.search)+'"></div>'+
+    '<div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search restaurants, dishes, cuisines, neighbourhoods…" value="'+esc(state.search)+'"></div>'+
     (state.browseMode==="list" ? '<select id="sortSelect"><option value="date"'+(state.sort==="date"?" selected":"")+'>Sort: Recent</option><option value="rating"'+(state.sort==="rating"?" selected":"")+'>Sort: Rating</option><option value="alpha"'+(state.sort==="alpha"?" selected":"")+'>Sort: A–Z</option></select>' : '')+
     '<button class="btn small" id="btnToggleFilters">'+(state.filtersOpen?"Hide filters":"Filters")+'</button>'+
     '</div>';
@@ -1255,7 +1258,7 @@ function viewFavorites(){
   var pinned = allRestaurants().filter(function(r){return r.favorite && matchesSearch(r,state.search);});
   var scored = allRestaurants().map(function(r){return {r:r, s:restaurantScore(r.id)};}).filter(function(x){return x.s!=null && matchesSearch(x.r,state.search);}).sort(function(a,b){return b.s-a.s;});
   var html = '<div class="page-head"><div><h1>Favorites</h1><div class="sub">Your top spots, dishes and cuisines</div></div></div>';
-  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search favourites…" value="'+esc(state.search)+'"></div></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search favourites…" value="'+esc(state.search)+'"></div></div>';
 
   html += '<div class="section-title">Our favourites</div>';
   if(!pinned.length){ html += emptyState("♥","No pinned favourites yet","Open a restaurant's details and tap ♥ to pin it here."); }
@@ -1319,7 +1322,7 @@ function viewWantToTry(){
   var list = allRestaurants().filter(function(r){ return visitsFor(r.id).length===0 && matchesSearch(r,state.search); });
   list = sortRestaurants(list);
   var html = '<div class="page-head"><div><h1>Saved Places</h1><div class="sub">'+list.length+' saved for later</div></div><button class="btn primary" id="btnAddWant">+ Save a place</button></div>';
-  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search…" value="'+esc(state.search)+'"></div></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search…" value="'+esc(state.search)+'"></div></div>';
   if(!list.length){
     html += emptyState("☆","Nothing saved yet","Add a restaurant or dish you both want to try.");
     return html;
@@ -1355,7 +1358,7 @@ function viewLists(){
     lists = lists.filter(function(l){ return ((l.name||"")+" "+(l.description||"")).toLowerCase().indexOf(qLists)>=0; });
   }
   var html = '<div class="page-head"><div><h1>Lists</h1><div class="sub">Curated collections you build together</div></div><button class="btn primary" id="btnNewList">+ New list</button></div>';
-  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search lists…" value="'+esc(state.search)+'"></div></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search lists…" value="'+esc(state.search)+'"></div></div>';
   html += lists.length ? '<div class="grid-cards">'+lists.map(function(l){
     var count = (l.restaurantIds||[]).length;
     var covers = (l.restaurantIds||[]).slice(0,1).map(function(rid){return firstPhotoFor(rid);}).filter(Boolean);
@@ -1372,7 +1375,7 @@ function viewListDetail(l){
     '<button class="btn ghost small" data-back-lists="1">← All lists</button>'+
     '<h1 style="margin-top:6px;">'+esc(l.name)+'</h1><div class="sub">'+esc(l.description||"")+'</div></div>'+
     '<div style="display:flex;gap:8px;"><button class="btn small" data-add-to-list="'+l.id+'">+ Add place</button><button class="btn small danger" data-delete-list="'+l.id+'">Delete list</button></div></div>';
-  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search this list…" value="'+esc(state.search)+'"></div></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search this list…" value="'+esc(state.search)+'"></div></div>';
   html += items.length ? '<div>'+items.map(function(r){
     var votes = (l.votes&&l.votes[r.id])||[];
     var myVote = votes.indexOf(state.me)>=0;
@@ -1433,7 +1436,7 @@ function viewTrips(){
   var html = '<div class="page-head"><div><h1>Our trips</h1><div class="journal-sub">'+
     (trips.length ? plural(trips.length,"trip")+(upcoming ? ", "+upcoming+" coming up" : "") : "every trip is a food trip")+
     '</div></div><button class="btn primary" id="btnNewTrip">+ New trip</button></div>';
-  html += '<div class="toolbar"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search trips…" value="'+esc(state.search)+'"></div></div>';
+  html += '<div class="toolbar"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search trips…" value="'+esc(state.search)+'"></div></div>';
   if(!trips.length) return html + emptyState("✈","Plan your first food trip","Add a destination and the spots you want to try there.");
   html += '<div class="postcards">'+trips.map(function(x){
     var t = x.t, spots = tripSpots(t);
@@ -1466,7 +1469,7 @@ function viewTripDetail(t){
       '<div class="tc-actions"><button class="btn small primary" data-add-to-trip="'+t.id+'">+ Add a spot</button>'+
         '<button class="btn small" data-edit-trip="'+t.id+'">Edit trip</button></div>'+
     '</div>';
-  html += '<div class="toolbar" style="margin-top:14px;"><div class="search-box"><span class="sicon">⌕</span><input id="searchInput" type="text" placeholder="Search this trip…" value="'+esc(state.search)+'"></div></div>';
+  html += '<div class="toolbar" style="margin-top:14px;"><div class="search-box"><span class="sicon">'+SEARCH_ICON+'</span><input id="searchInput" type="text" placeholder="Search this trip…" value="'+esc(state.search)+'"></div></div>';
   if(!spots.length){
     return html + emptyState("✈", state.search ? "No spots match" : "Where are we eating?", state.search ? "Try a different search." : "Add the spots you want to try on this trip.") +
       '<button type="button" class="btn-text-danger" data-delete-trip="'+t.id+'">Delete this trip</button>';

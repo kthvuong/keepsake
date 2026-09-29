@@ -1,6 +1,6 @@
 {
-  "name": "Keepsake",
-  "short_name": "Keepsake",
+  "name": "keepsake",
+  "short_name": "keepsake",
   "description": "Our food journal",
   "start_url": "./index.html",
   "display": "standalone",
