@@ -1487,25 +1487,27 @@ function renderGeoSuggestions(results, which){
   window.__geoResults = window.__geoResults || {};
   window.__geoResults[which] = results;
   el.innerHTML = results.map(function(res, i){
-    var primary = (res.namedetails && res.namedetails.name) || res.display_name.split(",")[0];
     return '<button type="button" class="geo-suggestion-item" data-geo-idx="'+i+'" data-geo-which="'+which+'">'+
-      '<div class="gs-name">'+esc(primary)+'</div>'+
-      '<div class="gs-addr">'+esc(res.display_name)+'</div>'+
+      '<div class="gs-name">'+esc(res.mainText)+'</div>'+
+      '<div class="gs-addr">'+esc(res.secondaryText)+'</div>'+
       '</button>';
   }).join("");
   el.classList.add("open");
 }
 var geoSearchTokens = {name:0, address:0};
+var geoSessionTokens = {name:null, address:null};
+function newGeoSessionToken(){ return "s"+Date.now().toString(36)+Math.random().toString(36).slice(2); }
 function doGeoSearch(which){
   var input = document.getElementById(GEO_FIELDS[which].input);
   var q = input ? input.value.trim() : "";
   if(q.length < 3){ hideGeoSuggestions(which); return; }
+  if(!geoSessionTokens[which]) geoSessionTokens[which] = newGeoSessionToken();
   var myToken = ++geoSearchTokens[which];
-  fetch("https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&namedetails=1&limit=6&q="+encodeURIComponent(q))
+  fetch("/api/places-autocomplete?input="+encodeURIComponent(q)+"&sessiontoken="+encodeURIComponent(geoSessionTokens[which]))
     .then(function(r){ return r.json(); })
-    .then(function(results){
+    .then(function(data){
       if(myToken !== geoSearchTokens[which]) return;
-      renderGeoSuggestions(results || [], which);
+      renderGeoSuggestions((data && data.suggestions) || [], which);
     })
     .catch(function(){
       if(myToken !== geoSearchTokens[which]) return;
@@ -1515,39 +1517,55 @@ function doGeoSearch(which){
 }
 var debouncedGeoSearchName = debounce(function(){ doGeoSearch("name"); }, 400);
 var debouncedGeoSearchAddress = debounce(function(){ doGeoSearch("address"); }, 400);
+// Google's neighbourhood is often a broad district ("South Central Edmonton"); OSM names the actual one ("Garneau").
+function fetchOsmNeighborhood(lat, lng){
+  return fetch("https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng))
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      var a = (res && res.address) || {};
+      return a.neighbourhood || a.quarter || a.suburb || a.city_district || a.borough || "";
+    })
+    .catch(function(){ return ""; });
+}
+var geoSelectToken = 0;
 function selectGeoCandidateFromResult(res, which){
   which = which || "name";
-  var lat = parseFloat(res.lat), lng = parseFloat(res.lon);
-  editingRestaurant.lat = lat; editingRestaurant.lng = lng;
-  applyGeoResultToFields(res, which);
-  updateGeoHint();
   hideGeoSuggestions(which);
-  try{
-    placeSelectedMarker(lat, lng);
-    if(pickerMapInstance) pickerMapInstance.flyTo({center:[lng,lat], zoom:16});
-  }catch(err){ console.error("Map pin update failed", err); }
   var srcField = document.getElementById(GEO_FIELDS[which].input);
-  if(srcField) srcField.blur();
+  if(srcField){ srcField.value = res.mainText; srcField.blur(); }
+  var sessionToken = geoSessionTokens[which] || "";
+  geoSessionTokens[which] = null;
+  var myToken = ++geoSelectToken;
+  fetch("/api/places-details?placeId="+encodeURIComponent(res.placeId)+"&sessiontoken="+encodeURIComponent(sessionToken))
+    .then(function(r){ return r.json(); })
+    .then(function(details){
+      if(myToken !== geoSelectToken || !details || details.lat==null || details.lng==null) return;
+      editingRestaurant.lat = details.lat; editingRestaurant.lng = details.lng;
+      applyGeoResultToFields(details, which, res.mainText);
+      updateGeoHint();
+      try{
+        placeSelectedMarker(details.lat, details.lng);
+        if(pickerMapInstance) pickerMapInstance.flyTo({center:[details.lng,details.lat], zoom:16});
+      }catch(err){ console.error("Map pin update failed", err); }
+      return fetchOsmNeighborhood(details.lat, details.lng).then(function(osmNbhd){
+        if(myToken !== geoSelectToken) return;
+        var fNbhd = document.getElementById("f_nbhd");
+        if(fNbhd) fNbhd.value = osmNbhd || details.neighborhood || fNbhd.value;
+      });
+    })
+    .catch(function(err){ console.error("Place details failed", err); });
 }
-function applyGeoResultToFields(res, which){
-  var addr = res.address || {};
-  var city = addr.city || addr.town || addr.village || addr.municipality || addr.county || "";
-  var nbhd = addr.neighbourhood || addr.quarter || addr.suburb || addr.city_district || addr.borough || "";
-  var poiClasses = {amenity:1, shop:1, tourism:1, leisure:1, craft:1, office:1, building:1};
-  var isPoi = poiClasses[res.class];
-  var placeName = (isPoi && res.namedetails && res.namedetails.name) || "";
+function applyGeoResultToFields(details, which, placeName){
   var fName = document.getElementById("f_name");
   var fAddress = document.getElementById("f_address");
   var fCity = document.getElementById("f_city");
-  var fNbhd = document.getElementById("f_nbhd");
   if(which==="address"){
-    if(fAddress) fAddress.value = res.display_name || (fAddress.value||"");
-    if(fName && placeName && !fName.value.trim()) fName.value = placeName;
-  } else {
-    if(fName && placeName) fName.value = placeName;
+    if(fAddress && details.address) fAddress.value = details.address;
+    if(fName && details.isEstablishment && !fName.value.trim()) fName.value = placeName;
+  } else if(fAddress && details.address && !fAddress.value.trim()){
+    fAddress.value = details.address;
   }
-  if(fCity && city) fCity.value = city;
-  if(fNbhd && nbhd) fNbhd.value = nbhd;
+  if(fCity && details.city) fCity.value = details.city;
 }
 
 var editingVisit = null;
