@@ -1088,7 +1088,7 @@ function showWhoPicker(){
   document.getElementById("whoRoot").innerHTML = '<div class="whos" id="whosPicker"><div class="whos-inner">'+
     '<svg class="brand-mark whos-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg>'+
     '<h1 class="whos-title">Who\'s here?</h1>'+
-    '<div class="whos-sub">tap your name so your ratings stay yours</div>'+
+    '<div class="whos-sub">tap your name and this device will remember you</div>'+
     '<div class="whos-people">'+["A","B"].map(function(k, i){
       return '<button type="button" class="whos-person" data-pick-me="'+k+'" style="--tilt:'+(i ? 3 : -3)+'deg">'+
         '<span class="whos-av who-'+k.toLowerCase()+'">'+esc((state.profiles[k]||"?").charAt(0).toUpperCase())+'</span>'+
@@ -2471,7 +2471,7 @@ function modalSettings(){
     '</div>')+
     field("Profile A name",'<input type="text" id="f_profA" value="'+esc(state.profiles.A)+'">')+
     field("Profile B name",'<input type="text" id="f_profB" value="'+esc(state.profiles.B)+'">')+
-    '<p style="font-size:12px;color:var(--ink-faint);">Tap your name at the top of the app to switch who\'s logging.</p>'+
+    '<p style="font-size:12px;color:var(--ink-faint);">This device remembers who\'s using it. Tap your name at the top of the app to switch.</p>'+
     field("Your data", '<button type="button" class="btn small" id="btnExportData"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download a backup (JSON)</button>')+
     '</div><div class="modal-foot"><button class="btn primary" id="btnSaveProfiles">Save</button></div></div>';
   openModal(html);
@@ -2539,7 +2539,7 @@ document.addEventListener("click", function(e){
   if(pickMe){
     state.me = pickMe.getAttribute("data-pick-me");
     localStorage.setItem("pp_me", state.me);
-    try{ sessionStorage.setItem("pp_session_me", state.me); }catch(err){}
+    try{ localStorage.setItem("pp_me_chosen", "1"); }catch(err){}
     hideWhoPicker(); renderAll(); return;
   }
   if(t.closest("#btnWho")){ showWhoPicker(); return; }
@@ -3004,10 +3004,10 @@ if(!state.me){ state.me = "A"; localStorage.setItem("pp_me","A"); }
 applyTheme(state.theme);
 renderAll();
 initDb();
-// Like a streaming app's "who's watching", ask once each time the app is opened.
-var sessionMe = null;
-try{ sessionMe = sessionStorage.getItem("pp_session_me"); }catch(e){}
-if(!sessionMe) showWhoPicker();
+// Each device asks who's using it once and then remembers; the name in the top bar switches.
+var meChosen = null;
+try{ meChosen = localStorage.getItem("pp_me_chosen"); }catch(e){}
+if(!meChosen) showWhoPicker();
 setTimeout(function(){ if(!state.dbReady && !state.loading){ seedLocalDemo(); renderAll(); } }, 900);
 // Don't leave the loading screen up forever if the connection never answers.
 setTimeout(function(){ if(state.loading){ state.loading = false; renderAll(); } }, 8000);
