@@ -264,6 +264,8 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .detail-actions-secondary{display:flex; gap:8px; flex-wrap:wrap;}
 .tag-accent{background:var(--accent-soft) !important; color:var(--accent) !important;}
 .detail-note{background:var(--surface-2); border-left:3px solid var(--accent); border-radius:0 10px 10px 0; padding:10px 14px; margin:0; font-family:'Fraunces',serif; font-style:italic; font-size:14px; color:var(--ink-soft); line-height:1.45;}
+.join-note{background:var(--accent-soft); color:var(--ink); border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.45;}
+.btn-link{background:none; border:none; padding:0; color:var(--accent); font-weight:700; font-size:13px; cursor:pointer; text-decoration:underline; text-underline-offset:2px;}
 .btn-text-danger{background:none; border:none; color:var(--ink-faint); font-size:12px; cursor:pointer; padding:4px 2px; text-decoration:underline; text-underline-offset:2px; align-self:flex-start;}
 .btn-text-danger:hover{color:var(--accent);}
 .visit-item{border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px; background:var(--surface); transition:border-color .18s ease, box-shadow .18s ease;}
@@ -489,7 +491,7 @@ function relativeDate(d){
   return fmtDate(d);
 }
 function monthKey(d){ return d ? d.slice(0,7) : ""; }
-function todayStr(){ var d=new Date(); return d.toISOString().slice(0,10); }
+function todayStr(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function clamp(n,a,b){ return Math.max(a,Math.min(b,n)); }
 function avg(arr){ arr=arr.filter(function(v){return typeof v==="number";}); if(!arr.length) return null; return arr.reduce(function(a,b){return a+b;},0)/arr.length; }
 function debounce(fn,ms){ var t; return function(){ var a=arguments; clearTimeout(t); t=setTimeout(function(){fn.apply(null,a);},ms); }; }
@@ -803,7 +805,7 @@ function matchesSearch(r, q){
   if(hay.indexOf(q)>=0) return true;
   var vs = visitsFor(r.id);
   return vs.some(function(v){
-    return ((v.favDishA||"")+" "+(v.favDishB||"")+" "+(v.favDish||"")+" "+(v.dishes||[]).join(" ")+" "+(v.notes||"")).toLowerCase().indexOf(q)>=0;
+    return ((v.favDishA||"")+" "+(v.favDishB||"")+" "+(v.favDish||"")+" "+(v.dishes||[]).join(" ")+" "+(v.notes||"")+" "+(v.notesA||"")+" "+(v.notesB||"")).toLowerCase().indexOf(q)>=0;
   });
 }
 function passesFilters(r){
@@ -1336,6 +1338,9 @@ function renderRestaurantDetail(rid){
       (r.tripId ? '<span class="chip">On trip: '+esc((state.trips[r.tripId]||{}).destination||"")+'</span>' : '<button class="btn small ghost" data-assign-trip="'+rid+'">Assign to trip</button>')+
     '</div>'+
     '<div class="section-title" style="margin-top:6px;">Visits ('+vs.length+')</div>'+
+    sameDayVisitGroups(vs).map(function(ids){
+      return '<div class="join-note">Logged twice on '+fmtDate(state.visits[ids[0]].date)+'. <button type="button" class="btn-link" data-combine-visits="'+ids.join(",")+'">Combine into one visit</button></div>';
+    }).join('')+
     (vs.length ? vs.map(visitItemHtml).join('') : '<p style="font-size:13px;color:var(--ink-faint);">No visits logged yet — this is on your want-to-try list.</p>')+
     '<button type="button" class="btn-text-danger" data-delete-restaurant="'+rid+'">Delete this place</button>'+
     '</div>';
@@ -1364,7 +1369,10 @@ function visitItemHtml(v){
     (v.favDishB? '<div style="font-size:13px;"><b>'+esc(state.profiles.B)+'\'s favourite dish:</b> '+esc(v.favDishB)+'</div>' : '')+
     (!v.favDishA && !v.favDishB && v.favDish? '<div style="font-size:13px;"><b>Favourite dish:</b> '+esc(v.favDish)+'</div>' : '')+
     extraFieldsHtml+
-    (v.notes? '<p style="font-size:13px;color:var(--ink-soft);margin:6px 0 0;">'+esc(v.notes)+'</p>' : '')+
+    ["A","B"].map(function(who){
+      var n = visitNotes(v, who);
+      return n ? '<p style="font-size:13px;color:var(--ink-soft);margin:6px 0 0;"><b>'+esc(state.profiles[who])+':</b> '+esc(n)+'</p>' : '';
+    }).join('')+
     ((v.photos&&v.photos.length)? '<div class="visit-photos">'+v.photos.map(function(p){return '<img src="'+p+'" data-zoom-photo="'+encodeURIComponent(p)+'">';}).join('')+'</div>' : '')+
     '</div>';
 }
@@ -1561,16 +1569,56 @@ function categoryExtraFieldsHtml(cat, v){
   }
   return html;
 }
+function visitNotes(v, who){
+  if(v.notesA!=null || v.notesB!=null) return v["notes"+who] || "";
+  return (v.loggedBy||"A")===who ? (v.notes||"") : "";
+}
 function notesFieldHtml(cat, v){
-  var label = cat ? (NOTES_LABEL[cat.id]||"Notes") : "Notes";
-  return field(label,'<textarea id="f_visitnotes" placeholder="How was it? Anything memorable?">'+esc(v.notes||"")+'</textarea>');
+  var label = (cat ? (NOTES_LABEL[cat.id]||"Notes") : "Notes").toLowerCase();
+  return ["A","B"].map(function(who){
+    return field(esc(state.profiles[who])+"'s "+label, '<textarea id="f_notes'+who+'" placeholder="How was it? Anything memorable?">'+esc(visitNotes(v, who))+'</textarea>');
+  }).join('');
+}
+var JOIN_WINDOW_DAYS = 14;
+function recentIncompleteVisit(rid){
+  var cutoff = new Date(Date.now() - JOIN_WINDOW_DAYS*86400000).toISOString().slice(0,10);
+  return visitsFor(rid)
+    .filter(function(v){ return (v.date||"") >= cutoff && (v.ratingA==null || v.ratingB==null); })
+    .sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); })[0] || null;
+}
+function sameDayVisitGroups(vs){
+  var byDate = {};
+  vs.forEach(function(v){ if(v.date) (byDate[v.date] = byDate[v.date] || []).push(v.id); });
+  return Object.keys(byDate).filter(function(d){ return byDate[d].length > 1; }).map(function(d){ return byDate[d]; });
+}
+function startLogVisit(rid){
+  var joinable = recentIncompleteVisit(rid);
+  modalLogVisit(rid, joinable, null, !!joinable);
+}
+function combineVisits(ids){
+  var vs = ids.map(function(id){ return state.visits[id]; }).filter(Boolean)
+    .sort(function(a,b){ return (a.createdAt||"").localeCompare(b.createdAt||""); });
+  var merged = {ratingA:null, ratingB:null, wouldReturn:null, price:null, notes:"", notesA:"", notesB:"", photos:[], dishes:[], itemsPurchased:[]};
+  var firstWins = ["favDish","favDishA","favDishB","favFinds","toLookFor","highlights","favExhibits"];
+  firstWins.forEach(function(k){ merged[k] = ""; });
+  vs.forEach(function(v){
+    ["ratingA","ratingB","wouldReturn","price"].forEach(function(k){ if(merged[k]==null && v[k]!=null) merged[k] = v[k]; });
+    firstWins.forEach(function(k){ if(!merged[k] && v[k]) merged[k] = v[k]; });
+    ["A","B"].forEach(function(who){ if(!merged["notes"+who]) merged["notes"+who] = visitNotes(v, who); });
+    ["photos","dishes","itemsPurchased"].forEach(function(k){
+      (v[k]||[]).forEach(function(x){ if(merged[k].indexOf(x)<0) merged[k].push(x); });
+    });
+  });
+  return saveVisit(merged, vs[0].id).then(function(){
+    return Promise.all(vs.slice(1).map(function(v){ return deleteVisit(v.id); }));
+  });
 }
 function favFieldHtml(r){
   if(!r) return "";
   return field("Favourite", '<button type="button" class="btn small" id="btnToggleVisitFav">'+(r.favorite?"♥ Favourited":"♡ Mark as favourite")+'</button>');
 }
-function modalLogVisit(restaurantId, existingVisit, presetPlace){
-  editingVisit = existingVisit ? Object.assign({}, existingVisit, {dishes:(existingVisit.dishes||[]).slice(), photos:(existingVisit.photos||[]).slice()}) : {restaurantId: restaurantId||null, date: todayStr(), ratingA:null, ratingB:null, wouldReturn:null, dishes:[], favDishA:"", favDishB:"", notes:"", price:null, photos:[]};
+function modalLogVisit(restaurantId, existingVisit, presetPlace, joining){
+  editingVisit = existingVisit ? Object.assign({}, existingVisit, {dishes:(existingVisit.dishes||[]).slice(), photos:(existingVisit.photos||[]).slice()}) : {restaurantId: restaurantId||null, date: todayStr(), ratingA:null, ratingB:null, wouldReturn:null, dishes:[], favDishA:"", favDishB:"", notesA:"", notesB:"", price:null, photos:[]};
   var targetRestaurant = restaurantId ? state.restaurants[restaurantId] : (existingVisit ? state.restaurants[existingVisit.restaurantId] : null);
   var isWizardNewPlace = !restaurantId && !existingVisit && !!presetPlace;
   if(targetRestaurant){ editingRestaurant = Object.assign({}, targetRestaurant); }
@@ -1580,8 +1628,9 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace){
   var initialCategory = editingRestaurant ? categoryOf(editingRestaurant) : null;
   var restaurantOptions = allRestaurants().sort(function(a,b){return a.name.localeCompare(b.name);});
   var html = '<div class="modal">'+
-    '<div class="modal-head"><h2>'+(existingVisit?"Edit visit":"Log a visit")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-head"><h2>'+(joining?"Add to this visit":existingVisit?"Edit visit":"Log a visit")+'</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
     '<div class="modal-body">'+
+    (joining ? '<div class="join-note">'+esc(state.profiles[existingVisit.loggedBy]||"Your partner")+' logged this visit on '+fmtDate(existingVisit.date)+'. Add your rating and notes to it. <button type="button" class="btn-link" data-log-new-visit-for="'+restaurantId+'">Log a separate visit</button></div>' : '')+
     (showDropdown ? field("Place", '<select id="f_visit_restaurant">'+
         '<option value="">— choose a place —</option>'+
         '<option value="__new__">+ Add a new place…</option>'+
@@ -1609,7 +1658,7 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace){
     '<div id="notesFieldWrap">'+notesFieldHtml(initialCategory, editingVisit)+'</div>'+
     field("Photos (up to "+MAX_PHOTOS+")", '<div class="photo-row" id="photoRow">'+photoRowHtml()+'</div><input type="file" id="f_photoInput" accept="image/*" style="display:none;">')+
     '</div>'+
-    '<div class="modal-foot">'+(existingVisit?'<button class="btn danger" data-delete-visit="'+existingVisit.id+'">Delete visit</button>':'')+'<button class="btn primary" id="btnSaveVisit">Save visit</button></div>'+
+    '<div class="modal-foot">'+(existingVisit && !joining?'<button class="btn danger" data-delete-visit="'+existingVisit.id+'">Delete visit</button>':'')+'<button class="btn primary" id="btnSaveVisit">Save visit</button></div>'+
   '</div>';
   openModal(html);
   if(isWizardNewPlace){ initPickerMap(); updateGeoHint(); }
@@ -1624,6 +1673,8 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace){
         document.getElementById("notesFieldWrap").innerHTML = notesFieldHtml(null, editingVisit);
         return;
       }
+      var joinable = recentIncompleteVisit(sel.value);
+      if(joinable){ closeModal(); modalLogVisit(sel.value, joinable, null, true); return; }
       var r = state.restaurants[sel.value];
       editingRestaurant = Object.assign({}, r);
       var cat = categoryOf(r);
@@ -1902,7 +1953,19 @@ document.addEventListener("click", function(e){
     return;
   }
   var logFor = t.closest("[data-log-visit-for]");
-  if(logFor){ modalLogVisit(logFor.getAttribute("data-log-visit-for"), null); return; }
+  if(logFor){ startLogVisit(logFor.getAttribute("data-log-visit-for")); return; }
+  var logNew = t.closest("[data-log-new-visit-for]");
+  if(logNew){ modalLogVisit(logNew.getAttribute("data-log-new-visit-for"), null); return; }
+  var combineBtn = t.closest("[data-combine-visits]");
+  if(combineBtn){
+    var combineIds = combineBtn.getAttribute("data-combine-visits").split(",");
+    var combineRid = (state.visits[combineIds[0]]||{}).restaurantId;
+    if(combineRid && confirm("Combine these into one visit? Both ratings, notes, and photos are kept.")){
+      combineVisits(combineIds).then(function(){ modalRestaurantDetail(combineRid); })
+        .catch(function(err){ console.error(err); alert("Couldn't combine — check your connection and try again."); });
+    }
+    return;
+  }
   var favToggle = t.closest("#btnToggleVisitFav");
   if(favToggle){
     editingRestaurant.favorite = !editingRestaurant.favorite;
@@ -2179,7 +2242,9 @@ function doSaveVisitFromForm(){
       date: document.getElementById("f_date").value || todayStr(),
       ratingA: editingVisit.ratingA, ratingB: editingVisit.ratingB,
       wouldReturn: editingVisit.wouldReturn,
-      notes: document.getElementById("f_visitnotes").value.trim(),
+      notesA: document.getElementById("f_notesA").value.trim(),
+      notesB: document.getElementById("f_notesB").value.trim(),
+      notes: "",
       price: priceVal!=="" ? parseFloat(priceVal) : null,
       photos: editingVisit.photos||[],
       dishes:[], favDishA:"", favDishB:""
