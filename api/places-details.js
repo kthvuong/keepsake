@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
     var r = await fetch(url, {
       headers: {
         "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": "formattedAddress,location,addressComponents,types"
+        "X-Goog-FieldMask": "formattedAddress,location,addressComponents"
       }
     });
     var data = await r.json();
@@ -33,9 +33,7 @@ module.exports = async (req, res) => {
       }
       return "";
     }
-    var placeTypes = data.types || [];
     res.status(200).json({
-      isEstablishment: placeTypes.indexOf("establishment") >= 0 || placeTypes.indexOf("point_of_interest") >= 0,
       address: data.formattedAddress || "",
       lat: data.location ? data.location.latitude : null,
       lng: data.location ? data.location.longitude : null,

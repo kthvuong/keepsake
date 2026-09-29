@@ -1411,7 +1411,6 @@ function modalEditRestaurant(existing, prefill){
       field("Place name", '<div class="geo-search-wrap"><input type="text" id="f_name" value="'+esc(e.name||"")+'" placeholder="Start typing a name or address…" autocomplete="off"><div id="geoSuggestions" class="geo-suggestions"></div></div>'+
         '<div id="pickerMap"></div>'+
         '<div class="geo-hint" id="geoHint"></div>')+
-      field("Address (optional)",'<div class="geo-search-wrap"><input type="text" id="f_address" value="'+esc(e.address||"")+'" placeholder="Type an address — we\'ll try to find the place name" autocomplete="off"><div id="geoSuggestionsAddr" class="geo-suggestions"></div></div>')+
       '<div class="field-row">'+
         field("City",'<input type="text" id="f_city" value="'+esc(e.city||"")+'" placeholder="Edmonton">')+
         field("Neighbourhood",'<input type="text" id="f_nbhd" value="'+esc(e.neighborhood||"")+'" placeholder="Chinatown">')+
@@ -1461,62 +1460,52 @@ function placeSelectedMarker(lat,lng){
 function updateGeoHint(){
   var el = document.getElementById("geoHint");
   if(!el) return;
-  el.textContent = hasLoc(editingRestaurant) ? ("Pinned at "+editingRestaurant.lat.toFixed(4)+", "+editingRestaurant.lng.toFixed(4)) : "Can't find it? Just type the name as-is, add the address below, and tap the map to drop a pin yourself.";
+  el.textContent = editingRestaurant.address ? shortAddress(editingRestaurant)
+    : hasLoc(editingRestaurant) ? "Pinned on the map"
+    : "Can't find it? Type the name as-is and tap the map to drop a pin.";
 }
-var GEO_FIELDS = {
-  name: {input:"f_name", suggestions:"geoSuggestions"},
-  address: {input:"f_address", suggestions:"geoSuggestionsAddr"}
-};
-function hideGeoSuggestions(which){
-  var ids = which ? [GEO_FIELDS[which].suggestions] : [GEO_FIELDS.name.suggestions, GEO_FIELDS.address.suggestions];
-  ids.forEach(function(id){
-    var el = document.getElementById(id);
-    if(!el) return;
-    el.classList.remove("open");
-    el.innerHTML = "";
-  });
-}
-function renderGeoSuggestions(results, which){
-  var el = document.getElementById(GEO_FIELDS[which].suggestions);
+var geoResults = [];
+function hideGeoSuggestions(){
+  geoResults = [];
+  var el = document.getElementById("geoSuggestions");
   if(!el) return;
-  if(!results.length){
-    el.innerHTML = '<div class="geo-suggestion-empty">No matches — try refining, or tap the map.</div>';
-    el.classList.add("open");
-    return;
-  }
-  window.__geoResults = window.__geoResults || {};
-  window.__geoResults[which] = results;
-  el.innerHTML = results.map(function(res, i){
-    return '<button type="button" class="geo-suggestion-item" data-geo-idx="'+i+'" data-geo-which="'+which+'">'+
+  el.classList.remove("open");
+  el.innerHTML = "";
+}
+function renderGeoSuggestions(results){
+  geoResults = results;
+  var el = document.getElementById("geoSuggestions");
+  if(!el) return;
+  el.innerHTML = results.length ? results.map(function(res, i){
+    return '<button type="button" class="geo-suggestion-item" data-geo-idx="'+i+'">'+
       '<div class="gs-name">'+esc(res.mainText)+'</div>'+
       '<div class="gs-addr">'+esc(res.secondaryText)+'</div>'+
       '</button>';
-  }).join("");
+  }).join("") : '<div class="geo-suggestion-empty">No matches — try refining, or tap the map.</div>';
   el.classList.add("open");
 }
-var geoSearchTokens = {name:0, address:0};
-var geoSessionTokens = {name:null, address:null};
+var geoSearchToken = 0;
+var geoSessionToken = null;
 function newGeoSessionToken(){ return "s"+Date.now().toString(36)+Math.random().toString(36).slice(2); }
-function doGeoSearch(which){
-  var input = document.getElementById(GEO_FIELDS[which].input);
+function doGeoSearch(){
+  var input = document.getElementById("f_name");
   var q = input ? input.value.trim() : "";
-  if(q.length < 3){ hideGeoSuggestions(which); return; }
-  if(!geoSessionTokens[which]) geoSessionTokens[which] = newGeoSessionToken();
-  var myToken = ++geoSearchTokens[which];
-  fetch("/api/places-autocomplete?input="+encodeURIComponent(q)+"&sessiontoken="+encodeURIComponent(geoSessionTokens[which]))
+  if(q.length < 3){ hideGeoSuggestions(); return; }
+  if(!geoSessionToken) geoSessionToken = newGeoSessionToken();
+  var myToken = ++geoSearchToken;
+  fetch("/api/places-autocomplete?input="+encodeURIComponent(q)+"&sessiontoken="+encodeURIComponent(geoSessionToken))
     .then(function(r){ return r.json(); })
     .then(function(data){
-      if(myToken !== geoSearchTokens[which]) return;
-      renderGeoSuggestions((data && data.suggestions) || [], which);
+      if(myToken !== geoSearchToken) return;
+      renderGeoSuggestions((data && data.suggestions) || []);
     })
     .catch(function(){
-      if(myToken !== geoSearchTokens[which]) return;
-      var el = document.getElementById(GEO_FIELDS[which].suggestions);
+      if(myToken !== geoSearchToken) return;
+      var el = document.getElementById("geoSuggestions");
       if(el){ el.innerHTML = '<div class="geo-suggestion-empty">Search failed — check your connection.</div>'; el.classList.add("open"); }
     });
 }
-var debouncedGeoSearchName = debounce(function(){ doGeoSearch("name"); }, 400);
-var debouncedGeoSearchAddress = debounce(function(){ doGeoSearch("address"); }, 400);
+var debouncedGeoSearch = debounce(doGeoSearch, 400);
 // Google's neighbourhood is often a broad district ("South Central Edmonton"); OSM names the actual one ("Garneau").
 function fetchOsmNeighborhood(lat, lng){
   return fetch("https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng))
@@ -1528,20 +1517,21 @@ function fetchOsmNeighborhood(lat, lng){
     .catch(function(){ return ""; });
 }
 var geoSelectToken = 0;
-function selectGeoCandidateFromResult(res, which){
-  which = which || "name";
-  hideGeoSuggestions(which);
-  var srcField = document.getElementById(GEO_FIELDS[which].input);
-  if(srcField){ srcField.value = res.mainText; srcField.blur(); }
-  var sessionToken = geoSessionTokens[which] || "";
-  geoSessionTokens[which] = null;
+function selectGeoCandidateFromResult(res){
+  hideGeoSuggestions();
+  var fName = document.getElementById("f_name");
+  if(fName){ fName.value = res.mainText; fName.blur(); }
+  var sessionToken = geoSessionToken || "";
+  geoSessionToken = null;
   var myToken = ++geoSelectToken;
   fetch("/api/places-details?placeId="+encodeURIComponent(res.placeId)+"&sessiontoken="+encodeURIComponent(sessionToken))
     .then(function(r){ return r.json(); })
     .then(function(details){
       if(myToken !== geoSelectToken || !details || details.lat==null || details.lng==null) return;
       editingRestaurant.lat = details.lat; editingRestaurant.lng = details.lng;
-      applyGeoResultToFields(details, which, res.mainText);
+      editingRestaurant.address = details.address || "";
+      var fCity = document.getElementById("f_city");
+      if(fCity && details.city) fCity.value = details.city;
       updateGeoHint();
       try{
         placeSelectedMarker(details.lat, details.lng);
@@ -1554,18 +1544,6 @@ function selectGeoCandidateFromResult(res, which){
       });
     })
     .catch(function(err){ console.error("Place details failed", err); });
-}
-function applyGeoResultToFields(details, which, placeName){
-  var fName = document.getElementById("f_name");
-  var fAddress = document.getElementById("f_address");
-  var fCity = document.getElementById("f_city");
-  if(which==="address"){
-    if(fAddress && details.address) fAddress.value = details.address;
-    if(fName && details.isEstablishment && !fName.value.trim()) fName.value = placeName;
-  } else if(fAddress && details.address && !fAddress.value.trim()){
-    fAddress.value = details.address;
-  }
-  if(fCity && details.city) fCity.value = details.city;
 }
 
 var editingVisit = null;
@@ -1615,7 +1593,6 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace){
       field("Place name", '<div class="geo-search-wrap"><input type="text" id="f_name" value="'+(isWizardNewPlace?esc(editingRestaurant.name||""):"")+'" placeholder="Start typing a name or address…" autocomplete="off"><div id="geoSuggestions" class="geo-suggestions"></div></div>'+
         '<div id="pickerMap"></div>'+
         '<div class="geo-hint" id="geoHint"></div>')+
-      field("Address (optional)",'<div class="geo-search-wrap"><input type="text" id="f_address" placeholder="Type an address — we\'ll try to find the place name" autocomplete="off"><div id="geoSuggestionsAddr" class="geo-suggestions"></div></div>')+
       '<div class="field-row">'+field("City",'<input type="text" id="f_city" placeholder="Edmonton">')+field("Neighbourhood",'<input type="text" id="f_nbhd" placeholder="Chinatown">')+'</div>'+
     '</div>'+
     '<div class="field-row">'+
@@ -1737,7 +1714,6 @@ function modalAddExistingToCollection(kind, collectionId){
       field("Place name", '<div class="geo-search-wrap"><input type="text" id="f_name" placeholder="Start typing a name or address…" autocomplete="off"><div id="geoSuggestions" class="geo-suggestions"></div></div>'+
         '<div id="pickerMap"></div>'+
         '<div class="geo-hint" id="geoHint"></div>')+
-      field("Address (optional)",'<div class="geo-search-wrap"><input type="text" id="f_address" placeholder="Type an address — we\'ll try to find the place name" autocomplete="off"><div id="geoSuggestionsAddr" class="geo-suggestions"></div></div>')+
       '<div class="field-row">'+field("City",'<input type="text" id="f_city" placeholder="Edmonton">')+field("Neighbourhood",'<input type="text" id="f_nbhd" placeholder="Chinatown">')+'</div>'+
       '</div><div class="modal-foot"><button class="btn primary" id="btnConfirmAddToCollection" data-kind="'+kind+'" data-cid="'+collectionId+'">Add</button></div></div>';
     openModal(html);
@@ -1897,10 +1873,8 @@ document.addEventListener("click", function(e){
 
   var geoSug = t.closest("[data-geo-idx]");
   if(geoSug){
-    var geoWhich = geoSug.getAttribute("data-geo-which");
-    var geoIdx = parseInt(geoSug.getAttribute("data-geo-idx"),10);
-    var geoRes = (window.__geoResults && window.__geoResults[geoWhich]) ? window.__geoResults[geoWhich][geoIdx] : null;
-    if(geoRes) selectGeoCandidateFromResult(geoRes, geoWhich);
+    var geoRes = geoResults[parseInt(geoSug.getAttribute("data-geo-idx"),10)];
+    if(geoRes) selectGeoCandidateFromResult(geoRes);
     return;
   }
 
@@ -2079,7 +2053,7 @@ document.addEventListener("click", function(e){
     }
     var newData = {name:newName, cuisines:[], tags:[]};
     if(kind2==="trip"){
-      newData.address = (document.getElementById("f_address")||{}).value || "";
+      newData.address = editingRestaurant.address || "";
       newData.city = (document.getElementById("f_city")||{}).value || "";
       newData.neighborhood = (document.getElementById("f_nbhd")||{}).value || "";
       newData.lat = hasLoc(editingRestaurant) ? editingRestaurant.lat : null;
@@ -2105,24 +2079,16 @@ document.addEventListener("keydown", function(e){
   if(!e.target) return;
   if(e.target.id==="f_name" && document.getElementById("geoSuggestions") && e.key==="Enter"){
     e.preventDefault();
-    var nameResults = window.__geoResults && window.__geoResults.name;
-    if(nameResults && nameResults.length){ selectGeoCandidateFromResult(nameResults[0], "name"); }
-  }
-  if(e.target.id==="f_address" && document.getElementById("geoSuggestionsAddr") && e.key==="Enter"){
-    e.preventDefault();
-    var addrResults = window.__geoResults && window.__geoResults.address;
-    if(addrResults && addrResults.length){ selectGeoCandidateFromResult(addrResults[0], "address"); }
+    if(geoResults.length) selectGeoCandidateFromResult(geoResults[0]);
   }
 });
 document.addEventListener("focusout", function(e){
-  if(e.target && e.target.id==="f_name"){ setTimeout(function(){ hideGeoSuggestions("name"); }, 150); }
-  if(e.target && e.target.id==="f_address"){ setTimeout(function(){ hideGeoSuggestions("address"); }, 150); }
+  if(e.target && e.target.id==="f_name"){ setTimeout(hideGeoSuggestions, 150); }
 });
 
 document.addEventListener("input", function(e){
   if(e.target.id==="searchInput"){ state.search = e.target.value; debouncedRenderKeepFocus(); }
-  if(e.target.id==="f_name" && document.getElementById("geoSuggestions")){ debouncedGeoSearchName(); }
-  if(e.target.id==="f_address" && document.getElementById("geoSuggestionsAddr")){ debouncedGeoSearchAddress(); }
+  if(e.target.id==="f_name" && document.getElementById("geoSuggestions")){ debouncedGeoSearch(); }
 });
 document.addEventListener("change", function(e){
   if(e.target.id==="sortSelect"){ state.sort = e.target.value; renderAll(); }
@@ -2187,7 +2153,7 @@ function doSaveRestaurantFromForm(){
     name: name,
     category: categoryId,
     placeType: (document.getElementById("f_placetype").value||"").trim() || "Other",
-    address: document.getElementById("f_address").value.trim(),
+    address: editingRestaurant.address || "",
     city: document.getElementById("f_city").value.trim(),
     neighborhood: document.getElementById("f_nbhd").value.trim(),
     lat: hasLoc(editingRestaurant) ? editingRestaurant.lat : null,
@@ -2250,7 +2216,7 @@ function doSaveVisitFromForm(){
       name:newName,
       category: editingRestaurant.category || "food",
       placeType: editingRestaurant.placeType || "Other",
-      address: (document.getElementById("f_address")||{}).value ? document.getElementById("f_address").value.trim() : "",
+      address: editingRestaurant.address || "",
       city:document.getElementById("f_city").value.trim(),
       neighborhood:document.getElementById("f_nbhd").value.trim(),
       lat: hasLoc(editingRestaurant) ? editingRestaurant.lat : null,
