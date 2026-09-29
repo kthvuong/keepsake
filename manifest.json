@@ -4,7 +4,7 @@
   "description": "Our food journal",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#FBF6F3",
+  "background_color": "#FAF8F4",
   "theme_color": "#C8446A",
   "icons": [
     { "src": "apple-touch-icon.png?v=2", "sizes": "180x180", "type": "image/png" },
