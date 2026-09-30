@@ -208,13 +208,13 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 html.modal-open, html.modal-open body{overflow:hidden;}
 .modal-head{display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--line-soft); position:sticky; top:0; z-index:4; background:var(--surface);}
 .modal-head h2{font-size:19px;}
-.modal-body{padding:20px 22px; display:flex; flex-direction:column; gap:16px;}
+.modal-body{--form-gap:16px; padding:20px 22px; display:flex; flex-direction:column; gap:var(--form-gap);}
 .modal-foot{padding:16px 22px; border-top:1px solid var(--line-soft); display:flex; justify-content:flex-end; gap:10px; position:sticky; bottom:0; z-index:4; background:var(--surface);}
 .field{display:flex; flex-direction:column; gap:6px;}
 .field label{font-size:13px; font-weight:700; color:var(--ink-soft);}
 .field input[type=text], .field input[type=date], .field input[type=number], .field textarea, .field select{padding:10px 11px; border-radius:9px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); font-size:16px; font-family:inherit; width:100%;}
 .field textarea{resize:vertical; min-height:60px;}
-.field-row{display:flex; gap:12px; flex-wrap:wrap;}
+.field-row{display:flex; gap:var(--form-gap, 12px); flex-wrap:wrap;}
 .quick-add-option{display:flex; align-items:center; gap:14px; width:100%; text-align:left; padding:16px; border-radius:12px; border:1px solid var(--line); background:var(--surface-2); cursor:pointer;}
 .quick-add-option:hover{border-color:var(--accent); background:var(--accent-soft);}
 .quick-add-option .qa-icon{font-size:26px; flex-shrink:0; line-height:1;}
@@ -237,15 +237,15 @@ html.modal-open, html.modal-open body{overflow:hidden;}
 .category-option .cat-icon{font-size:28px; line-height:1;}
 .category-option .cat-label{font-family:'Fraunces',serif; font-weight:600; font-size:14px; color:var(--ink);}
 .wizard-back{margin-right:6px;}
-.rate-row{display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface-2); padding:10px 12px; border-radius:10px;}
-.rate-row .who{font-size:13px; font-weight:700;}
 .photo-row{display:flex; gap:10px; flex-wrap:wrap;}
 .photo-thumb{width:76px; height:76px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--line);}
 .photo-thumb img{width:100%; height:100%; object-fit:cover;}
 .photo-thumb .rm{position:absolute; top:2px; right:2px; background:rgba(0,0,0,.55); color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:11px; line-height:1;}
 .addphoto-btn{width:76px; height:76px; border-radius:10px; border:1.5px dashed var(--line); background:var(--surface-2); color:var(--ink-faint); font-size:20px; display:flex; align-items:center; justify-content:center;}
 .wr-row{display:flex; gap:8px;}
-.wr-row button{flex:1; padding:9px; border-radius:9px; border:1px solid var(--line); background:var(--surface-2); font-weight:700; font-size:12.5px; color:var(--ink-soft);}
+.wr-row button{flex:1; min-height:44px; padding:9px; border-radius:9px; border:1px solid var(--line); background:var(--surface-2); font-weight:700; font-size:13.5px; color:var(--ink-soft);}
+.toggle-btn{width:100%; min-height:44px; padding:9px 12px; border-radius:9px; border:1px solid var(--line); background:var(--surface-2); font-weight:700; font-size:13.5px; color:var(--ink-soft); text-align:center;}
+.toggle-btn.on{background:var(--accent-soft); color:var(--accent); border-color:transparent;}
 .wr-row button.on-yes{background:var(--olive-soft); color:var(--olive); border-color:transparent;}
 .wr-row button.on-maybe{background:var(--gold-soft); color:var(--gold); border-color:transparent;}
 .wr-row button.on-no{background:var(--accent-soft); color:var(--accent); border-color:transparent;}
@@ -260,10 +260,13 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .detail-actions-secondary{display:flex; gap:8px; flex-wrap:wrap;}
 .tag-accent{background:var(--accent-soft) !important; color:var(--accent) !important;}
 .detail-note{background:var(--surface-2); border-left:3px solid var(--accent); border-radius:0 10px 10px 0; padding:10px 14px; margin:0; font-family:'Fraunces',serif; font-style:italic; font-size:14px; color:var(--ink-soft); line-height:1.45;}
-.partner-part{border:1px dashed var(--line); border-radius:12px; padding:10px 12px;}
-.partner-part summary{cursor:pointer; font-size:13px; font-weight:700; color:var(--accent);}
-.partner-part[open] summary{margin-bottom:10px;}
-.partner-fields{display:flex; flex-direction:column; gap:16px;}
+.partner-part{border:1px dashed var(--line); border-radius:12px; padding:13px 14px;}
+.partner-part summary{cursor:pointer; font-size:13.5px; font-weight:700; color:var(--accent);}
+.partner-part[open] summary{margin-bottom:var(--form-gap);}
+.partner-fields{display:flex; flex-direction:column; gap:var(--form-gap);}
+/* The form's section wrappers step aside so every field shares the pop-up's gap. */
+#personPartsWrap, #favFieldWrap, #categoryFieldsWrap{display:contents;}
+.field input[type=text], .field input[type=number], .field input[type=date], .field select{min-height:44px;}
 .join-note{background:var(--accent-soft); color:var(--ink); border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.45;}
 .btn-link{background:none; border:none; padding:0; color:var(--accent); font-weight:700; font-size:13px; cursor:pointer; text-decoration:underline; text-underline-offset:2px;}
 .btn-text-danger{background:none; border:none; color:var(--ink-faint); font-size:12px; cursor:pointer; padding:4px 2px; text-decoration:underline; text-underline-offset:2px; align-self:flex-start;}
@@ -513,11 +516,12 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .stk-l{font-family:'Caveat',cursive; font-size:19px; font-weight:600; line-height:1; margin-top:2px; color:var(--ink-soft);}
 .unwrap{position:relative; overflow:hidden; display:flex; align-items:center; gap:14px; width:100%; padding:18px 22px; border:none; border-radius:16px; background:var(--accent); color:var(--accent-ink); text-align:left; cursor:pointer; box-shadow:var(--shadow); transition:transform .2s ease, box-shadow .2s ease;}
 .unwrap:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift);}
-.unwrap::before{content:""; position:absolute; top:0; bottom:0; right:64px; width:16px; background:rgba(255,255,255,.25);}
+.unwrap::before{content:""; position:absolute; top:0; bottom:0; right:34px; width:16px; background:rgba(255,255,255,.25);}
 .uw-bow{font-size:30px; position:relative;}
 .uw-title{display:block; font-family:'Fraunces',serif; font-size:21px; font-weight:600; line-height:1.15; position:relative;}
 .uw-sub{display:block; font-family:'Caveat',cursive; font-size:20px; font-weight:600; position:relative;}
-.uw-arrow{margin-left:auto; font-size:22px; font-weight:800; position:relative; width:40px; text-align:center;}
+.uw-arrow{margin-left:auto; flex-shrink:0; font-size:22px; font-weight:800; position:relative; width:40px; text-align:center;}
+.pod-wrap{margin-top:24px;}
 .stats-duo{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:22px; align-items:start;}
 .critic{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:16px 18px; box-shadow:var(--shadow); margin-top:24px;}
 .critic .section-title{margin-top:0;}
@@ -533,10 +537,10 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .cr-note{font-size:12.5px; color:var(--ink-soft); margin-top:7px;}
 .cr-verdict{font-family:'Caveat',cursive; font-size:23px; font-weight:600; color:var(--ink); margin-top:4px;}
 .critic-empty{font-family:'Caveat',cursive; font-size:21px; color:var(--ink-faint);}
-.podium{display:flex; align-items:flex-end; gap:10px; padding:0 4px;}
+.podium{display:flex; align-items:flex-end; gap:12px; padding:0 4px;}
 .pod-col{flex:1; min-width:0; text-align:center; cursor:pointer;}
 .pod-crown{font-size:22px; line-height:1; margin-bottom:2px;}
-.pod-name{font-family:'Fraunces',serif; font-size:14px; font-weight:500; line-height:1.2; overflow-wrap:anywhere;}
+.pod-name{font-family:'Fraunces',serif; font-size:14px; font-weight:500; line-height:1.2; overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
 .pod-score{font-size:12px; font-weight:800; color:var(--star); margin:3px 0 6px;}
 .pod-block{border-radius:10px 10px 0 0; display:flex; align-items:flex-start; justify-content:center; padding-top:8px; font-family:'Fraunces',serif; font-size:26px; font-weight:500; color:var(--ink); transition:transform .2s ease;}
 .pod-col:hover .pod-block{transform:translateY(-3px);}
@@ -556,7 +560,7 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .aw-medal{font-size:26px;}
 .aw-what{font-family:'Caveat',cursive; font-size:18px; font-weight:600; color:var(--accent); line-height:1;}
 .aw-name{font-family:'Fraunces',serif; font-size:15px; font-weight:500;}
-.dish-tapes{display:flex; flex-wrap:wrap; gap:10px 8px;}
+.dish-tapes{display:flex; flex-wrap:wrap; gap:14px 10px;}
 .dish-tape{display:inline-flex; flex-direction:column; align-items:flex-start; border:none; padding:7px 14px 8px; transform:rotate(var(--tilt,0deg)); cursor:pointer; color:var(--ink); text-align:left; transition:transform .2s ease;}
 .dish-tape:hover{transform:rotate(0deg) translateY(-2px);}
 .dt-dish{font-family:'Caveat',cursive; font-size:22px; font-weight:600; line-height:1;}
@@ -647,7 +651,7 @@ pinned to the board like a paper map */
   .jentry{grid-template-columns:44px minmax(0,1fr); gap:12px;}
   .jday{font-size:24px;}
   .jcard{padding:15px 16px;}
-  .modal-body{padding:18px 18px; gap:18px;}
+  .modal-body{padding:18px 18px; --form-gap:18px;}
   .modal-head{padding:16px 18px;}
   .modal-foot{padding:14px 18px;}
   .polaroid{width:92px;}
@@ -671,12 +675,22 @@ pinned to the board like a paper map */
   .list-page{padding:26px 14px 16px 40px;}
   .list-page::before{left:26px;}
   .lp-title{font-size:34px;}
-  .stickers{grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px;}
+  .stickers{grid-template-columns:repeat(3, minmax(0,1fr)); gap:16px;}
+  .stk{max-width:104px;}
   .stk-n{font-size:26px;}
   .stats-duo{grid-template-columns:minmax(0,1fr); gap:0;}
-  .badges{grid-template-columns:repeat(4, minmax(0,1fr)); gap:14px 6px;}
-  .bdg-disc{width:54px; height:54px; font-size:24px;}
-  .bdg-name{font-size:11.5px;}
+  .stats-page .section-title{margin-top:34px; margin-bottom:14px;}
+  .stats-page .critic .section-title, .stats-page .pod-wrap .section-title{margin-top:0;}
+  .stats-page .critic{margin-top:30px; padding:18px;}
+  .stats-page .pod-wrap{margin-top:34px;}
+  .stats-page .pod-name{font-size:13px;}
+  .stats-page .grid-cards{gap:14px;}
+  .uw-title{font-size:19px;}
+  .uw-sub{font-size:18px;}
+  .badges{grid-template-columns:repeat(3, minmax(0,1fr)); gap:24px 12px;}
+  .bdg-disc{width:60px; height:60px; font-size:26px;}
+  .bdg-name{font-size:12.5px;}
+  .bdg-prog{font-size:12px;}
 }
 </style>
 </head>
@@ -772,17 +786,17 @@ function categoryById(id){
 }
 function categoryOf(r){ return categoryById(r && r.category); }
 var CATEGORY_VISIT_FIELDS = {
-  food: [{key:"dishes", label:"Dishes ordered (comma separated)", list:true}],
+  food: [{key:"dishes", label:"Dishes ordered", list:true, placeholder:"Burger, fries, a milkshake"}],
   shopping: [
-    {key:"itemsPurchased", label:"Items purchased (comma separated)", list:true},
-    {key:"favFinds", label:"Favourite finds"},
-    {key:"toLookFor", label:"Things to look for next time"}
+    {key:"itemsPurchased", label:"Items bought", list:true, placeholder:"A notebook, a candle"},
+    {key:"favFinds", label:"Favourite finds", placeholder:"The thing we loved most"},
+    {key:"toLookFor", label:"Look for next time", placeholder:"What to grab on the next trip"}
   ],
   experiences: [
-    {key:"highlights", label:"Highlights"},
-    {key:"favExhibits", label:"Favourite exhibits"}
+    {key:"highlights", label:"Highlights", placeholder:"The best part"},
+    {key:"favExhibits", label:"Favourite exhibits", placeholder:"The one we'd go back for"}
   ],
-  outdoors: [{key:"highlights", label:"Highlights"}],
+  outdoors: [{key:"highlights", label:"Highlights", placeholder:"The best part"}],
   other: []
 };
 var NOTES_LABEL = {food:"Food notes", shopping:"Store notes", experiences:"Experience notes", outdoors:"Experience notes", other:"Notes"};
@@ -2006,14 +2020,14 @@ function categoryCardsHtml(){
 function viewStats(){
   if(state.showWrapped) return viewWrapped();
   var s = computeStats(null);
-  var html = '<div class="page-head"><div><h1>Us, by the numbers</h1><div class="journal-sub">our little sticker book</div></div></div>';
+  var html = '<div class="stats-page"><div class="page-head"><div><h1>Us, by the numbers</h1><div class="journal-sub">our little sticker book</div></div></div>';
   html += statStickersHtml(s) + wrappedTeaserHtml();
   var podium = podiumHtml();
-  html += podium ? '<div class="stats-duo">'+criticCardHtml()+'<div>'+podium+'</div></div>' : criticCardHtml();
+  html += podium ? '<div class="stats-duo">'+criticCardHtml()+'<div class="pod-wrap">'+podium+'</div></div>' : criticCardHtml();
   var badges = stickerBadges(), earned = badges.filter(function(b){ return b.n >= b.goal; }).length;
   html += '<div class="section-title">Stickers we\'ve earned<span class="st-count">'+earned+' of '+badges.length+'</span></div>'+
     '<div class="badges">'+badges.map(badgeHtml).join('')+'</div>';
-  return html + awardsHtml() + topDishesHtml() + monthsHtml() + categoryCardsHtml();
+  return html + awardsHtml() + topDishesHtml() + monthsHtml() + categoryCardsHtml() + '</div>';
 }
 
 /* ---------- WRAPPED ---------- */
@@ -2129,7 +2143,7 @@ function visitItemHtml(v){
   var vcat = categoryOf(state.restaurants[v.restaurantId]);
   var extraFieldsHtml = (CATEGORY_VISIT_FIELDS[vcat.id]||[]).map(function(f){
     var val = v[f.key];
-    var label = f.label.replace(/ \(comma separated\)$/,'');
+    var label = f.label;
     if(f.list){
       return (val&&val.length) ? '<div class="tagrow" style="margin-top:4px;">'+val.map(function(d){return '<span class="tag">'+esc(d)+'</span>';}).join('')+'</div>' : '';
     }
@@ -2346,7 +2360,7 @@ function categoryExtraFieldsHtml(cat, v){
   var extra = CATEGORY_VISIT_FIELDS[cat.id] || [];
   return extra.map(function(f){
     var val = f.list ? (v[f.key]||[]).join(", ") : (v[f.key]||"");
-    return field(f.label, '<input type="text" id="f_extra_'+f.key+'" value="'+esc(val)+'">');
+    return field(f.label, '<input type="text" id="f_extra_'+f.key+'" value="'+esc(val)+'" placeholder="'+esc(f.placeholder||"")+'">');
   }).join('');
 }
 function visitNotes(v, who){
@@ -2356,7 +2370,7 @@ function visitNotes(v, who){
 function personPartHtml(who, cat, v){
   var name = who===(state.me||"A") ? "Your" : esc(state.profiles[who])+"'s";
   var notesLabel = (cat ? (NOTES_LABEL[cat.id]||"Notes") : "Notes").toLowerCase();
-  return '<div class="rate-row"><span class="who">'+name+' rating</span>'+renderStarEditor2("rating"+who, v["rating"+who])+'</div>'+
+  return field(name+' rating', renderStarEditor2("rating"+who, v["rating"+who]))+
     (cat && cat.id==="food" ? field(name+" favourite dish",'<input type="text" id="f_favdish'+who+'" value="'+esc(v["favDish"+who]||(who==="A"?v.favDish:"")||"")+'" placeholder="The one worth ordering again">') : '')+
     field(name+" "+notesLabel,'<textarea id="f_notes'+who+'" placeholder="How was it? Anything memorable?">'+esc(visitNotes(v, who))+'</textarea>');
 }
@@ -2431,7 +2445,7 @@ function mergeVisitData(vs){
 }
 function favFieldHtml(r){
   if(!r) return "";
-  return field("Favourite", '<button type="button" class="btn small" id="btnToggleVisitFav">'+(r.favorite?"♥ Favourited":"♡ Mark as favourite")+'</button>');
+  return field("Favourite", '<button type="button" class="toggle-btn'+(r.favorite?' on':'')+'" id="btnToggleVisitFav">'+(r.favorite?"♥ Favourite":"♡ Mark as favourite")+'</button>');
 }
 function modalLogVisit(restaurantId, existingVisit, presetPlace, defaultDate){
   editingVisit = existingVisit ? Object.assign({}, existingVisit, {dishes:(existingVisit.dishes||[]).slice(), photos:(existingVisit.photos||[]).slice()}) : {restaurantId: restaurantId||null, date: defaultDate || todayStr(), ratingA:null, ratingB:null, wouldReturn:null, dishes:[], favDishA:"", favDishB:"", notesA:"", notesB:"", price:null, photos:[]};
@@ -2458,7 +2472,7 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace, defaultDate){
       '</select>') :
       (isWizardNewPlace ? '<div class="sub" style="font-size:12px;color:var(--ink-soft);">'+initialCategory.icon+' '+esc(initialCategory.label)+' · '+esc(editingRestaurant.placeType||"")+'</div>'
         : '<div style="font-family:Fraunces,serif;font-weight:600;font-size:18px;">'+esc((targetRestaurant||{}).name||"New place")+'</div>'))+
-    '<div id="newRestaurantFields" style="display:'+(isWizardNewPlace?"block":"none")+';">'+
+    '<div id="newRestaurantFields" style="display:'+(isWizardNewPlace?"contents":"none")+';">'+
       field("Place name", '<div class="geo-search-wrap"><input type="text" id="f_name" value="'+(isWizardNewPlace?esc(editingRestaurant.name||""):"")+'" placeholder="Start typing a name or address…" autocomplete="off"><div id="geoSuggestions" class="geo-suggestions"></div></div>'+
         '<div id="pickerMap"></div>'+
         '<div class="geo-hint" id="geoHint"></div>')+
@@ -2466,7 +2480,7 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace, defaultDate){
     '</div>'+
     '<div class="field-row">'+
       field("Date",'<input type="date" id="f_date" value="'+esc(editingVisit.date||todayStr())+'">')+
-      field("Amount spent (optional)",'<input type="number" id="f_price" min="0" step="1" value="'+(editingVisit.price!=null?editingVisit.price:"")+'" placeholder="$">')+
+      field("Amount spent",'<input type="number" id="f_price" min="0" step="1" value="'+(editingVisit.price!=null?editingVisit.price:"")+'" placeholder="$0">')+
     '</div>'+
     '<div class="join-note" id="sameDayNote" hidden></div>'+
     '<div id="personPartsWrap">'+personPartsHtml(initialCategory, editingVisit)+'</div>'+
@@ -2870,7 +2884,8 @@ document.addEventListener("click", function(e){
   var favToggle = t.closest("#btnToggleVisitFav");
   if(favToggle){
     editingRestaurant.favorite = !editingRestaurant.favorite;
-    favToggle.textContent = editingRestaurant.favorite ? "♥ Favourited" : "♡ Mark as favourite";
+    favToggle.textContent = editingRestaurant.favorite ? "♥ Favourite" : "♡ Mark as favourite";
+    favToggle.classList.toggle("on", !!editingRestaurant.favorite);
     return;
   }
   var editV = t.closest("[data-edit-visit]");
