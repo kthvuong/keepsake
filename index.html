@@ -311,6 +311,11 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .jratings{display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:8px;}
 .jwho{font-size:12.5px; color:var(--ink-soft); display:inline-flex; align-items:center; gap:6px;}
 .jnone{font-size:12px; color:var(--ink-faint);}
+.wr-pill{display:inline-block; font-size:10.5px; font-weight:800; line-height:1.4; padding:1px 8px; border-radius:99px; white-space:nowrap;}
+.wr-pill.yes{background:var(--olive-soft); color:var(--olive);}
+.wr-pill.maybe{background:var(--gold-soft); color:var(--gold);}
+.wr-pill.no{background:var(--accent-soft); color:var(--accent);}
+.wr-under{margin-top:4px;}
 .jquote{font-family:'Caveat',cursive; font-size:20px; font-weight:500; line-height:1.3; color:var(--ink-soft); margin-top:8px;}
 .jline{font-size:12.5px; color:var(--ink-soft); margin-top:5px;}
 .tape{display:inline-block; font-size:12px; padding:2px 10px; margin:8px 6px 0 0; color:var(--ink);}
@@ -1268,8 +1273,8 @@ function journalDateHtml(d){
   var dt = new Date(d+"T00:00:00");
   return '<div class="jdate"><div class="jday">'+dt.getDate()+'</div><div class="jwk">'+dt.toLocaleDateString(undefined,{weekday:"short"})+'</div></div>';
 }
-function personRatingHtml(who, rating){
-  return '<span class="jwho">'+esc(state.profiles[who])+' '+(rating!=null ? renderStarsDisplay(rating) : '<span class="jnone">not rated</span>')+'</span>';
+function personRatingHtml(who, rating, wr){
+  return '<span class="jwho">'+esc(state.profiles[who])+' '+(rating!=null ? renderStarsDisplay(rating) : '<span class="jnone">not rated</span>')+wrPill(wr)+'</span>';
 }
 function journalQuotesHtml(v){
   return ["A","B"].map(function(who){
@@ -1286,7 +1291,7 @@ function photoStackHtml(r, v){
 }
 function journalCardHtml(r, v){
   var cat = categoryOf(r);
-  var wr = v.wouldReturn ? ({yes:"would return",maybe:"maybe return",no:"wouldn't return"})[v.wouldReturn] : "";
+  var wr = wrAgreement(v), pills = !wrAgree(v);
   var picks = ["A","B"].map(function(who){ return v["favDish"+who] ? esc(state.profiles[who])+"'s pick: "+esc(v["favDish"+who]) : ""; }).filter(Boolean);
   var extras = (CATEGORY_VISIT_FIELDS[cat.id]||[]).filter(function(f){ return !f.list && v[f.key]; }).map(function(f){ return esc(f.label)+": "+esc(v[f.key]); });
   var tapes = v.dishes.concat(v.itemsPurchased).slice(0,6);
@@ -1294,7 +1299,7 @@ function journalCardHtml(r, v){
     photoStackHtml(r, v)+
     '<div class="jname">'+esc(r.name)+(r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
     '<div class="jmeta">'+esc([r.neighborhood||r.city||r.placeType||cat.label, wr].filter(Boolean).join(" · "))+'</div>'+
-    '<div class="jratings">'+personRatingHtml("A", v.ratingA)+personRatingHtml("B", v.ratingB)+'</div>'+
+    '<div class="jratings">'+personRatingHtml("A", v.ratingA, pills && wrFor(v,"A"))+personRatingHtml("B", v.ratingB, pills && wrFor(v,"B"))+'</div>'+
     journalQuotesHtml(v)+
     picks.concat(extras).map(function(line){ return '<div class="jline">'+line+'</div>'; }).join('')+
     (tapes.length ? '<div>'+tapes.map(function(t,i){ return '<span class="tape tint-'+(i%5+1)+'" style="transform:rotate('+(i%2?1.5:-2)+'deg)">'+esc(t)+'</span>'; }).join('')+'</div>' : '')+
@@ -1307,9 +1312,9 @@ function journalDayHtml(places){
       return '<div class="jmini" data-open-restaurant="'+p.r.id+'">'+
         (p.v.photos.length ? '<div class="jmini-photo-wrap" data-view-photos="'+p.v.visitIds.join(",")+'"><img class="jmini-photo" src="'+p.v.photos[0]+'" alt="">'+(p.v.photos.length > 1 ? '<span class="ps-badge">'+p.v.photos.length+'</span>' : '')+'</div>' : '')+
         '<div class="jname" style="font-size:15.5px;">'+esc(p.r.name)+(p.r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
-        '<div class="jmeta">'+esc(p.r.neighborhood||p.r.city||"")+'</div>'+
-        '<div style="margin-top:4px;">'+personRatingHtml("A", p.v.ratingA)+'</div>'+
-        '<div>'+personRatingHtml("B", p.v.ratingB)+'</div>'+
+        '<div class="jmeta">'+esc([p.r.neighborhood||p.r.city||"", wrAgreement(p.v)].filter(Boolean).join(" · "))+'</div>'+
+        '<div style="margin-top:4px;">'+personRatingHtml("A", p.v.ratingA, !wrAgree(p.v) && wrFor(p.v,"A"))+'</div>'+
+        '<div>'+personRatingHtml("B", p.v.ratingB, !wrAgree(p.v) && wrFor(p.v,"B"))+'</div>'+
         journalQuotesHtml(p.v)+
       '</div>';
     }).join('')+'</div></div>';
@@ -2139,7 +2144,6 @@ function renderRestaurantDetail(rid){
   return body;
 }
 function visitItemHtml(v){
-  var wrLabel = v.wouldReturn ? ({yes:"Would return",maybe:"Maybe return",no:"Wouldn't return"})[v.wouldReturn] : "";
   var vcat = categoryOf(state.restaurants[v.restaurantId]);
   var extraFieldsHtml = (CATEGORY_VISIT_FIELDS[vcat.id]||[]).map(function(f){
     var val = v[f.key];
@@ -2150,11 +2154,11 @@ function visitItemHtml(v){
     return val ? '<div style="font-size:13px;"><b>'+esc(label)+':</b> '+esc(val)+'</div>' : '';
   }).join('');
   return '<div class="visit-item">'+
-    '<div class="vhead"><span class="vdate">'+fmtDate(v.date)+'</span>'+(v.loggedBy?'<span style="font-size:11px;color:var(--ink-faint);">logged by '+esc(state.profiles[v.loggedBy]||v.loggedBy)+'</span>':'')+(wrLabel?'<span class="badge '+v.wouldReturn+'">'+wrLabel+'</span>':'')+
+    '<div class="vhead"><span class="vdate">'+fmtDate(v.date)+'</span>'+(v.loggedBy?'<span style="font-size:11px;color:var(--ink-faint);">logged by '+esc(state.profiles[v.loggedBy]||v.loggedBy)+'</span>':'')+
       '<span style="margin-left:auto;display:flex;gap:6px;"><button class="btn small ghost" data-edit-visit="'+v.id+'">Edit</button><button class="btn small ghost" data-delete-visit="'+v.id+'">Delete</button></span></div>'+
     '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:6px;">'+
-      '<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">'+esc(state.profiles.A)+'</div>'+(v.ratingA!=null?renderStarsDisplay(v.ratingA):'<span style="font-size:12px;color:var(--ink-faint);">—</span>')+'</div>'+
-      '<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">'+esc(state.profiles.B)+'</div>'+(v.ratingB!=null?renderStarsDisplay(v.ratingB):'<span style="font-size:12px;color:var(--ink-faint);">—</span>')+'</div>'+
+      '<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">'+esc(state.profiles.A)+'</div>'+(v.ratingA!=null?renderStarsDisplay(v.ratingA):'<span style="font-size:12px;color:var(--ink-faint);">—</span>')+(wrFor(v,"A") ? '<div class="wr-under">'+wrPill(wrFor(v,"A"))+'</div>' : '')+'</div>'+
+      '<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">'+esc(state.profiles.B)+'</div>'+(v.ratingB!=null?renderStarsDisplay(v.ratingB):'<span style="font-size:12px;color:var(--ink-faint);">—</span>')+(wrFor(v,"B") ? '<div class="wr-under">'+wrPill(wrFor(v,"B"))+'</div>' : '')+'</div>'+
       (v.price!=null?'<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">Spent</div><div class="mono">$'+v.price+'</div></div>':'')+
     '</div>'+
     (v.favDishA? '<div style="font-size:13px;"><b>'+esc(state.profiles.A)+'\'s favourite dish:</b> '+esc(v.favDishA)+'</div>' : '')+
@@ -2363,6 +2367,26 @@ function categoryExtraFieldsHtml(cat, v){
     return field(f.label, '<input type="text" id="f_extra_'+f.key+'" value="'+esc(val)+'" placeholder="'+esc(f.placeholder||"")+'">');
   }).join('');
 }
+// Each person says whether they'd go back. Visits saved before that have one shared answer, which counts for both.
+var WR_LABEL = {yes:"would return", maybe:"maybe", no:"wouldn't return"};
+function wrFor(v, who){
+  if(v["wouldReturn"+who]) return v["wouldReturn"+who];
+  return !v.wouldReturnA && !v.wouldReturnB && v.wouldReturn ? v.wouldReturn : null;
+}
+function wrPill(val){ return val ? '<span class="wr-pill '+val+'">'+WR_LABEL[val]+'</span>' : ''; }
+function wrAgree(v){ var a = wrFor(v,"A"); return !!a && a===wrFor(v,"B"); }
+// The card's summary line: shared answers read as one phrase, different ones as a split decision.
+function wrAgreement(v){
+  var a = wrFor(v,"A"), b = wrFor(v,"B");
+  if(!a || !b) return "";
+  if(a===b) return a==="yes" ? "both would return" : a==="maybe" ? "both on the fence" : "neither would return";
+  return "split decision";
+}
+function wrRowHtml(who, val){
+  return '<div class="wr-row" data-wr-who="'+who+'">'+['yes','maybe','no'].map(function(w){
+    return '<button type="button" data-set-wr="'+w+'" data-wr-who="'+who+'" class="'+(val===w?"on-"+w:"")+'">'+({yes:"Yes",maybe:"Maybe",no:"No"})[w]+'</button>';
+  }).join('')+'</div>';
+}
 function visitNotes(v, who){
   if(v.notesA!=null || v.notesB!=null) return v["notes"+who] || "";
   return (v.loggedBy||"A")===who ? (v.notes||"") : "";
@@ -2370,13 +2394,15 @@ function visitNotes(v, who){
 function personPartHtml(who, cat, v){
   var name = who===(state.me||"A") ? "Your" : esc(state.profiles[who])+"'s";
   var notesLabel = (cat ? (NOTES_LABEL[cat.id]||"Notes") : "Notes").toLowerCase();
+  var goBack = who===(state.me||"A") ? "Would you go back?" : "Would "+esc(state.profiles[who])+" go back?";
   return field(name+' rating', renderStarEditor2("rating"+who, v["rating"+who]))+
+    field(goBack, wrRowHtml(who, wrFor(v, who)))+
     (cat && cat.id==="food" ? field(name+" favourite dish",'<input type="text" id="f_favdish'+who+'" value="'+esc(v["favDish"+who]||(who==="A"?v.favDish:"")||"")+'" placeholder="The one worth ordering again">') : '')+
     field(name+" "+notesLabel,'<textarea id="f_notes'+who+'" placeholder="How was it? Anything memorable?">'+esc(visitNotes(v, who))+'</textarea>');
 }
 function personPartsHtml(cat, v){
   var me = state.me || "A", partner = me==="A" ? "B" : "A";
-  var partnerHas = v["rating"+partner]!=null || !!visitNotes(v, partner) || !!v["favDish"+partner];
+  var partnerHas = v["rating"+partner]!=null || !!visitNotes(v, partner) || !!v["favDish"+partner] || !!wrFor(v, partner);
   return personPartHtml(me, cat, v)+
     '<details class="partner-part"'+(partnerHas?' open':'')+'><summary>'+(partnerHas ? esc(state.profiles[partner])+"'s rating and notes" : "Add "+esc(state.profiles[partner])+"'s rating too")+'</summary>'+
       '<div class="partner-fields">'+personPartHtml(partner, cat, v)+'</div></details>';
@@ -2400,7 +2426,7 @@ function sameDayVisitGroups(vs){
 }
 function mergeEntryIntoVisit(existing, entry){
   var merged = mergeVisitData([existing]);
-  ["ratingA","ratingB","wouldReturn","price"].forEach(function(k){ if(entry[k]!=null) merged[k] = entry[k]; });
+  ["ratingA","ratingB","wouldReturnA","wouldReturnB","price"].forEach(function(k){ if(entry[k]!=null) merged[k] = entry[k]; });
   ["favDishA","favDishB","notesA","notesB","favFinds","toLookFor","highlights","favExhibits"].forEach(function(k){ if(entry[k]) merged[k] = entry[k]; });
   ["photos","dishes","itemsPurchased"].forEach(function(k){
     (entry[k]||[]).forEach(function(x){ if(merged[k].indexOf(x)<0) merged[k].push(x); });
@@ -2430,11 +2456,12 @@ function displayVisitData(vs){
 }
 function mergeVisitData(vs){
   vs = vs.slice().sort(byCreatedAt);
-  var merged = {ratingA:null, ratingB:null, wouldReturn:null, price:null, notes:"", notesA:"", notesB:"", photos:[], dishes:[], itemsPurchased:[]};
+  var merged = {ratingA:null, ratingB:null, wouldReturnA:null, wouldReturnB:null, wouldReturn:null, price:null, notes:"", notesA:"", notesB:"", photos:[], dishes:[], itemsPurchased:[]};
   var firstWins = ["favDish","favDishA","favDishB","favFinds","toLookFor","highlights","favExhibits"];
   firstWins.forEach(function(k){ merged[k] = ""; });
   vs.forEach(function(v){
-    ["ratingA","ratingB","wouldReturn","price"].forEach(function(k){ if(merged[k]==null && v[k]!=null) merged[k] = v[k]; });
+    ["ratingA","ratingB","price"].forEach(function(k){ if(merged[k]==null && v[k]!=null) merged[k] = v[k]; });
+    ["A","B"].forEach(function(who){ if(merged["wouldReturn"+who]==null && wrFor(v, who)) merged["wouldReturn"+who] = wrFor(v, who); });
     firstWins.forEach(function(k){ if(!merged[k] && v[k]) merged[k] = v[k]; });
     ["A","B"].forEach(function(who){ if(!merged["notes"+who]) merged["notes"+who] = visitNotes(v, who); });
     ["photos","dishes","itemsPurchased"].forEach(function(k){
@@ -2449,6 +2476,8 @@ function favFieldHtml(r){
 }
 function modalLogVisit(restaurantId, existingVisit, presetPlace, defaultDate){
   editingVisit = existingVisit ? Object.assign({}, existingVisit, {dishes:(existingVisit.dishes||[]).slice(), photos:(existingVisit.photos||[]).slice()}) : {restaurantId: restaurantId||null, date: defaultDate || todayStr(), ratingA:null, ratingB:null, wouldReturn:null, dishes:[], favDishA:"", favDishB:"", notesA:"", notesB:"", price:null, photos:[]};
+  var wrA = wrFor(editingVisit,"A"), wrB = wrFor(editingVisit,"B");
+  editingVisit.wouldReturnA = wrA; editingVisit.wouldReturnB = wrB;
   editingVisit.photoItems = (editingVisit.photos||[]).map(function(d){ return {inline:true, data:d}; })
     .concat(existingVisit ? (photosByVisit[existingVisit.id]||[]).map(function(p){ return {id:p.id, data:p.data}; }) : []);
   editingVisit.removedPhotoIds = [];
@@ -2484,9 +2513,6 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace, defaultDate){
     '</div>'+
     '<div class="join-note" id="sameDayNote" hidden></div>'+
     '<div id="personPartsWrap">'+personPartsHtml(initialCategory, editingVisit)+'</div>'+
-    field("Would return?", '<div class="wr-row">'+
-      ['yes','maybe','no'].map(function(w){return '<button type="button" data-set-wr="'+w+'" class="'+(editingVisit.wouldReturn===w?"on-"+w:"")+'">'+({yes:"Yes",maybe:"Maybe",no:"No"})[w]+'</button>';}).join('')+
-    '</div>')+
     '<div id="favFieldWrap">'+favFieldHtml(editingRestaurant)+'</div>'+
     '<div id="categoryFieldsWrap">'+(initialCategory?categoryExtraFieldsHtml(initialCategory, editingVisit):'')+'</div>'+
     field("Photos", '<div class="photo-row" id="photoRow">'+photoRowHtml()+'</div><input type="file" id="f_photoInput" accept="image/*" multiple style="display:none;">')+
@@ -2906,7 +2932,11 @@ document.addEventListener("click", function(e){
     return;
   }
   var wrBtn = t.closest("[data-set-wr]");
-  if(wrBtn){ editingVisit.wouldReturn = wrBtn.getAttribute("data-set-wr"); refreshWrRow(); return; }
+  if(wrBtn){
+    var wrKey = "wouldReturn"+wrBtn.getAttribute("data-wr-who"), wrVal = wrBtn.getAttribute("data-set-wr");
+    editingVisit[wrKey] = editingVisit[wrKey]===wrVal ? null : wrVal;
+    refreshWrRow(); return;
+  }
   var priceBtn = t.closest("[data-set-price]");
   if(priceBtn){ editingRestaurant.priceRange = parseInt(priceBtn.getAttribute("data-set-price"),10); refreshChipUI(); return; }
   var chipBtn = t.closest("[data-toggle-chip]");
@@ -3156,11 +3186,12 @@ var debouncedRenderKeepFocus = debounce(function(){
 }, 180);
 
 function refreshWrRow(){
-  var row = document.querySelector(".wr-row"); if(!row) return;
-  var buttons = row.querySelectorAll("button");
-  buttons.forEach(function(b){
-    var w = b.getAttribute("data-set-wr");
-    b.className = editingVisit.wouldReturn===w ? "on-"+w : "";
+  document.querySelectorAll(".wr-row[data-wr-who]").forEach(function(row){
+    var key = "wouldReturn"+row.getAttribute("data-wr-who");
+    row.querySelectorAll("button").forEach(function(b){
+      var w = b.getAttribute("data-set-wr");
+      b.className = editingVisit[key]===w ? "on-"+w : "";
+    });
   });
 }
 function refreshChipUI(){
@@ -3216,7 +3247,7 @@ function doSaveVisitFromForm(){
       restaurantId: rid,
       date: document.getElementById("f_date").value || todayStr(),
       ratingA: editingVisit.ratingA, ratingB: editingVisit.ratingB,
-      wouldReturn: editingVisit.wouldReturn,
+      wouldReturnA: editingVisit.wouldReturnA||null, wouldReturnB: editingVisit.wouldReturnB||null, wouldReturn: null,
       notesA: document.getElementById("f_notesA").value.trim(),
       notesB: document.getElementById("f_notesB").value.trim(),
       notes: "",
