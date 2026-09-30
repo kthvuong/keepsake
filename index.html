@@ -264,7 +264,7 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .visit-item:hover{border-color:var(--ink-faint); box-shadow:var(--shadow);}
 .visit-item .vhead{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;}
 .visit-item .vdate{font-family:'Caveat',cursive; font-size:19px; font-weight:600; color:var(--ink);}
-.visit-photos{display:flex; gap:6px; margin-top:8px;}
+.visit-photos{display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;}
 .visit-photos img{width:64px; height:64px; object-fit:cover; border-radius:8px; cursor:zoom-in;}
 
 /* wrapped */
@@ -305,6 +305,30 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .tape{display:inline-block; font-size:12px; padding:2px 10px; margin:8px 6px 0 0; color:var(--ink);}
 .polaroid{float:right; background:#fff; padding:6px 6px 18px; border:1px solid var(--line); box-shadow:var(--shadow); margin:0 0 8px 14px; width:112px;}
 .polaroid img{display:block; width:100%; height:92px; object-fit:cover;}
+.polaroid-stack{float:right; position:relative; width:112px; height:132px; margin:0 0 10px 16px; cursor:zoom-in;}
+.polaroid-stack .polaroid{position:absolute; top:0; left:0; float:none; margin:0; transition:transform .25s cubic-bezier(.2,.8,.2,1);}
+.polaroid-stack:hover .polaroid:nth-child(2){transform:rotate(10deg) translate(10px,-2px) !important;}
+.polaroid-stack:hover .polaroid:nth-child(3){transform:rotate(-11deg) translate(-10px,2px) !important;}
+.ps-count{position:absolute; left:0; right:0; bottom:-4px; text-align:center; font-family:'Caveat',cursive; font-size:17px; font-weight:600; color:var(--ink-soft);}
+.jmini-photo-wrap{position:relative; cursor:zoom-in;}
+.ps-badge,.p-count{position:absolute; bottom:6px; right:6px; background:rgba(20,16,24,.62); color:#fff; font-size:11px; font-weight:800; border-radius:99px; padding:2px 8px;}
+.dh-photo{cursor:zoom-in;}
+.photo-hint{flex-basis:100%; font-family:'Caveat',cursive; font-size:18px; font-weight:600; color:var(--ink-faint);}
+.viewer{position:fixed; inset:0; z-index:150; background:rgba(20,16,24,.9); display:flex; align-items:center; justify-content:center; padding:24px 76px; animation:whos-in .2s ease;}
+.pv-frame{margin:0; background:#fff; padding:12px 12px 14px; box-shadow:0 24px 60px rgba(0,0,0,.45); max-width:min(92vw, 920px); transform:rotate(-1deg);}
+.pv-frame img{display:block; max-width:100%; max-height:74vh; margin:0 auto; object-fit:contain;}
+.pv-frame figcaption{display:flex; justify-content:space-between; gap:14px; font-family:'Caveat',cursive; font-size:22px; font-weight:600; color:#33283A; margin-top:10px;}
+.pv-count{color:#9C8E9F; white-space:nowrap;}
+.pv-nav{position:absolute; top:50%; transform:translateY(-50%); width:50px; height:50px; border-radius:50%; border:none; background:rgba(255,255,255,.14); color:#fff; font-size:30px; line-height:1;}
+.pv-nav:hover{background:rgba(255,255,255,.28);}
+.pv-prev{left:16px;} .pv-next{right:16px;}
+.pv-close{position:absolute; top:calc(16px + env(safe-area-inset-top)); right:16px; width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,.14); color:#fff; font-size:16px;}
+.pv-close:hover{background:rgba(255,255,255,.28);}
+:focus-visible{outline:2.5px solid var(--accent); outline-offset:3px;}
+[role="button"]{cursor:pointer;}
+.shortcuts{display:flex; flex-direction:column; gap:8px;}
+.sc-row{display:flex; align-items:center; gap:14px; font-size:14px; color:var(--ink-soft);}
+.sc-row kbd{min-width:118px; font-family:'Nunito',sans-serif; font-size:12.5px; font-weight:800; color:var(--ink); background:var(--surface-2); border:1px solid var(--line); border-bottom-width:2px; border-radius:7px; padding:4px 9px; text-align:center;}
 .jday-title{font-family:'Caveat',cursive; font-size:24px; font-weight:600; color:var(--accent);}
 .jmini-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-top:8px;}
 .jmini{background:var(--surface-2); border-radius:12px; padding:10px 12px; cursor:pointer; transition:transform .2s ease, box-shadow .2s ease;}
@@ -546,6 +570,10 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 }
 @media (max-width:560px){
   .whos-av{width:112px; height:112px; font-size:48px;}
+  .viewer{padding:16px 10px 92px;}
+  .pv-nav{top:auto; bottom:calc(22px + env(safe-area-inset-bottom)); transform:none;}
+  .pv-prev{left:calc(50% - 66px);} .pv-next{right:calc(50% - 66px);}
+  .polaroid-stack{width:96px; height:116px; margin-left:12px;}
   .whos-people{gap:24px;}
   .whos-title{font-size:34px;}
   .dock{gap:8px;}
@@ -619,6 +647,7 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
   </nav>
 </div>
 <div id="whoRoot"></div>
+<div id="viewerRoot"></div>
 <div id="modalRoot"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -662,7 +691,7 @@ var CUISINES = ["Vietnamese","Japanese","Thai","Chinese","Korean","Indian","Ital
 var TAGS = ["Brunch","Bakery","Fine Dining","Hidden Gem","Date Night","Late Night","Takeout","Patio","Casual","Coffee Shop","Dessert","Cocktail Bar","Vegetarian-Friendly","Group-Friendly","Quick Bite","Food Truck"];
 var FAV_CATS = ["Dessert","Cocktail Bar","Coffee Shop","Bakery","Fine Dining","Brunch"];
 var PRICE_LABELS = {1:"$",2:"$$",3:"$$$",4:"$$$$"};
-var MAX_PHOTOS = 3;
+var MAX_PHOTOS = 10;
 var SEARCH_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>';
 
 var CATEGORIES = [
@@ -879,7 +908,7 @@ function cachedProfiles(){
   return {A:"Kat", B:"Albie"};
 }
 var state = {
-  restaurants: {}, visits: {}, lists: {}, trips: {},
+  restaurants: {}, visits: {}, lists: {}, trips: {}, photos: {},
   profiles: cachedProfiles(),
   me: localStorage.getItem("pp_me") || null,
   theme: localStorage.getItem("pp_theme") || "system",
@@ -907,6 +936,25 @@ function markLoaded(key){
 function loadFailed(err){ console.error(err); state.loading = false; scheduleRender(); }
 var lastBoardList = [];
 
+// Each photo is its own Firestore doc, so a visit can hold many without hitting the 1 MB document limit.
+// Visits saved before this keep their photos inline in v.photos, and both kinds are shown together.
+var photosByVisit = {};
+function indexPhotos(){
+  photosByVisit = {};
+  Object.keys(state.photos).forEach(function(k){
+    var p = state.photos[k];
+    if(p.visitId && p.data) (photosByVisit[p.visitId] = photosByVisit[p.visitId] || []).push(p);
+  });
+  Object.keys(photosByVisit).forEach(function(vid){
+    photosByVisit[vid].sort(function(a,b){ return (a.order||0)-(b.order||0) || (a.createdAt||"").localeCompare(b.createdAt||""); });
+  });
+}
+function photosForVisit(v){ return (v.photos||[]).concat((photosByVisit[v.id]||[]).map(function(p){ return p.data; })); }
+function photosForVisits(vs){
+  var out = [];
+  vs.forEach(function(v){ photosForVisit(v).forEach(function(p){ if(out.indexOf(p)<0) out.push(p); }); });
+  return out;
+}
 function visitsFor(rid){
   return Object.keys(state.visits).map(function(k){return state.visits[k];}).filter(function(v){return v.restaurantId===rid;});
 }
@@ -923,7 +971,7 @@ function lastVisitDate(rid){
 }
 function firstPhotoFor(rid){
   var vs = visitsFor(rid).slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");});
-  for(var i=0;i<vs.length;i++){ if(vs[i].photos && vs[i].photos.length) return vs[i].photos[0]; }
+  for(var i=0;i<vs.length;i++){ var ph = photosForVisit(vs[i]); if(ph.length) return ph[0]; }
   return null;
 }
 function allRestaurants(){ return Object.keys(state.restaurants).map(function(k){return state.restaurants[k];}); }
@@ -938,6 +986,8 @@ function initDb(){
     firebase.initializeApp(FIREBASE_CONFIG);
   }catch(e){ console.error("Firebase init failed", e); state.dbReady=false; state.loading=false; return; }
   var fs = firebase.firestore();
+  // Keep a copy on the device so photos and entries download once instead of on every open.
+  fs.enablePersistence({synchronizeTabs:true}).catch(function(err){ console.warn("Offline cache unavailable:", err && err.code); });
   firebase.auth().signInAnonymously().catch(function(err){ console.error("Anonymous sign-in failed", err); });
   firebase.auth().onAuthStateChanged(function(user){
     if(!user) return;
@@ -953,6 +1003,10 @@ function initDb(){
     fs.collection("lists").onSnapshot(function(snap){
       var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
       state.lists=m; scheduleRender();
+    }, function(err){ console.error(err); });
+    fs.collection("photos").onSnapshot(function(snap){
+      var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
+      state.photos=m; indexPhotos(); scheduleRender();
     }, function(err){ console.error(err); });
     fs.collection("trips").onSnapshot(function(snap){
       var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
@@ -1016,9 +1070,26 @@ function saveVisit(data, id){
     scheduleRender(); return Promise.resolve(vid);
   }
 }
-function deleteVisit(id){
+function deleteVisit(id, keepPhotos){
+  if(!keepPhotos) (photosByVisit[id]||[]).forEach(function(p){ deletePhoto(p.id); });
   if(state.dbReady){ return state.db.doc("visits/"+id).delete(); }
   delete state.visits[id]; scheduleRender(); return Promise.resolve();
+}
+function savePhoto(visitId, restaurantId, data, order){
+  var doc = {visitId:visitId, restaurantId:restaurantId||"", data:data, by:state.me||"A", order:order, createdAt:new Date().toISOString()};
+  if(state.dbReady) return state.db.collection("photos").add(doc).then(function(ref){ return ref.id; });
+  var pid = uid(); state.photos[pid] = Object.assign({id:pid}, doc); indexPhotos(); scheduleRender(); return Promise.resolve(pid);
+}
+function deletePhoto(id){
+  if(state.dbReady) return state.db.doc("photos/"+id).delete();
+  delete state.photos[id]; indexPhotos(); scheduleRender(); return Promise.resolve();
+}
+// When two entries become one visit, the photos follow the visit that's kept.
+function movePhotos(fromVisitId, toVisitId){
+  return Promise.all((photosByVisit[fromVisitId]||[]).map(function(p){
+    if(state.dbReady) return state.db.doc("photos/"+p.id).update({visitId:toVisitId});
+    state.photos[p.id] = Object.assign({}, p, {visitId:toVisitId}); return Promise.resolve();
+  })).then(function(){ if(!state.dbReady){ indexPhotos(); scheduleRender(); } });
 }
 function saveList(data, id){
   if(state.dbReady){
@@ -1144,6 +1215,14 @@ function journalQuotesHtml(v){
     return v["notes"+who] ? '<div class="jquote">'+esc(state.profiles[who])+': '+esc(v["notes"+who])+'</div>' : '';
   }).join('');
 }
+function photoStackHtml(r, v){
+  if(!v.photos.length) return '';
+  var tilts = [(placeHash(r)%7)-3, 6, -7];
+  return '<div class="polaroid-stack" data-view-photos="'+v.visitIds.join(",")+'" title="See photos">'+
+    v.photos.slice(0,3).map(function(p,i){ return '<div class="polaroid" style="transform:rotate('+tilts[i]+'deg); z-index:'+(3-i)+';"><img src="'+p+'" alt=""></div>'; }).join('')+
+    (v.photos.length > 1 ? '<span class="ps-count">'+v.photos.length+' photos</span>' : '')+
+  '</div>';
+}
 function journalCardHtml(r, v){
   var cat = categoryOf(r);
   var wr = v.wouldReturn ? ({yes:"would return",maybe:"maybe return",no:"wouldn't return"})[v.wouldReturn] : "";
@@ -1151,7 +1230,7 @@ function journalCardHtml(r, v){
   var extras = (CATEGORY_VISIT_FIELDS[cat.id]||[]).filter(function(f){ return !f.list && v[f.key]; }).map(function(f){ return esc(f.label)+": "+esc(v[f.key]); });
   var tapes = v.dishes.concat(v.itemsPurchased).slice(0,6);
   return '<div class="jcard" data-open-restaurant="'+r.id+'">'+
-    (v.photos.length ? '<div class="polaroid" style="transform:rotate('+((placeHash(r)%7)-3)+'deg)"><img src="'+v.photos[0]+'" alt=""></div>' : '')+
+    photoStackHtml(r, v)+
     '<div class="jname">'+esc(r.name)+(r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
     '<div class="jmeta">'+esc([r.neighborhood||r.city||r.placeType||cat.label, wr].filter(Boolean).join(" · "))+'</div>'+
     '<div class="jratings">'+personRatingHtml("A", v.ratingA)+personRatingHtml("B", v.ratingB)+'</div>'+
@@ -1165,7 +1244,7 @@ function journalDayHtml(places){
   return '<div class="jcard"><div class="jday-title">'+(words[places.length]||places.length)+' spots in one day</div>'+
     '<div class="jmini-grid">'+places.map(function(p){
       return '<div class="jmini" data-open-restaurant="'+p.r.id+'">'+
-        (p.v.photos.length ? '<img class="jmini-photo" src="'+p.v.photos[0]+'" alt="">' : '')+
+        (p.v.photos.length ? '<div class="jmini-photo-wrap" data-view-photos="'+p.v.visitIds.join(",")+'"><img class="jmini-photo" src="'+p.v.photos[0]+'" alt="">'+(p.v.photos.length > 1 ? '<span class="ps-badge">'+p.v.photos.length+'</span>' : '')+'</div>' : '')+
         '<div class="jname" style="font-size:15.5px;">'+esc(p.r.name)+(p.r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
         '<div class="jmeta">'+esc(p.r.neighborhood||p.r.city||"")+'</div>'+
         '<div style="margin-top:4px;">'+personRatingHtml("A", p.v.ratingA)+'</div>'+
@@ -1202,7 +1281,7 @@ function viewJournal(){
   dates.forEach(function(d){
     var mk = d.slice(0,7);
     if(mk !== lastMonth){ html += '<div class="journal-month">'+esc(monthLabel(mk))+'</div>'; lastMonth = mk; }
-    var places = Object.keys(byDate[d]).map(function(rid){ return {r: state.restaurants[rid], v: mergeVisitData(byDate[d][rid])}; });
+    var places = Object.keys(byDate[d]).map(function(rid){ return {r: state.restaurants[rid], v: displayVisitData(byDate[d][rid])}; });
     html += '<div class="jentry">'+journalDateHtml(d)+'<div>'+(places.length===1 ? journalCardHtml(places[0].r, places[0].v) : journalDayHtml(places))+'</div></div>';
   });
   return html + stillOnListHtml(saved);
@@ -1273,9 +1352,10 @@ function boardItemHtml(r, km){
       '<div class="n-foot"><button type="button" class="n-went" data-log-visit-for="'+r.id+'">+ we went</button></div>'+
     '</div>';
   }
-  var photo = firstPhotoFor(r.id), score = restaurantScore(r.id);
+  var photo = firstPhotoFor(r.id), score = restaurantScore(r.id), nPhotos = photosForVisits(visitsFor(r.id)).length;
   return '<div class="bitem polaroid-card'+(picked?' picked':'')+'"'+attrs+'>'+top+
-    '<div class="p-img'+(photo?'':' '+placeTint(r))+'">'+(photo ? '<img src="'+photo+'" alt="" loading="lazy">' : cat.icon)+dist+'</div>'+
+    '<div class="p-img'+(photo?'':' '+placeTint(r))+'">'+(photo ? '<img src="'+photo+'" alt="" loading="lazy">' : cat.icon)+dist+
+      (nPhotos > 1 ? '<span class="p-count">📷 '+nPhotos+'</span>' : '')+'</div>'+
     '<div class="p-name">'+esc(r.name)+'</div>'+
     (score!=null ? '<div class="p-stars">'+renderStarsDisplay(score)+'</div>' : '')+
     '<div class="p-meta">'+esc(where)+'</div>'+pick+
@@ -1450,6 +1530,7 @@ function showMapCard(rid, bounce){
   state.mapCardId = rid;
   card.innerHTML = mapCardHtml(r, state.pickedId===rid);
   card.hidden = false;
+  enhanceClickables(card);
   Object.keys(mapMarkerById).forEach(function(id){ mapMarkerById[id].el.classList.toggle("active", id===rid); });
   sharedMap.panTo({lat:r.lat, lng:r.lng});
   if(bounce){ m.el.classList.remove("bounce"); void m.el.offsetWidth; m.el.classList.add("bounce"); }
@@ -1693,7 +1774,7 @@ function viewTripDetail(t){
   visitDates.forEach(function(d){
     var dayIdx = days.indexOf(d);
     html += '<div class="trip-day">'+(dayIdx>=0 ? 'Day '+(dayIdx+1)+' · ' : '')+esc(new Date(d+"T00:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}))+'</div>';
-    var places = Object.keys(byDate[d]).map(function(rid){ return {r:state.restaurants[rid], v:mergeVisitData(byDate[d][rid])}; });
+    var places = Object.keys(byDate[d]).map(function(rid){ return {r:state.restaurants[rid], v:displayVisitData(byDate[d][rid])}; });
     html += places.length===1 ? journalCardHtml(places[0].r, places[0].v) : journalDayHtml(places);
   });
   return html + '<button type="button" class="btn-text-danger" data-delete-trip="'+t.id+'" style="margin-top:24px;">Delete this trip</button>';
@@ -1715,7 +1796,7 @@ function computeStats(filterYear){
   var ratings = visits.map(function(v){return avg([v.ratingA,v.ratingB]);}).filter(function(v){return v!=null;});
   var spendByMonth = {};
   visits.forEach(function(v){ if(typeof v.price==="number"){ var mk=monthKey(v.date); spendByMonth[mk]=(spendByMonth[mk]||0)+v.price; } });
-  var totalPhotos = 0; visits.forEach(function(v){ totalPhotos += (v.photos||[]).length; });
+  var totalPhotos = 0; visits.forEach(function(v){ totalPhotos += photosForVisit(v).length; });
   var topRest = top(restCount);
   return {
     restaurantCount: restaurantCount,
@@ -1789,7 +1870,7 @@ function stickerBadges(){
   var visited = Object.keys(perPlace).map(function(id){ return state.restaurants[id]; });
   function distinct(fn){ var seen = {}; visited.forEach(function(r){ [].concat(fn(r)||[]).forEach(function(x){ if(x) seen[x] = 1; }); }); return Object.keys(seen).length; }
   function tagged(tags, types){ return visited.filter(function(r){ return (r.tags||[]).some(function(t){ return tags.indexOf(t)>=0; }) || (types||[]).indexOf(r.placeType)>=0; }).length; }
-  var photos = 0; visits.forEach(function(v){ photos += (v.photos||[]).length; });
+  var photos = 0; visits.forEach(function(v){ photos += photosForVisit(v).length; });
   var repeat = Math.max.apply(null, [0].concat(Object.keys(perPlace).map(function(k){ return perPlace[k]; })));
   var trips = Object.keys(state.trips).map(function(k){ return state.trips[k]; });
   var tripsDone = trips.filter(function(t){ return tripStatus(t).kind==="past" && tripSpots(t).some(function(r){ return tripVisitsFor(t, r.id).length; }); }).length;
@@ -1972,7 +2053,7 @@ function renderRestaurantDetail(rid){
   var hero = firstPhotoFor(rid);
   var rcat = categoryOf(r);
   var body = '<div class="detail-hero'+(hero?'':' '+placeTint(r))+'">'+
-      (hero?'<img src="'+hero+'">':'<div class="dh-icon">'+rcat.icon+'</div><div class="dh-cat">'+esc(rcat.label)+'</div>')+
+      (hero?'<img src="'+hero+'" alt="" class="dh-photo" data-view-photos="'+vs.map(function(v){ return v.id; }).join(",")+'">':'<div class="dh-icon">'+rcat.icon+'</div><div class="dh-cat">'+esc(rcat.label)+'</div>')+
       '<button type="button" class="fav-badge" data-toggle-fav="'+rid+'" title="'+(r.favorite?"Remove favourite":"Mark favourite")+'">'+(r.favorite?'♥':'♡')+'</button>'+
     '</div>'+
     '<div class="modal-body">'+
@@ -2023,14 +2104,16 @@ function visitItemHtml(v){
       var n = visitNotes(v, who);
       return n ? '<p style="font-size:13px;color:var(--ink-soft);margin:6px 0 0;"><b>'+esc(state.profiles[who])+':</b> '+esc(n)+'</p>' : '';
     }).join('')+
-    ((v.photos&&v.photos.length)? '<div class="visit-photos">'+v.photos.map(function(p){return '<img src="'+p+'" data-zoom-photo="'+encodeURIComponent(p)+'">';}).join('')+'</div>' : '')+
+    (photosForVisit(v).length ? '<div class="visit-photos">'+photosForVisit(v).map(function(p,i){ return '<img src="'+p+'" alt="" data-view-photos="'+v.id+'" data-photo-start="'+i+'">'; }).join('')+'</div>' : '')+
     '</div>';
 }
 
 /* ---------- MODALS ---------- */
 var pickerMapInstance = null, pickerMarker = null;
 function openModal(html){
-  document.getElementById("modalRoot").innerHTML = '<div class="overlay" id="overlay">'+html+'</div>';
+  var root = document.getElementById("modalRoot");
+  root.innerHTML = '<div class="overlay" id="overlay">'+html+'</div>';
+  enhanceClickables(root);
 }
 function closeModal(){
   pickerMapInstance = null; pickerMarker = null;
@@ -2276,8 +2359,11 @@ function byCreatedAt(a,b){ return (a.createdAt||"").localeCompare(b.createdAt||"
 function combineVisits(ids){
   var vs = ids.map(function(id){ return state.visits[id]; }).filter(Boolean).sort(byCreatedAt);
   return saveVisit(mergeVisitData(vs), vs[0].id).then(function(){
-    return Promise.all(vs.slice(1).map(function(v){ return deleteVisit(v.id); }));
+    return Promise.all(vs.slice(1).map(function(v){ return movePhotos(v.id, vs[0].id).then(function(){ return deleteVisit(v.id, true); }); }));
   });
+}
+function displayVisitData(vs){
+  return Object.assign(mergeVisitData(vs), {photos:photosForVisits(vs), visitIds:vs.map(function(v){ return v.id; })});
 }
 function mergeVisitData(vs){
   vs = vs.slice().sort(byCreatedAt);
@@ -2300,6 +2386,9 @@ function favFieldHtml(r){
 }
 function modalLogVisit(restaurantId, existingVisit, presetPlace, defaultDate){
   editingVisit = existingVisit ? Object.assign({}, existingVisit, {dishes:(existingVisit.dishes||[]).slice(), photos:(existingVisit.photos||[]).slice()}) : {restaurantId: restaurantId||null, date: defaultDate || todayStr(), ratingA:null, ratingB:null, wouldReturn:null, dishes:[], favDishA:"", favDishB:"", notesA:"", notesB:"", price:null, photos:[]};
+  editingVisit.photoItems = (editingVisit.photos||[]).map(function(d){ return {inline:true, data:d}; })
+    .concat(existingVisit ? (photosByVisit[existingVisit.id]||[]).map(function(p){ return {id:p.id, data:p.data}; }) : []);
+  editingVisit.removedPhotoIds = [];
   var pendingVisit = !existingVisit && restaurantId ? recentVisitMissingMyRating(restaurantId) : null;
   if(pendingVisit) editingVisit.date = pendingVisit.date;
   var targetRestaurant = restaurantId ? state.restaurants[restaurantId] : (existingVisit ? state.restaurants[existingVisit.restaurantId] : null);
@@ -2337,7 +2426,7 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace, defaultDate){
     '</div>')+
     '<div id="favFieldWrap">'+favFieldHtml(editingRestaurant)+'</div>'+
     '<div id="categoryFieldsWrap">'+(initialCategory?categoryExtraFieldsHtml(initialCategory, editingVisit):'')+'</div>'+
-    field("Photos (up to "+MAX_PHOTOS+")", '<div class="photo-row" id="photoRow">'+photoRowHtml()+'</div><input type="file" id="f_photoInput" accept="image/*" style="display:none;">')+
+    field("Photos", '<div class="photo-row" id="photoRow">'+photoRowHtml()+'</div><input type="file" id="f_photoInput" accept="image/*" multiple style="display:none;">')+
     '</div>'+
     '<div class="modal-foot">'+(existingVisit?'<button class="btn danger" data-delete-visit="'+existingVisit.id+'">Delete visit</button>':'')+'<button class="btn primary" id="btnSaveVisit">Save visit</button></div>'+
   '</div>';
@@ -2370,10 +2459,17 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace, defaultDate){
   }
 }
 function photoRowHtml(){
-  var photos = editingVisit.photos||[];
-  var html = photos.map(function(p,i){return '<div class="photo-thumb"><img src="'+p+'"><button class="rm" data-rm-photo="'+i+'">✕</button></div>';}).join('');
-  if(photos.length<MAX_PHOTOS) html += '<button type="button" class="addphoto-btn" id="btnAddPhoto">+</button>';
-  return html;
+  var items = editingVisit.photoItems||[];
+  var html = items.map(function(p,i){ return '<div class="photo-thumb"><img src="'+p.data+'" alt=""><button type="button" class="rm" data-rm-photo="'+i+'" aria-label="Remove photo">✕</button></div>'; }).join('');
+  if(items.length < MAX_PHOTOS) html += '<button type="button" class="addphoto-btn" id="btnAddPhoto" aria-label="Add photos">+</button>';
+  return html + '<div class="photo-hint">'+(items.length ? items.length+' of '+MAX_PHOTOS : 'add up to '+MAX_PHOTOS+', a few at a time is fine')+'</div>';
+}
+// New photos are written after the visit, once we know which visit they belong to (a same-day entry joins an existing one).
+function syncVisitPhotos(visitId, rid){
+  var fresh = editingVisit.photoItems.filter(function(p){ return !p.inline && !p.id; });
+  var stamp = Date.now();
+  return Promise.all(editingVisit.removedPhotoIds.map(function(id){ return deletePhoto(id); })
+    .concat(fresh.map(function(p, i){ return savePhoto(visitId, rid, p.data, stamp+i); })));
 }
 
 function modalQuickAdd(){
@@ -2505,6 +2601,7 @@ function modalSettings(){
     field("Profile A name",'<input type="text" id="f_profA" value="'+esc(state.profiles.A)+'">')+
     field("Profile B name",'<input type="text" id="f_profB" value="'+esc(state.profiles.B)+'">')+
     '<p style="font-size:12px;color:var(--ink-faint);">This device remembers who\'s using it. Tap your name at the top of the app to switch.</p>'+
+    '<p style="font-size:12px;color:var(--ink-faint);">Using a keyboard? Press ? to see the shortcuts.</p>'+
     field("Your data", '<button type="button" class="btn small" id="btnExportData"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download a backup (JSON)</button>')+
     '</div><div class="modal-foot"><button class="btn primary" id="btnSaveProfiles">Save</button></div></div>';
   openModal(html);
@@ -2519,6 +2616,7 @@ function exportAllData(){
     profiles: state.profiles,
     restaurants: state.restaurants,
     visits: state.visits,
+    photos: state.photos,
     lists: state.lists,
     trips: state.trips
   };
@@ -2529,10 +2627,35 @@ function exportAllData(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
 }
-function modalPhotoZoom(url){
-  openModal('<div class="modal" style="max-width:min(90vw,700px);"><div class="modal-head"><h2>Photo</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
-    '<div style="padding:14px;"><img src="'+url+'" style="width:100%;border-radius:10px;display:block;"></div></div>');
+var viewer = {photos:[], i:0, caption:""};
+function openPhotoViewer(photos, start, caption){
+  if(!photos.length) return;
+  viewer = {photos:photos, i:clamp(start||0, 0, photos.length-1), caption:caption||""};
+  renderPhotoViewer();
 }
+function renderPhotoViewer(){
+  var n = viewer.photos.length;
+  document.getElementById("viewerRoot").innerHTML = '<div class="viewer" id="photoViewer" role="dialog" aria-label="Photos">'+
+    '<button type="button" class="pv-close" data-pv-close="1" aria-label="Close photos">✕</button>'+
+    (n > 1 ? '<button type="button" class="pv-nav pv-prev" data-pv-step="-1" aria-label="Previous photo">‹</button>' : '')+
+    '<figure class="pv-frame"><img src="'+viewer.photos[viewer.i]+'" alt="">'+
+      '<figcaption><span>'+esc(viewer.caption)+'</span>'+(n > 1 ? '<span class="pv-count">'+(viewer.i+1)+' of '+n+'</span>' : '')+'</figcaption></figure>'+
+    (n > 1 ? '<button type="button" class="pv-nav pv-next" data-pv-step="1" aria-label="Next photo">›</button>' : '')+
+  '</div>';
+}
+function stepPhoto(d){
+  if(viewer.photos.length < 2) return;
+  viewer.i = (viewer.i + d + viewer.photos.length) % viewer.photos.length;
+  renderPhotoViewer();
+}
+function closePhotoViewer(){ document.getElementById("viewerRoot").innerHTML = ""; }
+var swipeX = null;
+document.addEventListener("touchstart", function(e){ swipeX = document.getElementById("photoViewer") ? e.touches[0].clientX : null; }, {passive:true});
+document.addEventListener("touchend", function(e){
+  if(swipeX==null || !document.getElementById("photoViewer")) return;
+  var dx = e.changedTouches[0].clientX - swipeX; swipeX = null;
+  if(Math.abs(dx) > 40) stepPhoto(dx < 0 ? 1 : -1);
+}, {passive:true});
 
 /* ---------- main render ---------- */
 function renderAll(){
@@ -2548,9 +2671,30 @@ function renderAll(){
     default: html = viewJournal();
   }
   el.innerHTML = html;
+  enhanceClickables(el);
   if(state.route==="pinboard" && state.boardMode==="map") renderPlacesMap("boardMap", lastBoardList);
   var activeTrip = state.route==="trips" && state.trips[state.activeTripId];
   if(activeTrip) renderPlacesMap("tripMap", tripSpots(activeTrip));
+}
+
+function goRoute(route, boardStatus){
+  state.route = route; state.search=""; state.activeListId=null; state.activeTripId=null;
+  state.showWrapped = false; state.pickedId = null; state.mapCardId = null;
+  if(boardStatus){ state.board.status = boardStatus; state.boardMode = "board"; }
+  renderAll(); window.scrollTo(0,0); document.getElementById("dock").classList.remove("tucked");
+}
+// Cards are divs that open things on click; give them a tab stop and a role so a keyboard can reach and press them.
+function enhanceClickables(root){
+  (root||document).querySelectorAll('[data-open-restaurant],[data-open-list],[data-open-trip],[data-view-photos]').forEach(function(el){
+    if(el.tagName==="BUTTON" || el.tagName==="A" || el.hasAttribute("tabindex")) return;
+    el.setAttribute("tabindex","0"); el.setAttribute("role","button");
+  });
+}
+function modalShortcuts(){
+  var rows = [["1 to 5","Journal, Pinboard, Trips, Lists, Stats"],["N","Add a place or visit"],["/","Search this page"],["P","Pick for us (on the pinboard)"],
+    ["Tab, then Enter","Move around and open things"],["Esc","Close the window that's open"],["← →","Flip through photos"],["⌘ Enter","Save the open form"],["?","Show these shortcuts"]];
+  openModal('<div class="modal"><div class="modal-head"><h2>Keyboard shortcuts</h2><button class="btn ghost small" data-close-modal="1">✕</button></div>'+
+    '<div class="modal-body"><div class="shortcuts">'+rows.map(function(r){ return '<div class="sc-row"><kbd>'+esc(r[0])+'</kbd><span>'+esc(r[1])+'</span></div>'; }).join('')+'</div></div></div>');
 }
 
 /* ---------- event delegation ---------- */
@@ -2559,12 +2703,7 @@ document.addEventListener("click", function(e){
 
   // nav
   var routeBtn = t.closest("[data-route]");
-  if(routeBtn){
-    state.route = routeBtn.getAttribute("data-route"); state.search=""; state.activeListId=null; state.activeTripId=null;
-    state.showWrapped = false; state.pickedId = null; state.mapCardId = null;
-    if(routeBtn.getAttribute("data-board-status")){ state.board.status = routeBtn.getAttribute("data-board-status"); state.boardMode = "board"; }
-    renderAll(); window.scrollTo(0,0); document.getElementById("dock").classList.remove("tucked"); return;
-  }
+  if(routeBtn){ goRoute(routeBtn.getAttribute("data-route"), routeBtn.getAttribute("data-board-status")); return; }
 
   if(t.closest("#btnHome")){ state.route="journal"; state.search=""; state.activeListId=null; state.activeTripId=null; state.showWrapped=false; renderAll(); window.scrollTo(0,0); return; }
 
@@ -2644,6 +2783,17 @@ document.addEventListener("click", function(e){
   }
 
   // restaurant open/edit/delete
+  if(t.closest("[data-pv-close]") || t.id==="photoViewer"){ closePhotoViewer(); return; }
+  var pvStep = t.closest("[data-pv-step]");
+  if(pvStep){ stepPhoto(parseInt(pvStep.getAttribute("data-pv-step"),10)); return; }
+  var viewPh = t.closest("[data-view-photos]");
+  if(viewPh){
+    var pvVisits = viewPh.getAttribute("data-view-photos").split(",").map(function(id){ return state.visits[id]; }).filter(Boolean);
+    var pvPlace = pvVisits[0] && state.restaurants[pvVisits[0].restaurantId];
+    var pvCaption = pvPlace ? pvPlace.name+(pvVisits.length===1 && pvVisits[0].date ? " · "+fmtDate(pvVisits[0].date) : "") : "";
+    openPhotoViewer(photosForVisits(pvVisits), parseInt(viewPh.getAttribute("data-photo-start")||"0",10), pvCaption);
+    return;
+  }
   var openR = t.closest("[data-open-restaurant]");
   if(openR && !t.closest("button[data-log-visit-for]") && !t.closest("button[data-delete-restaurant]") ){ modalRestaurantDetail(openR.getAttribute("data-open-restaurant")); return; }
   var editR = t.closest("[data-edit-restaurant]");
@@ -2710,7 +2860,11 @@ document.addEventListener("click", function(e){
 
   if(t.closest("#btnAddPhoto")){ document.getElementById("f_photoInput").click(); return; }
   var rmPhoto = t.closest("[data-rm-photo]");
-  if(rmPhoto){ editingVisit.photos.splice(parseInt(rmPhoto.getAttribute("data-rm-photo"),10),1); document.getElementById("photoRow").innerHTML = photoRowHtml(); return; }
+  if(rmPhoto){
+    var gone = editingVisit.photoItems.splice(parseInt(rmPhoto.getAttribute("data-rm-photo"),10),1)[0];
+    if(gone && gone.id) editingVisit.removedPhotoIds.push(gone.id);
+    document.getElementById("photoRow").innerHTML = photoRowHtml(); return;
+  }
 
   if(t.closest("#btnSaveRestaurant")){ doSaveRestaurantFromForm(); return; }
   if(t.closest("#btnSaveVisit")){ doSaveVisitFromForm(); return; }
@@ -2864,8 +3018,6 @@ document.addEventListener("click", function(e){
     return;
   }
 
-  var zoomPhoto = t.closest("[data-zoom-photo]");
-  if(zoomPhoto){ modalPhotoZoom(decodeURIComponent(zoomPhoto.getAttribute("data-zoom-photo"))); return; }
 
   var openWrapped = t.closest("[data-open-wrapped]");
   if(openWrapped){ state.showWrapped = true; state.wrappedYear = openWrapped.getAttribute("data-open-wrapped"); wrappedSlideIdx = 0; renderAll(); window.scrollTo(0,0); return; }
@@ -2881,6 +3033,35 @@ document.addEventListener("click", function(e){
   if(t.closest("[data-close-modal]")){ closeModal(); return; }
 });
 
+document.addEventListener("keydown", function(e){
+  var t = e.target, typing = t && (t.tagName==="INPUT" || t.tagName==="TEXTAREA" || t.tagName==="SELECT" || t.isContentEditable);
+  if(document.getElementById("photoViewer")){
+    if(e.key==="Escape"){ closePhotoViewer(); e.preventDefault(); }
+    else if(e.key==="ArrowLeft" || e.key==="ArrowRight"){ stepPhoto(e.key==="ArrowLeft" ? -1 : 1); e.preventDefault(); }
+    return;
+  }
+  if((e.key==="Enter" || e.key===" ") && t && t.getAttribute && t.getAttribute("role")==="button" && t.tagName!=="BUTTON"){ e.preventDefault(); t.click(); return; }
+  if(e.key==="Enter" && (e.metaKey || e.ctrlKey)){
+    var save = document.querySelector("#modalRoot .modal-foot .btn.primary");
+    if(save){ e.preventDefault(); save.click(); }
+    return;
+  }
+  if(e.key==="Escape"){
+    if(document.getElementById("overlay")){ closeModal(); e.preventDefault(); return; }
+    if(document.getElementById("whosPicker") && localStorage.getItem("pp_me_chosen")){ hideWhoPicker(); return; }
+    if(state.mapCardId){ hideMapCard(); return; }
+    if(typing) t.blur();
+    return;
+  }
+  // Single-key shortcuts stay out of the way while typing and leave the browser's own shortcuts alone.
+  if(typing || e.metaKey || e.ctrlKey || e.altKey || document.getElementById("overlay") || document.getElementById("whosPicker")) return;
+  var routes = {"1":"journal","2":"pinboard","3":"trips","4":"lists","5":"stats"};
+  if(routes[e.key]){ e.preventDefault(); goRoute(routes[e.key]); return; }
+  if(e.key==="n" || e.key==="N"){ e.preventDefault(); modalQuickAdd(); return; }
+  if(e.key==="/"){ var search = document.getElementById("searchInput"); if(search){ e.preventDefault(); search.focus(); } return; }
+  if((e.key==="p" || e.key==="P") && document.getElementById("btnBoardPick")){ e.preventDefault(); document.getElementById("btnBoardPick").click(); return; }
+  if(e.key==="?"){ e.preventDefault(); modalShortcuts(); return; }
+});
 document.addEventListener("keydown", function(e){
   if(!e.target) return;
   if(e.target.id==="f_name" && document.getElementById("geoSuggestions") && e.key==="Enter"){
@@ -2899,12 +3080,16 @@ document.addEventListener("input", function(e){
 document.addEventListener("change", function(e){
   if(e.target.id==="wrappedYearSelect"){ state.wrappedYear = e.target.value; wrappedSlideIdx=0; renderAll(); }
   if(e.target.id==="f_photoInput"){
-    var file = e.target.files[0]; if(!file) return;
-    compressImage(file).then(function(dataUrl){
-      editingVisit.photos = editingVisit.photos||[];
-      editingVisit.photos.push(dataUrl);
-      document.getElementById("photoRow").innerHTML = photoRowHtml();
-    }).catch(function(){ alert("Couldn't process that photo — try a different file."); });
+    var files = Array.prototype.slice.call(e.target.files||[]);
+    var room = MAX_PHOTOS - editingVisit.photoItems.length;
+    e.target.value = "";
+    if(files.length > room) alert("A visit can hold "+MAX_PHOTOS+" photos, so only the first "+Math.max(room,0)+" were added.");
+    files.slice(0, Math.max(room,0)).reduce(function(chain, file){
+      return chain.then(function(){ return compressImage(file); }).then(function(dataUrl){
+        editingVisit.photoItems.push({data:dataUrl});
+        var row = document.getElementById("photoRow"); if(row) row.innerHTML = photoRowHtml();
+      });
+    }, Promise.resolve()).catch(function(){ alert("Couldn't process one of those photos. Try a different file."); });
   }
 });
 var debouncedRenderKeepFocus = debounce(function(){
@@ -2979,7 +3164,7 @@ function doSaveVisitFromForm(){
       notesB: document.getElementById("f_notesB").value.trim(),
       notes: "",
       price: priceVal!=="" ? parseFloat(priceVal) : null,
-      photos: editingVisit.photos||[],
+      photos: editingVisit.photoItems.filter(function(p){ return p.inline; }).map(function(p){ return p.data; }),
       dishes:[], favDishA:"", favDishB:""
     };
     (CATEGORY_VISIT_FIELDS[cat.id]||[]).forEach(function(f){
@@ -2999,8 +3184,10 @@ function doSaveVisitFromForm(){
     var sameDay = sameDayVisit(rid, data.date, editingVisit.id);
     var savePromise = !sameDay ? saveVisit(data, editingVisit.id)
       : saveVisit(mergeEntryIntoVisit(sameDay, data), sameDay.id).then(function(r){
-          return editingVisit.id ? deleteVisit(editingVisit.id).then(function(){ return r; }) : r;
+          if(!editingVisit.id) return r;
+          return movePhotos(editingVisit.id, sameDay.id).then(function(){ return deleteVisit(editingVisit.id, true); }).then(function(){ return r; });
         });
+    savePromise = savePromise.then(function(visitId){ return syncVisitPhotos(visitId, rid).then(function(){ return visitId; }); });
     if(editingRestaurant){
       savePromise = savePromise.then(function(r){ return updateRestaurant(rid, {favorite: !!editingRestaurant.favorite}).then(function(){ return r; }); });
     }
