@@ -200,12 +200,16 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 .geo-hint{font-size:11.5px; color:var(--ink-faint); margin-top:6px;}
 
 /* modal */
-.overlay{position:fixed; inset:0; background:rgba(20,16,12,.5); display:flex; align-items:flex-start; justify-content:center; padding:calc(40px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left)); overflow-y:auto; z-index:100;}
-.modal{background:var(--surface); border-radius:18px; max-width:640px; width:100%; box-shadow:var(--shadow); border:1px solid var(--line); margin-bottom:40px; overflow:hidden;}
-.modal-head{display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--line-soft);}
+.overlay{position:fixed; inset:0; background:rgba(20,16,12,.5); display:flex; align-items:flex-start; justify-content:center; padding:calc(40px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left)); overflow-y:auto; overscroll-behavior:contain; z-index:100;}
+/* One scroll area per pop-up, sized to the visible screen (dvh excludes the phone's toolbars), with the title and save bar pinned. */
+.modal{background:var(--surface); border-radius:18px; max-width:640px; width:100%; box-shadow:var(--shadow); border:1px solid var(--line);
+  max-height:calc(100vh - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); max-height:calc(100dvh - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;}
+html.modal-open, html.modal-open body{overflow:hidden;}
+.modal-head{display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--line-soft); position:sticky; top:0; z-index:4; background:var(--surface);}
 .modal-head h2{font-size:19px;}
-.modal-body{padding:20px 22px; display:flex; flex-direction:column; gap:16px; max-height:70vh; overflow-y:auto;}
-.modal-foot{padding:16px 22px; border-top:1px solid var(--line-soft); display:flex; justify-content:flex-end; gap:10px;}
+.modal-body{padding:20px 22px; display:flex; flex-direction:column; gap:16px;}
+.modal-foot{padding:16px 22px; border-top:1px solid var(--line-soft); display:flex; justify-content:flex-end; gap:10px; position:sticky; bottom:0; z-index:4; background:var(--surface);}
 .field{display:flex; flex-direction:column; gap:6px;}
 .field label{font-size:13px; font-weight:700; color:var(--ink-soft);}
 .field input[type=text], .field input[type=date], .field input[type=number], .field textarea, .field select{padding:10px 11px; border-radius:9px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); font-size:16px; font-family:inherit; width:100%;}
@@ -217,7 +221,13 @@ select, .selectlike{padding:9px 10px; border-radius:9px; border:1px solid var(--
 .quick-add-option .qa-text{display:flex; flex-direction:column; gap:2px;}
 .quick-add-option .qa-title{font-family:'Fraunces',serif; font-weight:600; font-size:16px; color:var(--ink);}
 .quick-add-option .qa-sub{font-size:12.5px; color:var(--ink-soft);}
-.field-row .field{flex:1; min-width:140px;}
+.field-row .field{flex:1 1 180px; min-width:0;}
+.field input, .field select, .field textarea{min-width:0; max-width:100%;}
+/* iPhone date inputs keep a native minimum width and spill into the next field unless their native look is reset. */
+@supports (-webkit-touch-callout: none){
+  .field input[type=date]{-webkit-appearance:none; appearance:none; min-height:44px; text-align:left;}
+  .field input[type=date]::-webkit-date-and-time-value{text-align:left;}
+}
 .chip-select{display:flex; flex-wrap:wrap; gap:6px;}
 .chip-select button{padding:6px 11px; border-radius:99px; border:1px solid var(--line); background:var(--surface-2); font-size:12px; font-weight:700; color:var(--ink-soft);}
 .chip-select button.on{background:var(--accent-soft); color:var(--accent); border-color:transparent; font-weight:800;}
@@ -568,6 +578,8 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 }
 @media (max-width:560px){
   .whos-av{width:112px; height:112px; font-size:48px;}
+  .overlay{padding-top:calc(16px + env(safe-area-inset-top)); padding-bottom:calc(16px + env(safe-area-inset-bottom));}
+  .modal{max-height:calc(100vh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); max-height:calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));}
   .viewer{padding:16px 10px 92px;}
   .pv-nav{top:auto; bottom:calc(22px + env(safe-area-inset-bottom)); transform:none;}
   .pv-prev{left:calc(50% - 66px);} .pv-next{right:calc(50% - 66px);}
@@ -2093,11 +2105,13 @@ var pickerMapInstance = null, pickerMarker = null;
 function openModal(html){
   var root = document.getElementById("modalRoot");
   root.innerHTML = '<div class="overlay" id="overlay">'+html+'</div>';
+  document.documentElement.classList.add("modal-open");
   enhanceClickables(root);
 }
 function closeModal(){
   pickerMapInstance = null; pickerMarker = null;
   document.getElementById("modalRoot").innerHTML = "";
+  document.documentElement.classList.remove("modal-open");
 }
 function finishSave(promise, onOk){
   return promise.then(function(r){ closeModal(); if(onOk) onOk(r); return r; })
