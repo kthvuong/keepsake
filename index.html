@@ -112,8 +112,6 @@ button{cursor:pointer;}
 .whos-av{width:132px; height:132px; border-radius:28px; display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-size:58px; font-weight:500; border:6px solid var(--surface); box-shadow:var(--shadow-lift); transition:box-shadow .2s ease;}
 .whos-person:hover .whos-av,.whos-person:focus-visible .whos-av{box-shadow:0 0 0 3px var(--accent), var(--shadow-lift);}
 .whos-name{font-family:'Fredoka',sans-serif; font-size:22px; font-weight:600;}
-.whos-edit{border:none; background:none; color:var(--ink-faint); font-size:13px; text-decoration:underline; text-underline-offset:3px;}
-.whos-edit:hover{color:var(--ink-soft);}
 .icon-btn{border:1px solid var(--line); background:var(--surface); border-radius:9px; padding:8px; color:var(--ink-soft); font-size:13px;}
 .icon-btn:hover{color:var(--ink); border-color:var(--ink-faint);}
 .icon-btn svg{display:block;}
@@ -902,14 +900,9 @@ function compressImage(file){
 }
 
 /* ---------- state ---------- */
-// Names are cached so the who's-here picker can show them before Firestore answers.
-function cachedProfiles(){
-  try{ var p = JSON.parse(localStorage.getItem("pp_profiles")||"null"); if(p && p.A && p.B) return p; }catch(e){}
-  return {A:"Kat", B:"Albie"};
-}
 var state = {
   restaurants: {}, visits: {}, lists: {}, trips: {}, photos: {},
-  profiles: cachedProfiles(),
+  profiles: {A:"kat", B:"albie"},
   me: localStorage.getItem("pp_me") || null,
   theme: localStorage.getItem("pp_theme") || "system",
   route: "journal",
@@ -1011,14 +1004,6 @@ function initDb(){
     fs.collection("trips").onSnapshot(function(snap){
       var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
       state.trips=m; scheduleRender();
-    }, function(err){ console.error(err); });
-    fs.doc("settings/profiles").onSnapshot(function(snap){
-      if(snap.exists){
-        state.profiles = Object.assign({A:"Kat",B:"Albie"}, snap.data());
-        try{ localStorage.setItem("pp_profiles", JSON.stringify(state.profiles)); }catch(e){}
-        if(document.getElementById("whosPicker")) showWhoPicker();
-      }
-      scheduleRender();
     }, function(err){ console.error(err); });
   });
 }
@@ -1130,10 +1115,6 @@ function deleteTrip(id){
   if(state.dbReady) return state.db.doc("trips/"+id).delete();
   delete state.trips[id]; scheduleRender(); return Promise.resolve();
 }
-function saveProfiles(p){
-  if(state.dbReady) return state.db.doc("settings/profiles").set(p);
-  state.profiles = p; scheduleRender(); return Promise.resolve();
-}
 
 /* ---------- render scheduling ---------- */
 var renderScheduled=false;
@@ -1170,7 +1151,6 @@ function showWhoPicker(){
         '<span class="whos-av who-'+k.toLowerCase()+'">'+esc((state.profiles[k]||"?").charAt(0).toUpperCase())+'</span>'+
         '<span class="whos-name">'+esc(state.profiles[k])+'</span></button>';
     }).join('')+'</div>'+
-    '<button type="button" class="whos-edit" data-whos-settings="1">edit names</button>'+
   '</div></div>';
 }
 function hideWhoPicker(){
@@ -2598,12 +2578,10 @@ function modalSettings(){
         return '<button type="button" data-set-theme="'+t+'" class="'+(state.theme===t?"on":"")+'">'+({system:"System",light:"Light",dark:"Dark"})[t]+'</button>';
       }).join('')+
     '</div>')+
-    field("Profile A name",'<input type="text" id="f_profA" value="'+esc(state.profiles.A)+'">')+
-    field("Profile B name",'<input type="text" id="f_profB" value="'+esc(state.profiles.B)+'">')+
     '<p style="font-size:12px;color:var(--ink-faint);">This device remembers who\'s using it. Tap your name at the top of the app to switch.</p>'+
     '<p style="font-size:12px;color:var(--ink-faint);">Using a keyboard? Press ? to see the shortcuts.</p>'+
     field("Your data", '<button type="button" class="btn small" id="btnExportData"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download a backup (JSON)</button>')+
-    '</div><div class="modal-foot"><button class="btn primary" id="btnSaveProfiles">Save</button></div></div>';
+    '</div></div>';
   openModal(html);
 }
 function applyTheme(theme){
@@ -2715,7 +2693,6 @@ document.addEventListener("click", function(e){
     hideWhoPicker(); renderAll(); return;
   }
   if(t.closest("#btnWho")){ showWhoPicker(); return; }
-  if(t.closest("[data-whos-settings]")){ hideWhoPicker(); modalSettings(); return; }
 
   if(t.closest("#btnSettings")){ modalSettings(); return; }
   var themeBtn = t.closest("[data-set-theme]");
@@ -2868,10 +2845,6 @@ document.addEventListener("click", function(e){
 
   if(t.closest("#btnSaveRestaurant")){ doSaveRestaurantFromForm(); return; }
   if(t.closest("#btnSaveVisit")){ doSaveVisitFromForm(); return; }
-  if(t.closest("#btnSaveProfiles")){
-    saveProfiles({A: document.getElementById("f_profA").value.trim()||"Kat", B: document.getElementById("f_profB").value.trim()||"Albie"});
-    closeModal(); return;
-  }
 
   if(t.closest("#btnNewList") || t.closest("#btnNewListPad")){ modalListForm(null); return; }
   var editList = t.closest("[data-edit-list]");
