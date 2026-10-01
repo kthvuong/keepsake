@@ -299,6 +299,14 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .journal-month{display:flex; align-items:center; gap:12px; margin:28px 0 2px; font-family:'Caveat',cursive; font-size:30px; font-weight:600; color:var(--ink);}
 .journal-month::after{content:""; flex:1; height:1px; background:var(--line);}
 .month-recap{margin:0 0 8px;}
+.your-turn{position:relative; background:var(--accent-soft); padding:20px 16px 14px; margin:6px 0 18px; box-shadow:var(--shadow); transform:rotate(-.5deg);}
+.yt-title{font-family:'Caveat',cursive; font-size:26px; font-weight:600; letter-spacing:.02em; line-height:1; color:var(--accent); margin-bottom:8px;}
+.yt-row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid rgba(200,68,106,.16);}
+.yt-text{display:flex; align-items:center; gap:8px; font-size:14px; color:var(--ink); min-width:0;}
+.push-prompt{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:var(--surface); border:1px dashed var(--line); border-radius:14px; padding:12px 14px; margin:0 0 14px; font-size:14px; color:var(--ink-soft);}
+.pp-actions{display:flex; gap:6px;}
+.set-note{font-size:12px; color:var(--ink-faint); margin:8px 0 0;}
+#btnPushTest{margin-top:8px;}
 .mr-best{display:block; border:none; background:none; padding:0; margin-top:10px; text-align:left; font-family:'Caveat',cursive; font-size:21px; font-weight:600; letter-spacing:.02em; line-height:1.2; color:var(--ink-soft); cursor:pointer;}
 .mr-best b{font-weight:600; color:var(--accent);}
 .mr-best svg{vertical-align:-1px;}
@@ -991,7 +999,7 @@ function compressImage(file){
 
 /* ---------- state ---------- */
 var state = {
-  restaurants: {}, visits: {}, lists: {}, trips: {}, photos: {},
+  restaurants: {}, visits: {}, lists: {}, trips: {}, photos: {}, pushSubs: {},
   profiles: {A:"kat", B:"albie"},
   me: localStorage.getItem("pp_me") || null,
   theme: localStorage.getItem("pp_theme") || "system",
@@ -1087,6 +1095,11 @@ function initDb(){
       var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
       state.lists=m; scheduleRender();
     }, function(err){ console.error(err); });
+    fs.collection("pushSubs").onSnapshot(function(snap){
+      var m={}; snap.docs.forEach(function(d){ m[d.id]=d.data(); });
+      state.pushSubs=m;
+    }, function(err){ console.error(err); });
+    refreshMyPush().then(function(sub){ if(sub) savePushSub(sub); });
     fs.collection("photos").onSnapshot(function(snap){
       var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
       state.photos=m; indexPhotos(); scheduleRender();
@@ -1204,6 +1217,137 @@ function deleteTrip(id){
   allRestaurants().forEach(function(r){ if(r.tripId===id) updateRestaurant(r.id,{tripId:null}); });
   if(state.dbReady) return state.db.doc("trips/"+id).delete();
   delete state.trips[id]; scheduleRender(); return Promise.resolve();
+}
+
+/* ---------- push notifications ---------- */
+// A nudge to the other person when one of you logs a visit. A device that turns this on stores its push
+// subscription in Firestore under whoever uses that device, and api/notify does the sending.
+var VAPID_PUBLIC_KEY = "BA6E426UxMLzXZqpilZimE6YeORrECneasX6WgygNDrRh8s6_QKhZF2L9jOr9T2oyPYUHglVBC95H0LJVwMNVYo";
+var myPushEndpoint = null;
+var swReg = null;   // set once the service worker registers; without it there is nothing to subscribe with
+function pushSupported(){ return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
+function partnerOf(who){ return who==="A" ? "B" : "A"; }
+function b64ToBytes(b64){
+  var raw = atob((b64 + "=".repeat((4 - b64.length % 4) % 4)).replace(/-/g,"+").replace(/_/g,"/"));
+  var out = new Uint8Array(raw.length);
+  for(var i=0;i<raw.length;i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+function pushSubId(endpoint){
+  var h = 0;
+  for(var i=0;i<endpoint.length;i++) h = (h*31 + endpoint.charCodeAt(i)) | 0;
+  return "s"+Math.abs(h)+"_"+endpoint.length;
+}
+function refreshMyPush(){
+  if(!pushSupported() || !swReg) return Promise.resolve(null);
+  return swReg.pushManager.getSubscription().then(function(sub){
+    myPushEndpoint = sub ? sub.endpoint : null;
+    return sub;
+  });
+}
+function savePushSub(sub){
+  var j = sub.toJSON();
+  myPushEndpoint = j.endpoint;
+  if(!state.dbReady) return Promise.resolve();
+  return state.db.collection("pushSubs").doc(pushSubId(j.endpoint)).set({who:state.me||"A", endpoint:j.endpoint, keys:j.keys, device:navigator.userAgent.slice(0,140), updatedAt:new Date().toISOString()});
+}
+// Has to run from a tap: browsers only show the permission prompt in response to one.
+function enablePush(){
+  return Notification.requestPermission().then(function(perm){
+    if(perm!=="granted") throw new Error("Notifications not allowed");
+    if(!swReg) throw new Error("Service worker not registered");
+    return navigator.serviceWorker.ready;
+  }).then(function(reg){
+    return reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64ToBytes(VAPID_PUBLIC_KEY)});
+  }).then(savePushSub);
+}
+function disablePush(){
+  return refreshMyPush().then(function(sub){
+    if(!sub) return;
+    var id = pushSubId(sub.endpoint);
+    return sub.unsubscribe().then(function(){
+      myPushEndpoint = null;
+      if(state.dbReady) return state.db.doc("pushSubs/"+id).delete();
+    });
+  });
+}
+function sendPush(subs, msg){
+  if(!subs.length) return Promise.resolve({sent:0});
+  return fetch("/api/notify", {method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(Object.assign({subs:subs.map(function(x){ return {endpoint:x.endpoint, keys:x.keys}; })}, msg))})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      (res.gone||[]).forEach(function(endpoint){ if(state.dbReady) state.db.doc("pushSubs/"+pushSubId(endpoint)).delete(); });
+      return res;
+    });
+}
+function nudgePartner(rid, placeName){
+  var partner = partnerOf(state.me||"A");
+  var subs = Object.keys(state.pushSubs).map(function(k){ return state.pushSubs[k]; }).filter(function(x){ return x.who===partner; });
+  sendPush(subs, {
+    title: state.profiles[state.me||"A"]+" logged "+placeName,
+    body: "Add your rating and notes while it's fresh.",
+    url: "/?review="+encodeURIComponent(rid), tag: "review-"+rid
+  }).catch(function(err){ console.warn("Nudge not sent", err); });
+}
+function pushSettingsHtml(){
+  var partner = esc(state.profiles[partnerOf(state.me||"A")]);
+  if(!pushSupported()){
+    var apple = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+    return '<p class="set-note">'+(apple ? "On iPhone and iPad, notifications need keepsake on your Home Screen. In Safari tap Share, then Add to Home Screen, and open it from there."
+      : "This browser doesn't support notifications.")+'</p>';
+  }
+  if(Notification.permission==="denied") return '<p class="set-note">Notifications are blocked for keepsake in this device\'s settings. Allow them there, then come back.</p>';
+  var on = !!myPushEndpoint && Notification.permission==="granted";
+  return '<button type="button" class="toggle-btn'+(on?' on':'')+'" id="btnPushToggle">'+(on ? "On for "+esc(state.profiles[state.me||"A"])+" on this device" : "Turn on for this device")+'</button>'+
+    (on ? '<button type="button" class="btn small" id="btnPushTest">Send a test</button>' : '')+
+    '<p class="set-note" id="pushNote">'+(on ? "You\'ll get a nudge when "+partner+" logs a visit you haven\'t added to." : "Get a nudge when "+partner+" logs a visit, so you can add your side.")+'</p>';
+}
+function refreshPushSettings(note){
+  var el = document.getElementById("pushSettings");
+  if(el) el.innerHTML = pushSettingsHtml();
+  var n = document.getElementById("pushNote");
+  if(n && note) n.textContent = note;
+}
+// A tapped notification opens ?review=<place id>. Once the data is in, show that place's visit form.
+var pendingReview = null;
+try{ pendingReview = new URLSearchParams(location.search).get("review"); }catch(e){}
+function openPendingReview(){
+  var chosen = null;
+  try{ chosen = localStorage.getItem("pp_me_chosen"); }catch(e){}
+  if(!pendingReview || state.loading || !chosen || !state.restaurants[pendingReview]) return;
+  var rid = pendingReview; pendingReview = null;
+  history.replaceState(null, "", location.pathname);
+  if(recentVisitMissingMyRating(rid)) modalLogVisit(rid, null, null); else modalRestaurantDetail(rid);
+}
+// Visits from the past week that the other person logged and you haven't added to yet, one per place.
+function waitingOnMe(){
+  var me = state.me || "A", partner = partnerOf(me), seen = {};
+  var cutoff = localDateStr(new Date(Date.now() - MY_RATING_LOOKBACK_DAYS*86400000));
+  return allVisits().filter(function(v){
+    if(!state.restaurants[v.restaurantId] || (v.date||"") < cutoff) return false;
+    var mine = v["rating"+me]!=null || !!visitNotes(v, me);
+    var theirs = v["rating"+partner]!=null || !!visitNotes(v, partner);
+    return !mine && theirs;
+  }).sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); })
+    .filter(function(v){ if(seen[v.restaurantId]) return false; seen[v.restaurantId] = 1; return true; });
+}
+function yourTurnHtml(){
+  var waiting = waitingOnMe();
+  if(!waiting.length) return '';
+  var partner = partnerOf(state.me||"A");
+  return '<div class="your-turn"><span class="tape-strip"></span><div class="yt-title">your turn!</div>'+waiting.slice(0,3).map(function(v){
+    var r = state.restaurants[v.restaurantId];
+    return '<div class="yt-row"><div class="yt-text">'+whoDot(partner)+'<span>'+esc(state.profiles[partner])+' logged <b>'+esc(r.name)+'</b> '+esc(relativeDate(v.date).toLowerCase())+'</span></div>'+
+      '<button type="button" class="btn small primary" data-log-visit-for="'+r.id+'">Add mine</button></div>';
+  }).join('')+'</div>';
+}
+function pushPromptHtml(){
+  var dismissed = null;
+  try{ dismissed = localStorage.getItem("pp_push_prompt"); }catch(e){}
+  if(!pushSupported() || Notification.permission!=="default" || myPushEndpoint || dismissed) return '';
+  return '<div class="push-prompt"><span>Want a nudge when '+esc(state.profiles[partnerOf(state.me||"A")])+' logs a visit?</span>'+
+    '<span class="pp-actions"><button type="button" class="btn small primary" id="btnPushPromptOn">Turn on</button><button type="button" class="btn small ghost" id="btnPushPromptNo">Not now</button></span></div>';
 }
 
 /* ---------- render scheduling ---------- */
@@ -1346,6 +1490,7 @@ function viewJournal(){
   var nPlaces = Object.keys(placeIds).length;
   var html = '<div class="page-head"><div><h1>Our food journal</h1>'+
     '<div class="journal-sub">'+(meals ? plural(nPlaces,"place")+", "+plural(meals,"meal")+", and "+saved.length+" still on our list" : "every meal we share, in one place")+'</div></div></div>';
+  html += yourTurnHtml() + pushPromptHtml();
   if(!meals) return html + emptyState("✎","Your food journal starts here","Log your first visit and it'll show up here.") + stillOnListHtml(saved);
   // The month a place first shows up in, so a recap can count that month's new places.
   var firstMonth = {};
@@ -2724,11 +2869,13 @@ function modalSettings(){
         return '<button type="button" data-set-theme="'+t+'" class="'+(state.theme===t?"on":"")+'">'+({system:"System",light:"Light",dark:"Dark"})[t]+'</button>';
       }).join('')+
     '</div>')+
+    field("Notifications", '<div id="pushSettings">'+pushSettingsHtml()+'</div>')+
     '<p style="font-size:12px;color:var(--ink-faint);">This device remembers who\'s using it. Tap your name at the top of the app to switch.</p>'+
     '<p style="font-size:12px;color:var(--ink-faint);">Using a keyboard? Press ? to see the shortcuts.</p>'+
     field("Your data", '<button type="button" class="btn small" id="btnExportData"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download a backup (JSON)</button>')+
     '</div></div>';
   openModal(html);
+  refreshMyPush().then(function(){ refreshPushSettings(); });
 }
 function applyTheme(theme){
   if(theme==="light" || theme==="dark"){ document.documentElement.setAttribute("data-theme", theme); }
@@ -2796,6 +2943,7 @@ function renderAll(){
   }
   el.innerHTML = html;
   enhanceClickables(el);
+  openPendingReview();
   if(state.route==="pinboard" && state.boardMode==="map") renderPlacesMap("boardMap", lastBoardList);
   var activeTrip = state.route==="trips" && state.trips[state.activeTripId];
   if(activeTrip) renderPlacesMap("tripMap", tripSpots(activeTrip));
@@ -2836,7 +2984,28 @@ document.addEventListener("click", function(e){
     state.me = pickMe.getAttribute("data-pick-me");
     localStorage.setItem("pp_me", state.me);
     try{ localStorage.setItem("pp_me_chosen", "1"); }catch(err){}
+    refreshMyPush().then(function(sub){ if(sub) savePushSub(sub); });
     hideWhoPicker(); renderAll(); return;
+  }
+  if(t.closest("#btnPushToggle") || t.closest("#btnPushPromptOn")){
+    var turningOn = !myPushEndpoint;
+    (turningOn ? enablePush() : disablePush()).then(function(){ refreshPushSettings(); renderAll(); }).catch(function(err){
+      console.warn(err);
+      refreshPushSettings(turningOn ? "Couldn't turn them on. Check that notifications are allowed for keepsake on this device." : "Couldn't turn them off. Try again.");
+      renderAll();
+    });
+    return;
+  }
+  if(t.closest("#btnPushPromptNo")){ try{ localStorage.setItem("pp_push_prompt", "no"); }catch(err){} renderAll(); return; }
+  if(t.closest("#btnPushTest")){
+    refreshPushSettings("Sending…");
+    refreshMyPush().then(function(sub){
+      if(!sub) throw new Error("no subscription");
+      return sendPush([sub.toJSON()], {title:"keepsake", body:"Notifications are working on this device.", url:"/", tag:"test"});
+    }).then(function(res){
+      refreshPushSettings(res.sent ? "Sent. It should arrive in a moment." : res.error==="Push is not configured" ? "The push key isn't set up on the server yet." : "It didn't send. Try turning notifications off and on again.");
+    }).catch(function(){ refreshPushSettings("It didn't send. Check your connection and try again."); });
+    return;
   }
   if(t.closest("#btnWho")){ showWhoPicker(); return; }
 
@@ -3307,12 +3476,19 @@ function doSaveVisitFromForm(){
   function proceed(rid){
     var data = collectVisitData(rid);
     var sameDay = sameDayVisit(rid, data.date, editingVisit.id);
-    var savePromise = !sameDay ? saveVisit(data, editingVisit.id)
-      : saveVisit(mergeEntryIntoVisit(sameDay, data), sameDay.id).then(function(r){
+    var toSave = sameDay ? mergeEntryIntoVisit(sameDay, data) : data;
+    // Nudge the other person only for a new entry that still has nothing from them.
+    var partner = partnerOf(state.me||"A");
+    var partnerDone = toSave["rating"+partner]!=null || !!toSave["notes"+partner] || !!toSave["wouldReturn"+partner] || !!toSave["favDish"+partner];
+    var placeName = (state.restaurants[rid]||{}).name || (document.getElementById("f_name")||{}).value || "a new place";
+    var nudge = !editingVisit.id && !partnerDone;
+    var savePromise = !sameDay ? saveVisit(toSave, editingVisit.id)
+      : saveVisit(toSave, sameDay.id).then(function(r){
           if(!editingVisit.id) return r;
           return movePhotos(editingVisit.id, sameDay.id).then(function(){ return deleteVisit(editingVisit.id, true); }).then(function(){ return r; });
         });
     savePromise = savePromise.then(function(visitId){ return syncVisitPhotos(visitId, rid).then(function(){ return visitId; }); });
+    if(nudge) savePromise = savePromise.then(function(visitId){ nudgePartner(rid, placeName); return visitId; });
     if(editingRestaurant){
       savePromise = savePromise.then(function(r){ return updateRestaurant(rid, {favorite: !!editingRestaurant.favorite}).then(function(){ return r; }); });
     }
@@ -3356,6 +3532,15 @@ initDb();
 var meChosen = null;
 try{ meChosen = localStorage.getItem("pp_me_chosen"); }catch(e){}
 if(!meChosen) showWhoPicker();
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").then(function(reg){ swReg = reg; return refreshMyPush(); })
+    .catch(function(err){ console.warn("Service worker not registered", err); });
+  // The app was already open when a notification was tapped.
+  navigator.serviceWorker.addEventListener("message", function(e){
+    var m = e.data && e.data.url && /[?&]review=([^&]+)/.exec(e.data.url);
+    if(m){ pendingReview = decodeURIComponent(m[1]); openPendingReview(); }
+  });
+}
 setTimeout(function(){ if(!state.dbReady && !state.loading){ seedLocalDemo(); renderAll(); } }, 900);
 // Don't leave the loading screen up forever if the connection never answers.
 setTimeout(function(){ if(state.loading){ state.loading = false; renderAll(); } }, 8000);
