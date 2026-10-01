@@ -34,7 +34,8 @@ module.exports = async (req, res) => {
   try {
     webpush.setVapidDetails(SUBJECT, VAPID_PUBLIC_KEY, privateKey.trim());
   } catch (err) {
-    res.status(500).json({ error: "Push key is invalid" });
+    // web-push's message describes what's wrong with the key's shape and never includes the key itself.
+    res.status(500).json({ error: "Push key is invalid", detail: String((err && err.message) || "").slice(0, 120), length: privateKey.trim().length });
     return;
   }
   var sent = 0, failed = 0, gone = [];
