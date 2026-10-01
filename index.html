@@ -298,6 +298,10 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .journal-sub{font-family:'Caveat',cursive; font-size:23px; font-weight:600; color:var(--accent); margin-top:2px;}
 .journal-month{display:flex; align-items:center; gap:12px; margin:28px 0 2px; font-family:'Caveat',cursive; font-size:30px; font-weight:600; color:var(--ink);}
 .journal-month::after{content:""; flex:1; height:1px; background:var(--line);}
+.month-recap{margin:0 0 8px;}
+.mr-best{display:block; border:none; background:none; padding:0; margin-top:10px; text-align:left; font-family:'Caveat',cursive; font-size:21px; font-weight:600; letter-spacing:.02em; line-height:1.2; color:var(--ink-soft); cursor:pointer;}
+.mr-best b{font-weight:600; color:var(--accent);}
+.mr-best svg{vertical-align:-1px;}
 .jentry{display:grid; grid-template-columns:56px minmax(0,1fr); gap:12px; margin-top:14px;}
 .jdate{text-align:center; padding-top:6px;}
 .jday{font-family:'Fraunces',serif; font-size:30px; font-weight:500; line-height:1;}
@@ -1343,14 +1347,47 @@ function viewJournal(){
   var html = '<div class="page-head"><div><h1>Our food journal</h1>'+
     '<div class="journal-sub">'+(meals ? plural(nPlaces,"place")+", "+plural(meals,"meal")+", and "+saved.length+" still on our list" : "every meal we share, in one place")+'</div></div></div>';
   if(!meals) return html + emptyState("✎","Your food journal starts here","Log your first visit and it'll show up here.") + stillOnListHtml(saved);
-  var lastMonth = null;
+  // The month a place first shows up in, so a recap can count that month's new places.
+  var firstMonth = {};
+  dates.slice().reverse().forEach(function(d){ Object.keys(byDate[d]).forEach(function(rid){ if(!firstMonth[rid]) firstMonth[rid] = d.slice(0,7); }); });
+  var months = [], byMonth = {};
   dates.forEach(function(d){
     var mk = d.slice(0,7);
-    if(mk !== lastMonth){ html += '<div class="journal-month">'+esc(monthLabel(mk))+'</div>'; lastMonth = mk; }
-    var places = Object.keys(byDate[d]).map(function(rid){ return {r: state.restaurants[rid], v: displayVisitData(byDate[d][rid])}; });
-    html += '<div class="jentry">'+journalDateHtml(d)+'<div>'+(places.length===1 ? journalCardHtml(places[0].r, places[0].v) : journalDayHtml(places))+'</div></div>';
+    if(!byMonth[mk]){ byMonth[mk] = []; months.push(mk); }
+    byMonth[mk].push({d:d, places:Object.keys(byDate[d]).map(function(rid){ return {r: state.restaurants[rid], v: displayVisitData(byDate[d][rid])}; })});
+  });
+  months.forEach(function(mk){
+    html += '<div class="journal-month">'+esc(monthLabel(mk))+'</div>'+monthRecapHtml(mk, byMonth[mk], firstMonth);
+    byMonth[mk].forEach(function(day){
+      html += '<div class="jentry">'+journalDateHtml(day.d)+'<div>'+(day.places.length===1 ? journalCardHtml(day.places[0].r, day.places[0].v) : journalDayHtml(day.places))+'</div></div>';
+    });
   });
   return html + stillOnListHtml(saved);
+}
+function monthRecapHtml(mk, days, firstMonth){
+  var meals = 0, places = {}, ratings = [], spent = 0, splits = 0, best = null;
+  days.forEach(function(day){
+    day.places.forEach(function(p){
+      meals++; places[p.r.id] = 1;
+      var score = avg([p.v.ratingA, p.v.ratingB]);
+      if(score!=null){ ratings.push(score); if(!best || score > best.score) best = {r:p.r, score:score}; }
+      if(typeof p.v.price==="number") spent += p.v.price;
+      if(wrAgreement(p.v)==="split decision") splits++;
+    });
+  });
+  var nPlaces = Object.keys(places).length;
+  var fresh = Object.keys(places).filter(function(rid){ return firstMonth[rid]===mk; }).length;
+  var chips = [plural(meals,"meal")];
+  if(nPlaces !== meals) chips.push(plural(nPlaces,"place"));
+  if(fresh) chips.push(fresh+" new "+(fresh===1 ? "place" : "places"));
+  if(ratings.length) chips.push(avg(ratings).toFixed(1)+" ★ average");
+  if(spent) chips.push("$"+Math.round(spent)+" spent");
+  if(splits) chips.push(plural(splits,"split decision"));
+  return '<div class="month-recap">'+chips.map(function(c,i){
+      return '<span class="tape tint-'+(i%5+1)+'" style="transform:rotate('+(i%2 ? 1.5 : -1.5)+'deg)">'+esc(c)+'</span>';
+    }).join('')+
+    (best && ratings.length > 1 ? '<button type="button" class="mr-best" data-open-restaurant="'+best.r.id+'">best of the month: <b>'+esc(best.r.name)+'</b> '+best.score.toFixed(1)+' '+starSvg("var(--star)", 15)+'</button>' : '')+
+  '</div>';
 }
 
 /* ---------- PINBOARD ---------- */
