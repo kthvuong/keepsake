@@ -404,7 +404,15 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .trip-day::after{content:""; flex:1; height:1px; background:var(--line);}
 
 /* people: Kat is rose, Albie is sky, everywhere a person shows up */
-.who-dot{width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-family:'Nunito',sans-serif; font-size:10px; font-weight:800; flex-shrink:0;}
+.who-dot{width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-family:'Nunito',sans-serif; font-size:10px; font-weight:800; flex-shrink:0; overflow:hidden;}
+.who-dot img,.whos-av img,.cr-av img,.av-opt img{width:100%; height:100%; object-fit:cover; display:block;}
+.av-emoji{font-size:1.15em; line-height:1;}
+.whos-av,.cr-av{overflow:hidden;}
+.avatar-pick{display:flex; flex-wrap:wrap; gap:8px;}
+.av-opt{width:44px; height:44px; border-radius:50%; border:2px solid transparent; padding:0; display:flex; align-items:center; justify-content:center; overflow:hidden; font-family:'Fraunces',serif; font-size:18px; font-weight:600; transition:transform .15s ease;}
+.av-opt:hover{transform:scale(1.08);}
+.av-opt.on{border-color:var(--accent); box-shadow:0 0 0 2px var(--surface) inset;}
+.av-upload{background:var(--surface-2); border:1.5px dashed var(--line); color:var(--ink-soft);}
 .who-a{background:var(--accent-soft); color:var(--accent);}
 .who-b{background:var(--tint-5); color:#2E5A86;}
 :root[data-theme="dark"] .who-b{color:#A9CBEB;}
@@ -998,9 +1006,15 @@ function compressImage(file){
 }
 
 /* ---------- state ---------- */
+// Profile pictures are cached on the device so the who's-here picker can show them before Firestore answers.
+function cachedAvatars(){
+  try{ var a = JSON.parse(localStorage.getItem("pp_avatars")||"null"); if(a && typeof a==="object") return a; }catch(e){}
+  return {};
+}
 var state = {
   restaurants: {}, visits: {}, lists: {}, trips: {}, photos: {}, pushSubs: {},
   profiles: {A:"kat", B:"albie"},
+  avatars: cachedAvatars(),
   me: localStorage.getItem("pp_me") || null,
   theme: localStorage.getItem("pp_theme") || "system",
   route: "journal",
@@ -1094,6 +1108,13 @@ function initDb(){
     fs.collection("lists").onSnapshot(function(snap){
       var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
       state.lists=m; scheduleRender();
+    }, function(err){ console.error(err); });
+    fs.doc("settings/avatars").onSnapshot(function(snap){
+      state.avatars = snap.exists ? snap.data() : {};
+      try{ localStorage.setItem("pp_avatars", JSON.stringify(state.avatars)); }catch(e){}
+      if(document.getElementById("whosPicker")) showWhoPicker();
+      refreshAvatarPick();
+      scheduleRender();
     }, function(err){ console.error(err); });
     fs.collection("pushSubs").onSnapshot(function(snap){
       var m={}; snap.docs.forEach(function(d){ m[d.id]=d.data(); });
@@ -1382,7 +1403,7 @@ function showWhoPicker(){
     '<div class="whos-sub">tap your name and this device will remember you</div>'+
     '<div class="whos-people">'+["A","B"].map(function(k, i){
       return '<button type="button" class="whos-person" data-pick-me="'+k+'" style="--tilt:'+(i ? 3 : -3)+'deg">'+
-        '<span class="whos-av who-'+k.toLowerCase()+'">'+esc((state.profiles[k]||"?").charAt(0).toUpperCase())+'</span>'+
+        '<span class="whos-av who-'+k.toLowerCase()+'">'+avatarHtml(k)+'</span>'+
         '<span class="whos-name">'+esc(state.profiles[k])+'</span></button>';
     }).join('')+'</div>'+
   '</div></div>';
@@ -1579,7 +1600,59 @@ function boardOrder(list){
   return fresh.concat(been);
 }
 function placeKind(r){ return (r.cuisines||[])[0] || (r.tags||[])[0] || r.placeType || categoryOf(r).label; }
-function whoDot(who){ return '<span class="who-dot who-'+String(who).toLowerCase()+'">'+esc((state.profiles[who]||"?").charAt(0).toUpperCase())+'</span>'; }
+// A person's picture: an uploaded photo, a picked emoji, or their initial when nothing is set.
+var AVATAR_EMOJI = ["🍜","🍣","🍕","🧋","🍓","🥐","🍩","🌮","🐱","🐶","🐰","🦊","🐻","🌸","⭐","🌙"];
+function avatarHtml(who){
+  var a = state.avatars[who] || "";
+  if(a.indexOf("data:image/")===0) return '<img src="'+a+'" alt="">';
+  if(a.indexOf("emoji:")===0) return '<span class="av-emoji">'+esc(a.slice(6))+'</span>';
+  return esc((state.profiles[who]||"?").charAt(0).toUpperCase());
+}
+function whoDot(who){ return '<span class="who-dot who-'+String(who).toLowerCase()+'">'+avatarHtml(who)+'</span>'; }
+function saveAvatar(who, value){
+  var next = Object.assign({}, state.avatars); next[who] = value;
+  state.avatars = next;
+  try{ localStorage.setItem("pp_avatars", JSON.stringify(next)); }catch(e){}
+  refreshAvatarPick(); renderAll();
+  if(!state.dbReady) return Promise.resolve();
+  var patch = {}; patch[who] = value;
+  return state.db.doc("settings/avatars").set(patch, {merge:true});
+}
+// Square, centred and small: a profile picture is only ever shown at thumbnail size.
+function compressAvatar(file){
+  return new Promise(function(resolve, reject){
+    var reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = function(){
+      var img = new Image();
+      img.onerror = reject;
+      img.onload = function(){
+        var side = Math.min(img.width, img.height), canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 256;
+        canvas.getContext("2d").drawImage(img, (img.width-side)/2, (img.height-side)/2, side, side, 0, 0, 256, 256);
+        resolve(canvas.toDataURL("image/jpeg", .82));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function avatarPickHtml(){
+  var me = state.me || "A", cur = state.avatars[me] || "", cls = "who-"+me.toLowerCase();
+  var opt = function(value, inner, label){
+    return '<button type="button" class="av-opt '+cls+(cur===value?' on':'')+'" data-set-avatar="'+esc(value)+'" aria-label="'+esc(label)+'">'+inner+'</button>';
+  };
+  return opt("", esc((state.profiles[me]||"?").charAt(0).toUpperCase()), "Use my initial")+
+    (cur.indexOf("data:image/")===0 ? opt(cur, '<img src="'+cur+'" alt="">', "My photo") : '')+
+    AVATAR_EMOJI.map(function(e){ return opt("emoji:"+e, '<span class="av-emoji">'+e+'</span>', e); }).join('')+
+    '<button type="button" class="av-opt av-upload" id="btnAvatarUpload" aria-label="Upload a photo">'+
+      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 10l5-5 5 5M5 20h14"/></svg></button>'+
+    '<input type="file" id="f_avatarInput" accept="image/*" style="display:none;">';
+}
+function refreshAvatarPick(){
+  var el = document.getElementById("avatarPick");
+  if(el) el.innerHTML = avatarPickHtml();
+}
 function addedByHtml(r, withDate){
   if(!state.profiles[r.createdBy]) return '';
   var when = withDate && r.createdAt && !isNaN(new Date(r.createdAt)) ? ' on '+fmtDate(localDateStr(new Date(r.createdAt))) : '';
@@ -2089,7 +2162,7 @@ function criticCardHtml(){
   var verdict = Math.abs(diff) < 0.05 ? "You rate exactly alike" : (diff > 0 ? B : A)+" is the tougher critic"+(Math.abs(diff) < 0.3 ? ", barely" : "");
   var split = shared.slice().sort(function(a,b){ return Math.abs(b.ratingA-b.ratingB)-Math.abs(a.ratingA-a.ratingB); })[0];
   function side(who, name, val){
-    return '<div class="cr-side"><div class="cr-av who-'+who.toLowerCase()+'">'+esc((name||"?").charAt(0).toUpperCase())+'</div>'+
+    return '<div class="cr-side"><div class="cr-av who-'+who.toLowerCase()+'">'+avatarHtml(who)+'</div>'+
       '<div class="cr-val">'+val.toFixed(1)+' <span class="cr-star">★</span></div><div class="cr-lbl">'+esc(name)+'\'s average</div></div>';
   }
   return html+'<div class="cr-row">'+side("A", A, avgA)+'<div class="cr-vs">vs</div>'+side("B", B, avgB)+'</div>'+
@@ -2869,6 +2942,7 @@ function modalSettings(){
         return '<button type="button" data-set-theme="'+t+'" class="'+(state.theme===t?"on":"")+'">'+({system:"System",light:"Light",dark:"Dark"})[t]+'</button>';
       }).join('')+
     '</div>')+
+    field("Your photo", '<div class="avatar-pick" id="avatarPick">'+avatarPickHtml()+'</div>')+
     field("Notifications", '<div id="pushSettings">'+pushSettingsHtml()+'</div>')+
     '<p style="font-size:12px;color:var(--ink-faint);">This device remembers who\'s using it. Tap your name at the top of the app to switch.</p>'+
     '<p style="font-size:12px;color:var(--ink-faint);">Using a keyboard? Press ? to see the shortcuts.</p>'+
@@ -2996,6 +3070,9 @@ document.addEventListener("click", function(e){
     });
     return;
   }
+  var setAv = t.closest("[data-set-avatar]");
+  if(setAv){ saveAvatar(state.me||"A", setAv.getAttribute("data-set-avatar")); return; }
+  if(t.closest("#btnAvatarUpload")){ document.getElementById("f_avatarInput").click(); return; }
   if(t.closest("#btnPushPromptNo")){ try{ localStorage.setItem("pp_push_prompt", "no"); }catch(err){} renderAll(); return; }
   if(t.closest("#btnPushTest")){
     refreshPushSettings("Sending…");
@@ -3003,7 +3080,7 @@ document.addEventListener("click", function(e){
       if(!sub) throw new Error("no subscription");
       return sendPush([sub.toJSON()], {title:"keepsake", body:"Notifications are working on this device.", url:"/", tag:"test"});
     }).then(function(res){
-      refreshPushSettings(res.sent ? "Sent. It should arrive in a moment." : res.error==="Push is not configured" ? "The push key isn't set up on the server yet." : "It didn't send. Try turning notifications off and on again.");
+      refreshPushSettings(res.sent ? "Sent. It should arrive in a moment." : res.error==="Push is not configured" ? "The push key isn't set up on the server yet." : res.error==="Push key is invalid" ? "The push key saved in Vercel isn't right, so it needs pasting again." : "It didn't send. Try turning notifications off and on again.");
     }).catch(function(){ refreshPushSettings("It didn't send. Check your connection and try again."); });
     return;
   }
@@ -3372,6 +3449,12 @@ document.addEventListener("input", function(e){
 });
 document.addEventListener("change", function(e){
   if(e.target.id==="wrappedYearSelect"){ state.wrappedYear = e.target.value; wrappedSlideIdx=0; renderAll(); }
+  if(e.target.id==="f_avatarInput"){
+    var avatarFile = e.target.files[0];
+    e.target.value = "";
+    if(avatarFile) compressAvatar(avatarFile).then(function(dataUrl){ return saveAvatar(state.me||"A", dataUrl); })
+      .catch(function(){ alert("Couldn't use that photo. Try a different one."); });
+  }
   if(e.target.id==="f_photoInput"){
     var files = Array.prototype.slice.call(e.target.files||[]);
     var room = MAX_PHOTOS - editingVisit.photoItems.length;
