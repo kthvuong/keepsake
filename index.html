@@ -596,7 +596,16 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .mo-n{font-family:'Fraunces',serif; font-size:16px; font-weight:500;}
 .mo-bar{width:100%; border-radius:8px 8px 3px 3px;}
 .mo-lbl{font-family:'Caveat',cursive; font-size:19px; font-weight:600; color:var(--ink-soft); line-height:1;}
-.mo-spend{font-size:11px; color:var(--ink-faint); font-weight:700;}
+.duo-col{margin-top:24px;}
+.receipt{position:relative; max-width:440px; background:var(--surface); border:1px solid var(--line); border-bottom:none; box-shadow:var(--shadow); padding:16px 18px 18px; font-size:14px; transform:rotate(-.6deg);}
+.receipt::after{content:""; position:absolute; left:-1px; right:-1px; bottom:-8px; height:8px;
+  background:linear-gradient(135deg, var(--surface) 5.5px, transparent 0) 0 0/11px 8px repeat-x, linear-gradient(-135deg, var(--surface) 5.5px, transparent 0) 0 0/11px 8px repeat-x;}
+.rc-row{display:flex; justify-content:space-between; align-items:baseline; gap:14px; padding:5px 0; color:var(--ink-soft);}
+.rc-row .mono{color:var(--ink); font-weight:700;}
+.rc-now{color:var(--ink); font-weight:700;}
+.rc-now .mono{font-family:'Fraunces',serif; font-size:24px; font-weight:600;}
+.rc-rule{border-top:1.5px dashed var(--line); margin:8px 0;}
+.rc-foot{font-family:'Caveat',cursive; font-size:18px; font-weight:600; letter-spacing:.02em; color:var(--ink-faint); text-align:center; margin-top:10px;}
 
 
 /* Caveat runs tight, especially at phone sizes */
@@ -706,7 +715,8 @@ pinned to the board like a paper map */
   .stk-n{font-size:26px;}
   .stats-duo{grid-template-columns:minmax(0,1fr); gap:0;}
   .stats-page .section-title{margin-top:34px; margin-bottom:14px;}
-  .stats-page .critic .section-title, .stats-page .pod-wrap .section-title{margin-top:0;}
+  .stats-page .critic .section-title, .stats-page .pod-wrap .section-title, .stats-page .duo-col .section-title{margin-top:0;}
+  .stats-page .duo-col{margin-top:34px;}
   .stats-page .critic{margin-top:30px; padding:18px;}
   .stats-page .pod-wrap{margin-top:34px;}
   .stats-page .pod-name{font-size:13px;}
@@ -1468,7 +1478,7 @@ function journalCardHtml(r, v){
   return '<div class="jcard" data-open-restaurant="'+r.id+'">'+
     photoStackHtml(r, v)+
     '<div class="jname">'+esc(r.name)+(r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
-    '<div class="jmeta">'+esc([r.neighborhood||r.city||r.placeType||cat.label, wr].filter(Boolean).join(" · "))+'</div>'+
+    '<div class="jmeta">'+esc([r.neighborhood||r.city||r.placeType||cat.label, wr, v.price!=null ? money(v.price) : ""].filter(Boolean).join(" · "))+'</div>'+
     '<div class="jratings">'+personRatingHtml("A", v.ratingA, pills && wrFor(v,"A"))+personRatingHtml("B", v.ratingB, pills && wrFor(v,"B"))+'</div>'+
     journalQuotesHtml(v)+
     picks.concat(extras).map(function(line){ return '<div class="jline">'+line+'</div>'; }).join('')+
@@ -1482,7 +1492,7 @@ function journalDayHtml(places){
       return '<div class="jmini" data-open-restaurant="'+p.r.id+'">'+
         (p.v.photos.length ? '<div class="jmini-photo-wrap" data-view-photos="'+p.v.visitIds.join(",")+'"><img class="jmini-photo" src="'+p.v.photos[0]+'" alt="">'+(p.v.photos.length > 1 ? '<span class="ps-badge">'+p.v.photos.length+'</span>' : '')+'</div>' : '')+
         '<div class="jname" style="font-size:15.5px;">'+esc(p.r.name)+(p.r.favorite?' <span class="fav-heart">♥</span>':'')+'</div>'+
-        '<div class="jmeta">'+esc([p.r.neighborhood||p.r.city||"", wrAgreement(p.v)].filter(Boolean).join(" · "))+'</div>'+
+        '<div class="jmeta">'+esc([p.r.neighborhood||p.r.city||"", wrAgreement(p.v), p.v.price!=null ? money(p.v.price) : ""].filter(Boolean).join(" · "))+'</div>'+
         '<div style="margin-top:4px;">'+personRatingHtml("A", p.v.ratingA, !wrAgree(p.v) && wrFor(p.v,"A"))+'</div>'+
         '<div>'+personRatingHtml("B", p.v.ratingB, !wrAgree(p.v) && wrFor(p.v,"B"))+'</div>'+
         journalQuotesHtml(p.v)+
@@ -1548,7 +1558,7 @@ function monthRecapHtml(mk, days, firstMonth){
   if(nPlaces !== meals) chips.push(plural(nPlaces,"place"));
   if(fresh) chips.push(fresh+" new "+(fresh===1 ? "place" : "places"));
   if(ratings.length) chips.push(avg(ratings).toFixed(1)+" ★ average");
-  if(spent) chips.push("$"+Math.round(spent)+" spent");
+  if(spent) chips.push(money(Math.round(spent))+" spent");
   if(splits) chips.push(plural(splits,"split decision"));
   return '<div class="month-recap">'+chips.map(function(c,i){
       return '<span class="tape tint-'+(i%5+1)+'" style="transform:rotate('+(i%2 ? 1.5 : -1.5)+'deg)">'+esc(c)+'</span>';
@@ -2247,13 +2257,42 @@ function topDishesHtml(){
       '<span class="dt-dish">'+esc(d.dish)+'</span><span class="dt-where">'+esc(d.r.name)+(d.who ? ' · '+esc(d.who)+'\'s pick' : '')+'</span></button>';
   }).join('')+'</div>';
 }
+function money(n){ return "$"+(n % 1 ? n.toFixed(2) : n); }
+// Eating out means the Food & Drink category. Only visits with an amount count, so the receipt says how many that is.
+function spendingHtml(){
+  var months = {}, meals = 0, priced = 0, total = 0, other = 0;
+  allVisits().forEach(function(v){
+    var r = state.restaurants[v.restaurantId];
+    if(!r || !v.date) return;
+    var has = typeof v.price==="number";
+    if(categoryOf(r).id!=="food"){ if(has) other += v.price; return; }
+    meals++;
+    if(!has) return;
+    priced++; total += v.price;
+    var mk = v.date.slice(0,7);
+    months[mk] = (months[mk]||0) + v.price;
+  });
+  if(!meals && !other) return '';
+  var now = todayStr().slice(0,7);
+  var earlier = Object.keys(months).filter(function(mk){ return mk!==now; }).sort().reverse().slice(0,5);
+  var monthName = function(mk){ return new Date(mk+"-01T00:00:00").toLocaleDateString(undefined,{month:"long"})+(mk.slice(0,4)!==now.slice(0,4) ? " "+mk.slice(0,4) : ""); };
+  var row = function(label, value, cls){ return '<div class="rc-row'+(cls ? ' '+cls : '')+'"><span>'+esc(label)+'</span><span class="mono">'+esc(value)+'</span></div>'; };
+  return '<div class="section-title">What we spent eating out</div><div class="receipt">'+
+    row(monthName(now)+" so far", money(months[now]||0), "rc-now")+
+    earlier.map(function(mk){ return row(monthName(mk), money(months[mk])); }).join('')+
+    '<div class="rc-rule"></div>'+
+    (priced ? row("average per meal", money(Math.round(total/priced))) : '')+
+    row("meals with an amount", priced+" of "+meals)+
+    (other ? row("other outings", money(other)) : '')+
+    '<div class="rc-foot">'+(priced < meals ? "edit a visit to add what it cost" : "every meal accounted for")+'</div>'+
+  '</div>';
+}
 function monthsHtml(){
-  var counts = {}, spend = {};
+  var counts = {};
   allVisits().forEach(function(v){
     if(!v.restaurantId || !state.restaurants[v.restaurantId] || !v.date) return;
     var mk = v.date.slice(0,7);
     counts[mk] = (counts[mk]||0)+1;
-    if(typeof v.price==="number") spend[mk] = (spend[mk]||0)+v.price;
   });
   var months = Object.keys(counts).sort().slice(-8);
   if(!months.length) return '';
@@ -2261,8 +2300,7 @@ function monthsHtml(){
   return '<div class="section-title">Our months</div><div class="months">'+months.map(function(m,i){
     return '<div class="mo-col"><div class="mo-n">'+counts[m]+'</div>'+
       '<div class="mo-bar tint-'+(i%5+1)+'" style="height:'+Math.max(14, Math.round(counts[m]/max*110))+'px"></div>'+
-      '<div class="mo-lbl">'+esc(new Date(m+"-01T00:00:00").toLocaleDateString(undefined,{month:"short"}))+'</div>'+
-      (spend[m] ? '<div class="mo-spend">$'+Math.round(spend[m])+'</div>' : '')+'</div>';
+      '<div class="mo-lbl">'+esc(new Date(m+"-01T00:00:00").toLocaleDateString(undefined,{month:"short"}))+'</div></div>';
   }).join('')+'</div>';
 }
 function categoryCardsHtml(){
@@ -2288,7 +2326,9 @@ function viewStats(){
   var badges = stickerBadges(), earned = badges.filter(function(b){ return b.n >= b.goal; }).length;
   html += '<div class="section-title">Stickers we\'ve earned<span class="st-count">'+earned+' of '+badges.length+'</span></div>'+
     '<div class="badges">'+badges.map(badgeHtml).join('')+'</div>';
-  return html + awardsHtml() + topDishesHtml() + monthsHtml() + categoryCardsHtml() + '</div>';
+  var months = monthsHtml(), spending = spendingHtml();
+  var monthly = months && spending ? '<div class="stats-duo"><div class="duo-col">'+months+'</div><div class="duo-col">'+spending+'</div></div>' : months + spending;
+  return html + awardsHtml() + topDishesHtml() + monthly + categoryCardsHtml() + '</div>';
 }
 
 /* ---------- WRAPPED ---------- */
@@ -2765,7 +2805,7 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace, defaultDate){
     '</div>'+
     '<div class="field-row">'+
       field("Date",'<input type="date" id="f_date" value="'+esc(editingVisit.date||todayStr())+'">')+
-      field("Amount spent",'<input type="number" id="f_price" min="0" step="1" value="'+(editingVisit.price!=null?editingVisit.price:"")+'" placeholder="$0">')+
+      field("Amount spent",'<input type="number" id="f_price" min="0" step="1" value="'+(editingVisit.price!=null?editingVisit.price:"")+'" placeholder="The whole bill">')+
     '</div>'+
     '<div class="join-note" id="sameDayNote" hidden></div>'+
     '<div id="personPartsWrap">'+personPartsHtml(initialCategory, editingVisit)+'</div>'+
