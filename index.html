@@ -334,11 +334,10 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .tape{display:inline-block; font-size:12px; padding:2px 10px; margin:8px 6px 0 0; color:var(--ink);}
 .polaroid{float:right; background:#fff; padding:6px 6px 18px; border:1px solid var(--line); box-shadow:var(--shadow); margin:0 0 8px 14px; width:112px;}
 .polaroid img{display:block; width:100%; height:92px; object-fit:cover;}
-.polaroid-stack{float:right; position:relative; width:112px; height:132px; margin:0 0 10px 16px; cursor:zoom-in;}
+.polaroid-stack{float:right; position:relative; width:112px; height:120px; margin:0 0 10px 16px; cursor:zoom-in;}
 .polaroid-stack .polaroid{position:absolute; top:0; left:0; float:none; margin:0; transition:transform .25s cubic-bezier(.2,.8,.2,1);}
 .polaroid-stack:hover .polaroid:nth-child(2){transform:rotate(10deg) translate(10px,-2px) !important;}
 .polaroid-stack:hover .polaroid:nth-child(3){transform:rotate(-11deg) translate(-10px,2px) !important;}
-.ps-count{position:absolute; left:0; right:0; bottom:-4px; text-align:center; font-family:'Caveat',cursive; font-size:17px; font-weight:600; color:var(--ink-soft);}
 .jmini-photo-wrap{position:relative; cursor:zoom-in;}
 .ps-badge,.p-count{position:absolute; bottom:6px; right:6px; background:rgba(20,16,24,.62); color:#fff; font-size:11px; font-weight:800; border-radius:99px; padding:2px 8px;}
 .dh-photo{cursor:zoom-in;}
@@ -621,7 +620,6 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .journal-month,
 .jwk,
 .jquote,
-.ps-count,
 .photo-hint,
 .pv-frame figcaption,
 .jday-title,
@@ -674,7 +672,7 @@ pinned to the board like a paper map */
   .viewer{padding:16px 10px 92px;}
   .pv-nav{top:auto; bottom:calc(22px + env(safe-area-inset-bottom)); transform:none;}
   .pv-prev{left:calc(50% - 66px);} .pv-next{right:calc(50% - 66px);}
-  .polaroid-stack{width:96px; height:116px; margin-left:12px;}
+  .polaroid-stack{width:96px; height:104px; margin-left:12px;}
   .whos-people{gap:24px;}
   .whos-title{font-size:34px;}
   .dock{gap:8px;}
@@ -1466,7 +1464,6 @@ function photoStackHtml(r, v){
   var tilts = [(placeHash(r)%7)-3, 6, -7];
   return '<div class="polaroid-stack" data-view-photos="'+v.visitIds.join(",")+'" title="See photos">'+
     v.photos.slice(0,3).map(function(p,i){ return '<div class="polaroid" style="transform:rotate('+tilts[i]+'deg); z-index:'+(3-i)+';"><img src="'+p+'" alt=""></div>'; }).join('')+
-    (v.photos.length > 1 ? '<span class="ps-count">'+v.photos.length+' photos</span>' : '')+
   '</div>';
 }
 function journalCardHtml(r, v){
