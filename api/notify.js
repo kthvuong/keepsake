@@ -1,4 +1,5 @@
 var webpush = require("web-push");
+var isSignedIn = require("./_auth");
 
 // The public half of the key pair. The private half lives only in the VAPID_PRIVATE_KEY env var.
 var VAPID_PUBLIC_KEY = "BA6E426UxMLzXZqpilZimE6YeORrECneasX6WgygNDrRh8s6_QKhZF2L9jOr9T2oyPYUHglVBC95H0LJVwMNVYo";
@@ -15,6 +16,10 @@ var PUSH_HOSTS = [
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST only" });
+    return;
+  }
+  if (!(await isSignedIn(req))) {
+    res.status(401).json({ error: "Sign in first" });
     return;
   }
   var privateKey = process.env.VAPID_PRIVATE_KEY;

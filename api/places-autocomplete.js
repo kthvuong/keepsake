@@ -1,4 +1,10 @@
+var isSignedIn = require("./_auth");
+
 module.exports = async (req, res) => {
+  if (!(await isSignedIn(req))) {
+    res.status(401).json({ error: "Sign in first" });
+    return;
+  }
   // Search text and tokens are short strings; anything else is dropped before it reaches Google.
   var input = String(req.query.input || "").trim().slice(0, 120);
   var sessionToken = String(req.query.sessiontoken || "").slice(0, 64);

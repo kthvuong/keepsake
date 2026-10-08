@@ -1,4 +1,10 @@
+var isSignedIn = require("./_auth");
+
 module.exports = async (req, res) => {
+  if (!(await isSignedIn(req))) {
+    res.status(401).json({ error: "Sign in first" });
+    return;
+  }
   var placeId = String(req.query.placeId || "");
   var sessionToken = String(req.query.sessiontoken || "").slice(0, 64);
   // Google place ids are short and use only these characters.

@@ -113,6 +113,12 @@ button{cursor:pointer;}
 .whos-av{width:132px; height:132px; border-radius:28px; display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-size:58px; font-weight:500; border:6px solid var(--surface); box-shadow:var(--shadow-lift); transition:box-shadow .2s ease;}
 .whos-person:hover .whos-av,.whos-person:focus-visible .whos-av{box-shadow:0 0 0 3px var(--accent), var(--shadow-lift);}
 .whos-name{font-family:'Fredoka',sans-serif; font-size:22px; font-weight:600;}
+.whos.lock{z-index:210;}
+.lock-input{display:block; width:100%; max-width:300px; margin:32px auto 14px; padding:13px 16px; min-height:48px; border-radius:14px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-family:'Nunito',sans-serif; font-size:17px; font-weight:600; text-align:center; letter-spacing:.08em; box-shadow:var(--shadow-lift);}
+.lock-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);}
+.whos .lock-btn{display:flex; justify-content:center; width:100%; max-width:300px; margin:0 auto; min-height:46px;}
+.whos .lock-skip{display:flex; width:max-content; margin:12px auto 0;}
+.lock-err{min-height:22px; margin-top:14px; font-size:14px; font-weight:700; color:var(--accent);}
 .icon-btn{border:1px solid var(--line); background:var(--surface); border-radius:9px; padding:8px; color:var(--ink-soft); font-size:13px;}
 .icon-btn:hover{color:var(--ink); border-color:var(--ink-faint);}
 .icon-btn svg{display:block;}
@@ -760,12 +766,14 @@ pinned to the board like a paper map */
   </nav>
 </div>
 <div id="whoRoot"></div>
+<div id="lockRoot"></div>
 <div id="viewerRoot"></div>
 <div id="modalRoot"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<!-- The integrity values pin these exact files; they must be recalculated if the version changes. -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" integrity="sha384-yuGdyIzzYtOBlBG6JOWn+Ey9kpq7HocusNuxEGyyohr1eEyXpeEyehIIXC/hznw4" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" integrity="sha384-lI+CxEx/bCvWP1b0OK13j5HTrTZP7yf1xle8TVOFq2smz6KC1RChTarRV/RHP5PP" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" integrity="sha384-nwX2Qpkhc2sv6L0ZPkLefLGguao67toSowvePuQvGF6cG+8MUphGI2uI94Ls3JF7" crossorigin="anonymous"></script>
 <script>
 (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key:"AIzaSyCqDQzLTNKbOZTmXXzPrF4NMHwEB-qX5iM",v:"weekly"});
 </script>
@@ -1140,6 +1148,75 @@ function readDocs(snap, kind){
   return m;
 }
 
+/* ---------- the passcode ---------- */
+// One shared account, opened with our passcode, is the only thing the database and the server functions accept.
+// The address isn't a real mailbox; it only names the account.
+var PASSCODE_EMAIL = "keepsake@example.com";
+var listening = false, unsubs = [], lockNote = "";
+function isKeyholder(user){ return !!user && !user.isAnonymous && user.email===PASSCODE_EMAIL; }
+function currentUser(){ return window.firebase && firebase.apps.length ? firebase.auth().currentUser : null; }
+// Headers that prove to our server functions that this device has the passcode.
+function authHeaders(extra){
+  var h = Object.assign({}, extra||{}), u = currentUser();
+  if(!isKeyholder(u)) return Promise.resolve(h);
+  return u.getIdToken().then(function(t){ h.Authorization = "Bearer "+t; return h; }, function(){ return h; });
+}
+function stopListening(){
+  unsubs.forEach(function(off){ try{ off(); }catch(e){} });
+  unsubs = []; listening = false;
+}
+// The database turned this device away, so it needs the passcode (again).
+function shutOut(err){
+  if(!err || err.code!=="permission-denied") return false;
+  var u = currentUser();
+  lockNote = isKeyholder(u) ? "The passcode worked, but the database isn't letting this account in yet." : "";
+  if(u) firebase.auth().signOut();
+  return true;
+}
+function showLock(canSkip){
+  var root = document.getElementById("lockRoot");
+  root.innerHTML = '<div class="whos lock" id="lockScreen"><form class="whos-inner" id="lockForm" autocomplete="on">'+
+    '<svg class="brand-mark whos-mark" aria-hidden="true"><use href="#keepsakeMark"/></svg>'+
+    '<h1 class="whos-title">Just us two</h1>'+
+    '<div class="whos-sub">enter our passcode and this device will remember it</div>'+
+    '<input type="text" name="username" autocomplete="username" value="keepsake" hidden>'+
+    '<input type="password" id="lockPass" class="lock-input" autocomplete="current-password" placeholder="Passcode" aria-label="Passcode" required>'+
+    '<button type="submit" class="btn primary lock-btn" id="lockGo">Unlock</button>'+
+    (canSkip ? '<button type="button" class="btn ghost small lock-skip" id="lockSkip">Not now</button>' : '')+
+    '<div class="lock-err" id="lockErr" role="alert">'+esc(lockNote)+'</div>'+
+  '</form></div>';
+  lockNote = "";
+  document.getElementById("lockForm").addEventListener("submit", function(e){ e.preventDefault(); tryPasscode(); });
+  var skip = document.getElementById("lockSkip");
+  if(skip) skip.addEventListener("click", hideLock);
+}
+function hideLock(){ var root = document.getElementById("lockRoot"); if(root) root.innerHTML = ""; }
+var LOCK_ERRORS = {
+  "auth/too-many-requests": "Too many tries. Wait a few minutes and try again.",
+  "auth/network-request-failed": "No connection. Try again when you're online.",
+  "auth/operation-not-allowed": "Passcode sign-in isn't switched on yet.",
+  "auth/user-disabled": "This account has been switched off."
+};
+function tryPasscode(){
+  var input = document.getElementById("lockPass"), go = document.getElementById("lockGo"), errEl = document.getElementById("lockErr");
+  if(!input || !input.value) return;
+  go.disabled = true; errEl.textContent = "";
+  firebase.auth().signInWithEmailAndPassword(PASSCODE_EMAIL, input.value).catch(function(err){
+    var el = document.getElementById("lockErr"), btn = document.getElementById("lockGo"), box = document.getElementById("lockPass");
+    if(btn) btn.disabled = false;
+    if(el) el.textContent = LOCK_ERRORS[err && err.code] || "That's not it. Try again.";
+    if(box){ box.value = ""; box.focus(); }
+  });
+}
+function passcodeSettingsHtml(){
+  var u = currentUser();
+  if(isKeyholder(u)) return '<button type="button" class="btn small" id="btnLockDevice">Lock this device</button>'+
+    '<p style="font-size:12px;color:var(--ink-faint);margin-top:8px;">It will ask for our passcode the next time keepsake opens here.</p>';
+  if(u) return '<button type="button" class="btn small primary" id="btnEnterPasscode">Enter our passcode</button>'+
+    '<p style="font-size:12px;color:var(--ink-faint);margin-top:8px;">This device hasn\'t entered it yet. Place search and nudges need it.</p>';
+  return '';
+}
+
 /* ---------- db wiring (Firebase Firestore) ---------- */
 function initDb(){
   if(!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.indexOf("YOUR_")===0 || !window.firebase){
@@ -1151,35 +1228,42 @@ function initDb(){
   var fs = firebase.firestore();
   // Keep a copy on the device so photos and entries download once instead of on every open.
   fs.enablePersistence({synchronizeTabs:true}).catch(function(err){ console.warn("Offline cache unavailable:", err && err.code); });
-  firebase.auth().signInAnonymously().catch(function(err){ console.error("Anonymous sign-in failed", err); });
   firebase.auth().onAuthStateChanged(function(user){
-    if(!user) return;
+    if(!user){ stopListening(); state.dbReady = false; showLock(); return; }
+    // Phones that used the app before the passcode existed stay in until the database stops accepting them.
+    if(!isKeyholder(user) && !user.isAnonymous){ firebase.auth().signOut(); return; }
+    hideLock();
     state.db = fs; state.dbReady = true;
-    fs.collection("restaurants").onSnapshot(function(snap){
+    if(listening) return;
+    listening = true;
+    function watch(ref, onData, onFail){
+      unsubs.push(ref.onSnapshot(onData, function(err){ if(!shutOut(err)) onFail(err); }));
+    }
+    watch(fs.collection("restaurants"), function(snap){
       state.restaurants=readDocs(snap, "restaurants"); markLoaded("restaurants"); scheduleRender();
     }, loadFailed);
-    fs.collection("visits").onSnapshot(function(snap){
+    watch(fs.collection("visits"), function(snap){
       state.visits=readDocs(snap, "visits"); markLoaded("visits"); scheduleRender();
     }, loadFailed);
-    fs.collection("lists").onSnapshot(function(snap){
+    watch(fs.collection("lists"), function(snap){
       state.lists=readDocs(snap, "lists"); scheduleRender();
     }, function(err){ console.error(err); });
-    fs.doc("settings/avatars").onSnapshot(function(snap){
+    watch(fs.doc("settings/avatars"), function(snap){
       state.avatars = cleanAvatars(snap.exists ? snap.data() : {});
       try{ localStorage.setItem("pp_avatars", JSON.stringify(state.avatars)); }catch(e){}
       if(document.getElementById("whosPicker")) showWhoPicker();
       refreshAvatarPick();
       scheduleRender();
     }, function(err){ console.error(err); });
-    fs.collection("pushSubs").onSnapshot(function(snap){
+    watch(fs.collection("pushSubs"), function(snap){
       var m={}; snap.docs.forEach(function(d){ m[d.id]=d.data(); });
       state.pushSubs=m;
     }, function(err){ console.error(err); });
     refreshMyPush().then(function(sub){ if(sub) savePushSub(sub); });
-    fs.collection("photos").onSnapshot(function(snap){
+    watch(fs.collection("photos"), function(snap){
       state.photos=readDocs(snap, "photos"); indexPhotos(); scheduleRender();
     }, function(err){ console.error(err); });
-    fs.collection("trips").onSnapshot(function(snap){
+    watch(fs.collection("trips"), function(snap){
       state.trips=readDocs(snap, "trips"); scheduleRender();
     }, function(err){ console.error(err); });
   });
@@ -1347,8 +1431,10 @@ function disablePush(){
 }
 function sendPush(subs, msg){
   if(!subs.length) return Promise.resolve({sent:0});
-  return fetch("/api/notify", {method:"POST", headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(Object.assign({subs:subs.map(function(x){ return {endpoint:x.endpoint, keys:x.keys}; })}, msg))})
+  return authHeaders({"Content-Type":"application/json"}).then(function(headers){
+    return fetch("/api/notify", {method:"POST", headers:headers,
+      body:JSON.stringify(Object.assign({subs:subs.map(function(x){ return {endpoint:x.endpoint, keys:x.keys}; })}, msg))});
+  })
     .then(function(r){ return r.json(); })
     .then(function(res){
       (res.gone||[]).forEach(function(endpoint){ if(state.dbReady) state.db.doc("pushSubs/"+pushSubId(endpoint)).delete(); });
@@ -2642,8 +2728,9 @@ function doGeoSearch(){
   if(q.length < 3){ hideGeoSuggestions(); return; }
   if(!geoSessionToken) geoSessionToken = newGeoSessionToken();
   var myToken = ++geoSearchToken;
-  fetch("/api/places-autocomplete?input="+encodeURIComponent(q)+"&sessiontoken="+encodeURIComponent(geoSessionToken))
-    .then(function(r){ return r.json(); })
+  var searchUrl = "/api/places-autocomplete?input="+encodeURIComponent(q)+"&sessiontoken="+encodeURIComponent(geoSessionToken);
+  authHeaders().then(function(headers){ return fetch(searchUrl, {headers:headers}); })
+    .then(function(r){ if(!r.ok) throw new Error("search "+r.status); return r.json(); })
     .then(function(data){
       if(myToken !== geoSearchToken) return;
       renderGeoSuggestions((data && data.suggestions) || []);
@@ -2673,7 +2760,8 @@ function selectGeoCandidateFromResult(res){
   var sessionToken = geoSessionToken || "";
   geoSessionToken = null;
   var myToken = ++geoSelectToken;
-  fetch("/api/places-details?placeId="+encodeURIComponent(res.placeId)+"&sessiontoken="+encodeURIComponent(sessionToken))
+  var detailsUrl = "/api/places-details?placeId="+encodeURIComponent(res.placeId)+"&sessiontoken="+encodeURIComponent(sessionToken);
+  authHeaders().then(function(headers){ return fetch(detailsUrl, {headers:headers}); })
     .then(function(r){ return r.json(); })
     .then(function(details){
       if(myToken !== geoSelectToken || !details || details.lat==null || details.lng==null) return;
@@ -3026,6 +3114,7 @@ function modalSettings(){
     '</div>')+
     field("Your photo", '<div class="avatar-pick" id="avatarPick">'+avatarPickHtml()+'</div>')+
     field("Notifications", '<div id="pushSettings">'+pushSettingsHtml()+'</div>')+
+    (passcodeSettingsHtml() ? field("Passcode", passcodeSettingsHtml()) : '')+
     '<p style="font-size:12px;color:var(--ink-faint);">This device remembers who\'s using it. Tap your name at the top of the app to switch.</p>'+
     '<p style="font-size:12px;color:var(--ink-faint);">Using a keyboard? Press ? to see the shortcuts.</p>'+
     field("Your data", '<button type="button" class="btn small" id="btnExportData"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download a backup (JSON)</button>')+
@@ -3178,6 +3267,8 @@ document.addEventListener("click", function(e){
     return;
   }
   if(t.closest("#btnExportData")){ exportAllData(); return; }
+  if(t.closest("#btnLockDevice")){ closeModal(); firebase.auth().signOut(); return; }
+  if(t.closest("#btnEnterPasscode")){ closeModal(); showLock(true); return; }
   if(t.closest("#btnAddVisit")){ modalQuickAdd(); return; }
   if(t.closest("#btnQuickLogVisit")){ closeModal(); modalLogVisit(null,null); return; }
   if(t.closest("#btnQuickSaveLater")){ closeModal(); modalPickCategory("save"); return; }
