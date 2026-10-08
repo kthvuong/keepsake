@@ -1,6 +1,7 @@
 module.exports = async (req, res) => {
-  var input = (req.query.input || "").trim();
-  var sessionToken = req.query.sessiontoken || "";
+  // Search text and tokens are short strings; anything else is dropped before it reaches Google.
+  var input = String(req.query.input || "").trim().slice(0, 120);
+  var sessionToken = String(req.query.sessiontoken || "").slice(0, 64);
   if (input.length < 3) {
     res.status(200).json({ suggestions: [] });
     return;

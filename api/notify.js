@@ -24,7 +24,8 @@ module.exports = async (req, res) => {
   }
   var body = req.body || {};
   var subs = Array.isArray(body.subs) ? body.subs.slice(0, 10) : [];
-  var url = typeof body.url === "string" && body.url.charAt(0) === "/" ? body.url.slice(0, 200) : "/";
+  // A path inside the app only: "//host" and "/\\host" would open another site when the notification is tapped.
+  var url = typeof body.url === "string" && /^\/(?![\/\\])/.test(body.url) ? body.url.slice(0, 200) : "/";
   var payload = JSON.stringify({
     title: String(body.title || "keepsake").slice(0, 80),
     body: String(body.body || "").slice(0, 180),

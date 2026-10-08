@@ -1,7 +1,8 @@
 module.exports = async (req, res) => {
-  var placeId = req.query.placeId;
-  var sessionToken = req.query.sessiontoken || "";
-  if (!placeId) {
+  var placeId = String(req.query.placeId || "");
+  var sessionToken = String(req.query.sessiontoken || "").slice(0, 64);
+  // Google place ids are short and use only these characters.
+  if (!/^[A-Za-z0-9_-]{1,300}$/.test(placeId)) {
     res.status(400).json({ error: "Missing placeId" });
     return;
   }

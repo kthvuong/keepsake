@@ -872,7 +872,7 @@ function categoryStatCardHtml(b, savedCount){
 /* ---------- tiny utils ---------- */
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
 function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];}); }
-function fmtDate(d){ if(!d) return ""; var dt=new Date(d+"T00:00:00"); if(isNaN(dt)) return d; return dt.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }
+function fmtDate(d){ if(!d) return ""; var dt=new Date(d+"T00:00:00"); if(isNaN(dt)) return esc(d); return dt.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }
 function relativeDate(d){
   if(!d) return "";
   var dt = new Date(d+"T00:00:00"); if(isNaN(dt)) return d;
@@ -1017,7 +1017,7 @@ function compressImage(file){
 /* ---------- state ---------- */
 // Profile pictures are cached on the device so the who's-here picker can show them before Firestore answers.
 function cachedAvatars(){
-  try{ var a = JSON.parse(localStorage.getItem("pp_avatars")||"null"); if(a && typeof a==="object") return a; }catch(e){}
+  try{ var a = JSON.parse(localStorage.getItem("pp_avatars")||"null"); if(a && typeof a==="object") return cleanAvatars(a); }catch(e){}
   return {};
 }
 var state = {
@@ -1091,6 +1091,55 @@ function firstPhotoFor(rid){
 function allRestaurants(){ return Object.keys(state.restaurants).map(function(k){return state.restaurants[k];}); }
 function allVisits(){ return Object.keys(state.visits).map(function(k){return state.visits[k];}); }
 
+/* ---------- checking records as they arrive ---------- */
+// Anything read from the database is treated as untrusted: ids, pictures, numbers and dates are checked here
+// so a tampered record can't put markup or script into the page.
+var SAFE_ID = /^[A-Za-z0-9_-]{1,80}$/;
+var SAFE_IMG = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]+$/;
+function safeId(s){ return typeof s==="string" && SAFE_ID.test(s) ? s : null; }
+function safeImg(s){ return typeof s==="string" && SAFE_IMG.test(s) ? s : ""; }
+function safeNum(n){
+  if(typeof n==="string" && n.trim()!=="") n = Number(n);
+  return typeof n==="number" && isFinite(n) ? n : null;
+}
+function safeDate(s){ return typeof s==="string" && /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : ""; }
+function safeWho(s){ return s==="A" || s==="B" ? s : ""; }
+function safeWr(s){ return s==="yes" || s==="maybe" || s==="no" ? s : null; }
+function safeIds(a){ return Array.isArray(a) ? a.filter(safeId) : []; }
+function safeAvatar(a){
+  if(typeof a!=="string") return "";
+  return a.indexOf("emoji:")===0 ? a.slice(0,14) : safeImg(a);
+}
+function cleanAvatars(a){ a = a && typeof a==="object" ? a : {}; return {A:safeAvatar(a.A), B:safeAvatar(a.B)}; }
+var CLEAN = {
+  restaurants: function(r){
+    r.tripId = safeId(r.tripId); r.createdBy = safeWho(r.createdBy);
+    r.lat = safeNum(r.lat); r.lng = safeNum(r.lng); r.priceRange = safeNum(r.priceRange);
+    return r;
+  },
+  visits: function(v){
+    v.restaurantId = safeId(v.restaurantId); v.date = safeDate(v.date); v.loggedBy = safeWho(v.loggedBy);
+    v.ratingA = safeNum(v.ratingA); v.ratingB = safeNum(v.ratingB); v.price = safeNum(v.price);
+    v.wouldReturnA = safeWr(v.wouldReturnA); v.wouldReturnB = safeWr(v.wouldReturnB); v.wouldReturn = safeWr(v.wouldReturn);
+    v.photos = Array.isArray(v.photos) ? v.photos.filter(safeImg) : [];
+    return v;
+  },
+  lists: function(l){
+    l.restaurantIds = safeIds(l.restaurantIds);
+    var votes = {}, raw = l.votes && typeof l.votes==="object" ? l.votes : {};
+    Object.keys(raw).forEach(function(k){ if(safeId(k) && Array.isArray(raw[k])) votes[k] = raw[k].filter(safeWho); });
+    l.votes = votes;
+    return l;
+  },
+  trips: function(t){ t.startDate = safeDate(t.startDate); t.endDate = safeDate(t.endDate); return t; },
+  photos: function(p){ p.visitId = safeId(p.visitId); p.restaurantId = safeId(p.restaurantId); p.data = safeImg(p.data); p.order = safeNum(p.order) || 0; return p; }
+};
+function readDocs(snap, kind){
+  var m = {};
+  snap.docs.forEach(function(d){ if(safeId(d.id)) m[d.id] = CLEAN[kind](Object.assign({}, d.data(), {id:d.id})); });
+  return m;
+}
+
 /* ---------- db wiring (Firebase Firestore) ---------- */
 function initDb(){
   if(!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.indexOf("YOUR_")===0 || !window.firebase){
@@ -1107,19 +1156,16 @@ function initDb(){
     if(!user) return;
     state.db = fs; state.dbReady = true;
     fs.collection("restaurants").onSnapshot(function(snap){
-      var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
-      state.restaurants=m; markLoaded("restaurants"); scheduleRender();
+      state.restaurants=readDocs(snap, "restaurants"); markLoaded("restaurants"); scheduleRender();
     }, loadFailed);
     fs.collection("visits").onSnapshot(function(snap){
-      var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
-      state.visits=m; markLoaded("visits"); scheduleRender();
+      state.visits=readDocs(snap, "visits"); markLoaded("visits"); scheduleRender();
     }, loadFailed);
     fs.collection("lists").onSnapshot(function(snap){
-      var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
-      state.lists=m; scheduleRender();
+      state.lists=readDocs(snap, "lists"); scheduleRender();
     }, function(err){ console.error(err); });
     fs.doc("settings/avatars").onSnapshot(function(snap){
-      state.avatars = snap.exists ? snap.data() : {};
+      state.avatars = cleanAvatars(snap.exists ? snap.data() : {});
       try{ localStorage.setItem("pp_avatars", JSON.stringify(state.avatars)); }catch(e){}
       if(document.getElementById("whosPicker")) showWhoPicker();
       refreshAvatarPick();
@@ -1131,12 +1177,10 @@ function initDb(){
     }, function(err){ console.error(err); });
     refreshMyPush().then(function(sub){ if(sub) savePushSub(sub); });
     fs.collection("photos").onSnapshot(function(snap){
-      var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
-      state.photos=m; indexPhotos(); scheduleRender();
+      state.photos=readDocs(snap, "photos"); indexPhotos(); scheduleRender();
     }, function(err){ console.error(err); });
     fs.collection("trips").onSnapshot(function(snap){
-      var m={}; snap.docs.forEach(function(d){ m[d.id]=Object.assign({id:d.id},d.data()); });
-      state.trips=m; scheduleRender();
+      state.trips=readDocs(snap, "trips"); scheduleRender();
     }, function(err){ console.error(err); });
   });
 }
@@ -2254,7 +2298,7 @@ function topDishesHtml(){
       '<span class="dt-dish">'+esc(d.dish)+'</span><span class="dt-where">'+esc(d.r.name)+(d.who ? ' · '+esc(d.who)+'\'s pick' : '')+'</span></button>';
   }).join('')+'</div>';
 }
-function money(n){ return "$"+(n % 1 ? n.toFixed(2) : n); }
+function money(n){ n = Number(n) || 0; return "$"+(n % 1 ? n.toFixed(2) : n); }
 // Eating out means the Food & Drink category. Only visits with an amount count, so the receipt says how many that is.
 function spendingHtml(){
   var months = {}, meals = 0, priced = 0, total = 0, other = 0;
@@ -2452,7 +2496,7 @@ function visitItemHtml(v){
     '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:6px;">'+
       '<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">'+esc(state.profiles.A)+'</div>'+(v.ratingA!=null?renderStarsDisplay(v.ratingA):'<span style="font-size:12px;color:var(--ink-faint);">—</span>')+(wrFor(v,"A") ? '<div class="wr-under">'+wrPill(wrFor(v,"A"))+'</div>' : '')+'</div>'+
       '<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">'+esc(state.profiles.B)+'</div>'+(v.ratingB!=null?renderStarsDisplay(v.ratingB):'<span style="font-size:12px;color:var(--ink-faint);">—</span>')+(wrFor(v,"B") ? '<div class="wr-under">'+wrPill(wrFor(v,"B"))+'</div>' : '')+'</div>'+
-      (v.price!=null?'<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">Spent</div><div class="mono">$'+v.price+'</div></div>':'')+
+      (v.price!=null?'<div><div style="font-size:10.5px;font-weight:800;color:var(--ink-faint);text-transform:uppercase;">Spent</div><div class="mono">'+esc(money(v.price))+'</div></div>':'')+
     '</div>'+
     (v.favDishA? '<div style="font-size:13px;"><b>'+esc(state.profiles.A)+'\'s favourite dish:</b> '+esc(v.favDishA)+'</div>' : '')+
     (v.favDishB? '<div style="font-size:13px;"><b>'+esc(state.profiles.B)+'\'s favourite dish:</b> '+esc(v.favDishB)+'</div>' : '')+
@@ -2666,7 +2710,7 @@ function wrFor(v, who){
   if(v["wouldReturn"+who]) return v["wouldReturn"+who];
   return !v.wouldReturnA && !v.wouldReturnB && v.wouldReturn ? v.wouldReturn : null;
 }
-function wrPill(val){ return val ? '<span class="wr-pill '+val+'">'+WR_LABEL[val]+'</span>' : ''; }
+function wrPill(val){ return WR_LABEL[val] ? '<span class="wr-pill '+val+'">'+WR_LABEL[val]+'</span>' : ''; }
 function wrAgree(v){ var a = wrFor(v,"A"); return !!a && a===wrFor(v,"B"); }
 // The card's summary line: shared answers read as one phrase, different ones as a split decision.
 function wrAgreement(v){
@@ -2802,7 +2846,7 @@ function modalLogVisit(restaurantId, existingVisit, presetPlace, defaultDate){
     '</div>'+
     '<div class="field-row">'+
       field("Date",'<input type="date" id="f_date" value="'+esc(editingVisit.date||todayStr())+'">')+
-      field("Amount spent",'<input type="number" id="f_price" min="0" step="1" value="'+(editingVisit.price!=null?editingVisit.price:"")+'" placeholder="The whole bill">')+
+      field("Amount spent",'<input type="number" id="f_price" min="0" step="1" value="'+esc(editingVisit.price!=null?editingVisit.price:"")+'" placeholder="The whole bill">')+
     '</div>'+
     '<div class="join-note" id="sameDayNote" hidden></div>'+
     '<div id="personPartsWrap">'+personPartsHtml(initialCategory, editingVisit)+'</div>'+
@@ -3428,7 +3472,7 @@ document.addEventListener("click", function(e){
 
 
   var openWrapped = t.closest("[data-open-wrapped]");
-  if(openWrapped){ state.showWrapped = true; state.wrappedYear = openWrapped.getAttribute("data-open-wrapped"); wrappedSlideIdx = 0; renderAll(); window.scrollTo(0,0); return; }
+  if(openWrapped){ state.showWrapped = true; state.wrappedYear = String(parseInt(openWrapped.getAttribute("data-open-wrapped"),10) || ""); wrappedSlideIdx = 0; renderAll(); window.scrollTo(0,0); return; }
   if(t.closest("[data-back-stats]")){ state.showWrapped = false; renderAll(); return; }
   var badge = t.closest("[data-badge]");
   if(badge){ badge.classList.toggle("show-how"); return; }
