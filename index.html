@@ -113,6 +113,8 @@ button{cursor:pointer;}
 .whos-av{width:132px; height:132px; border-radius:28px; display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-size:58px; font-weight:500; border:6px solid var(--surface); box-shadow:var(--shadow-lift); transition:box-shadow .2s ease;}
 .whos-person:hover .whos-av,.whos-person:focus-visible .whos-av{box-shadow:0 0 0 3px var(--accent), var(--shadow-lift);}
 .whos-name{font-family:'Fredoka',sans-serif; font-size:22px; font-weight:600;}
+.toast{position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); transform:translate(-50%,12px); max-width:min(92vw,420px); padding:11px 16px; border-radius:14px; background:var(--ink); color:var(--bg); font-size:14px; font-weight:700; text-align:center; box-shadow:var(--shadow-lift); opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease; z-index:190;}
+.toast.show{opacity:1; transform:translate(-50%,0);}
 .whos.lock{z-index:210;}
 .lock-input{display:block; width:100%; max-width:300px; margin:32px auto 14px; padding:13px 16px; min-height:48px; border-radius:14px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-family:'Nunito',sans-serif; font-size:17px; font-weight:600; text-align:center; letter-spacing:.08em; box-shadow:var(--shadow-lift);}
 .lock-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);}
@@ -1441,6 +1443,14 @@ function sendPush(subs, msg){
       return res;
     });
 }
+// A short message at the bottom of the screen that clears itself.
+function toast(msg){
+  var el = document.getElementById("toast");
+  if(!el){ el = document.createElement("div"); el.id = "toast"; el.className = "toast"; el.setAttribute("role","status"); document.body.appendChild(el); }
+  el.textContent = msg; el.classList.add("show");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(function(){ el.classList.remove("show"); }, 5000);
+}
 function nudgePartner(rid, placeName){
   var partner = partnerOf(state.me||"A");
   var subs = Object.keys(state.pushSubs).map(function(k){ return state.pushSubs[k]; }).filter(function(x){ return x.who===partner; });
@@ -1448,6 +1458,8 @@ function nudgePartner(rid, placeName){
     title: state.profiles[state.me||"A"]+" logged "+placeName,
     body: "Add your rating and notes while it's fresh.",
     url: "/?review="+encodeURIComponent(rid), tag: "review-"+rid
+  }).then(function(res){
+    if(res && res.error) toast(res.error==="Sign in first" && !isKeyholder(currentUser()) ? "Nudge not sent: this device needs our passcode (Settings)." : "Nudge not sent to "+state.profiles[partner]+".");
   }).catch(function(err){ console.warn("Nudge not sent", err); });
 }
 function pushSettingsHtml(){
@@ -3251,7 +3263,9 @@ document.addEventListener("click", function(e){
       if(!sub) throw new Error("no subscription");
       return sendPush([sub.toJSON()], {title:"keepsake", body:"Notifications are working on this device.", url:"/", tag:"test"});
     }).then(function(res){
-      refreshPushSettings(res.sent ? "Sent. It should arrive in a moment." : res.error==="Push is not configured" ? "The push key isn't set up on the server yet." : res.error==="Push key is invalid" ? "The push key saved in Vercel isn't right, so it needs pasting again." : "It didn't send. Try turning notifications off and on again.");
+      refreshPushSettings(res.sent ? "Sent. It should arrive in a moment."
+        : res.error==="Sign in first" ? (isKeyholder(currentUser()) ? "The server turned this device away ("+(res.reason||"no reason given")+")." : "This device needs our passcode first. Use the Passcode button below.")
+        : res.error==="Push is not configured" ? "The push key isn't set up on the server yet." : res.error==="Push key is invalid" ? "The push key saved in Vercel isn't right, so it needs pasting again." : "It didn't send. Try turning notifications off and on again.");
     }).catch(function(){ refreshPushSettings("It didn't send. Check your connection and try again."); });
     return;
   }

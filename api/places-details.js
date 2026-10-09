@@ -1,8 +1,9 @@
-var isSignedIn = require("./_auth");
+var whyDenied = require("./_auth");
 
 module.exports = async (req, res) => {
-  if (!(await isSignedIn(req))) {
-    res.status(401).json({ error: "Sign in first" });
+  var denied = await whyDenied(req);
+  if (denied) {
+    res.status(401).json({ error: "Sign in first", reason: denied });
     return;
   }
   var placeId = String(req.query.placeId || "");

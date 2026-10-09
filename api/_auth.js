@@ -19,27 +19,27 @@ async function loadCerts() {
 
 function decode(part) { return JSON.parse(Buffer.from(part, "base64url").toString("utf8")); }
 
-async function isSignedIn(req) {
+// Returns "" when the request comes from the shared account, otherwise a short reason the app can show.
+async function whyDenied(req) {
   try {
     var m = /^Bearer ([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec(String(req.headers.authorization || ""));
-    if (!m) return false;
+    if (!m) return "no sign-in sent";
     var header = decode(m[1]), claims = decode(m[2]);
-    if (header.alg !== "RS256" || typeof header.kid !== "string") return false;
+    if (header.alg !== "RS256" || typeof header.kid !== "string") return "unreadable sign-in";
     var all = await loadCerts();
-    if (!Object.prototype.hasOwnProperty.call(all, header.kid)) return false;
+    if (!Object.prototype.hasOwnProperty.call(all, header.kid)) return "unknown signing key";
     var good = crypto.createVerify("RSA-SHA256").update(m[1] + "." + m[2]).verify(all[header.kid], Buffer.from(m[3], "base64url"));
-    if (!good) return false;
+    if (!good) return "signature didn't match";
     var now = Math.floor(Date.now() / 1000);
-    return claims.aud === PROJECT_ID &&
-      claims.iss === "https://securetoken.google.com/" + PROJECT_ID &&
-      typeof claims.sub === "string" && claims.sub !== "" &&
-      typeof claims.exp === "number" && claims.exp > now &&
-      typeof claims.iat === "number" && claims.iat <= now + 300 &&
-      claims.email === PASSCODE_EMAIL &&
-      !!claims.firebase && claims.firebase.sign_in_provider === "password";
+    if (claims.aud !== PROJECT_ID || claims.iss !== "https://securetoken.google.com/" + PROJECT_ID) return "wrong project";
+    if (typeof claims.sub !== "string" || claims.sub === "") return "unreadable sign-in";
+    if (typeof claims.exp !== "number" || claims.exp <= now) return "sign-in expired";
+    if (typeof claims.iat !== "number" || claims.iat > now + 300) return "sign-in dated in the future";
+    if (claims.email !== PASSCODE_EMAIL || !claims.firebase || claims.firebase.sign_in_provider !== "password") return "not the passcode account";
+    return "";
   } catch (err) {
-    return false;
+    return "check failed";
   }
 }
 
-module.exports = isSignedIn;
+module.exports = whyDenied;
