@@ -324,6 +324,15 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .switch::after{content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:transform .2s ease;}
 .switch-row.on .switch{background:var(--accent);}
 .switch-row.on .switch::after{transform:translateX(18px);}
+.set-note:empty{display:none;}
+.push-kinds{margin:8px 0 10px; border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+.switch-row.sub{min-height:52px; border:none; border-radius:0; background:var(--surface); border-top:1px solid var(--line);}
+.switch-row.sub:first-child{border-top:none;}
+.switch-row.sub .switch-title{font-weight:700; font-size:13.5px;}
+.switch-row.sub .switch-sub, .switch-row.sub.on .switch-sub{color:var(--ink-faint); font-weight:500;}
+.switch-row.sub .switch{width:40px; height:24px;}
+.switch-row.sub .switch::after{width:18px; height:18px;}
+.switch-row.sub.on .switch::after{transform:translateX(16px);}
 .switch-row:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 #btnPushTest{margin-top:8px;}
 .mr-best{display:block; border:none; background:none; padding:0; margin-top:10px; text-align:left; font-family:'Caveat',cursive; font-size:21px; font-weight:600; letter-spacing:.02em; line-height:1.2; color:var(--ink-soft); cursor:pointer;}
@@ -1419,7 +1428,7 @@ function savePushSub(sub){
   var j = sub.toJSON();
   myPushEndpoint = j.endpoint;
   if(!state.dbReady) return Promise.resolve();
-  return state.db.collection("pushSubs").doc(pushSubId(j.endpoint)).set({who:state.me||"A", endpoint:j.endpoint, keys:j.keys, device:navigator.userAgent.slice(0,140), updatedAt:new Date().toISOString()});
+  return state.db.collection("pushSubs").doc(pushSubId(j.endpoint)).set({who:state.me||"A", endpoint:j.endpoint, keys:j.keys, device:navigator.userAgent.slice(0,140), updatedAt:new Date().toISOString()}, {merge:true});
 }
 // Has to run from a tap: browsers only show the permission prompt in response to one.
 function enablePush(){
@@ -1461,17 +1470,67 @@ function toast(msg){
   clearTimeout(toast.timer);
   toast.timer = setTimeout(function(){ el.classList.remove("show"); }, 5000);
 }
-function nudgePartner(rid, placeName){
+// The kinds of notification, in the order Settings lists them. Each device picks its own.
+var PUSH_KINDS = [
+  {id:"review", on:true, title:"Your turn to review", sub:function(p){ return p+" logs a visit you haven't added to"; }},
+  {id:"replied", on:true, title:"They added their side", sub:function(p){ return p+" rates a visit you logged"; }},
+  {id:"newPlace", on:true, title:"New place to visit", sub:function(p){ return p+" pins somewhere new"; }},
+  {id:"plans", on:false, title:"Trips and lists", sub:function(p){ return p+" starts one or adds a place to it"; }}
+];
+function pushPrefs(sub){
+  var saved = (sub && sub.prefs) || {}, out = {};
+  PUSH_KINDS.forEach(function(k){ out[k.id] = typeof saved[k.id]==="boolean" ? saved[k.id] : k.on; });
+  return out;
+}
+function myPushSub(){ return myPushEndpoint ? state.pushSubs[pushSubId(myPushEndpoint)] : null; }
+function setPushPref(kind, value){
+  if(!myPushEndpoint) return Promise.resolve();
+  var id = pushSubId(myPushEndpoint), patch = {};
+  patch[kind] = value;
+  state.pushSubs[id] = Object.assign({}, state.pushSubs[id], {prefs:Object.assign({}, (state.pushSubs[id]||{}).prefs, patch)});
+  if(!state.dbReady) return Promise.resolve();
+  return state.db.doc("pushSubs/"+id).set({prefs:patch}, {merge:true});
+}
+// Tell the other person's devices about something, if they've left that kind switched on.
+function notifyPartner(kind, msg){
   var partner = partnerOf(state.me||"A");
-  var subs = Object.keys(state.pushSubs).map(function(k){ return state.pushSubs[k]; }).filter(function(x){ return x.who===partner; });
-  sendPush(subs, {
-    title: state.profiles[state.me||"A"]+" logged "+placeName,
-    body: "Add your rating and notes while it's fresh.",
-    url: "/?review="+encodeURIComponent(rid), tag: "review-"+rid
-  }).then(function(res){
+  var subs = Object.keys(state.pushSubs).map(function(k){ return state.pushSubs[k]; }).filter(function(x){ return x.who===partner && pushPrefs(x)[kind]; });
+  sendPush(subs, msg).then(function(res){
     if(res && res.error) toast(res.error==="Sign in first" && !isKeyholder(currentUser()) ? "Nudge not sent: this device needs our passcode (Settings)." : "Nudge not sent to "+state.profiles[partner]+".");
   }).catch(function(err){ console.warn("Nudge not sent", err); });
 }
+function myName(){ return state.profiles[state.me||"A"]; }
+function nudgePartner(rid, placeName){
+  notifyPartner("review", {
+    title: myName()+" logged "+placeName,
+    body: "Add your rating and notes while it's fresh.",
+    url: "/?review="+encodeURIComponent(rid), tag: "review-"+rid
+  });
+}
+function notifyReplied(rid, placeName, rating){
+  notifyPartner("replied", {
+    title: rating!=null ? myName()+" rated "+placeName+" "+rating+" \u2605" : myName()+" added their side for "+placeName,
+    body: "Tap to see what they thought.",
+    url: "/?review="+encodeURIComponent(rid), tag: "replied-"+rid
+  });
+}
+function notifyNewPlace(rid, r){
+  notifyPartner("newPlace", {
+    title: myName()+" wants to visit "+r.name,
+    body: [r.placeType && r.placeType!=="Other" ? r.placeType : "", r.neighborhood || r.city || ""].filter(Boolean).join(" \u00b7 ") || "Have a look and see what you think.",
+    url: "/?review="+encodeURIComponent(rid), tag: "place-"+rid
+  });
+}
+function notifyPlans(title, body, tag){
+  notifyPartner("plans", {title:title, body:body || "Open keepsake to have a look.", url:"/", tag:tag});
+}
+function notifyAddedTo(kind, cid, rid, fallbackName){
+  var place = (state.restaurants[rid]||{}).name || fallbackName || "a place";
+  var into = kind==="list" ? (state.lists[cid]||{}).name : (state.trips[cid]||{}).destination;
+  if(!into) return;
+  notifyPlans(myName()+" added "+place+" to "+into, kind==="list" ? "It's on the list now." : "It's on the trip now.", kind+"-"+cid);
+}
+function sideDone(v, who){ return !!v && (v["rating"+who]!=null || !!v["notes"+who] || !!v["wouldReturn"+who] || !!v["favDish"+who]); }
 function pushSettingsHtml(){
   var partner = esc(state.profiles[partnerOf(state.me||"A")]);
   if(!pushSupported()){
@@ -1485,8 +1544,14 @@ function pushSettingsHtml(){
       '<span class="switch-text"><span class="switch-title">Nudges on this device</span>'+
       '<span class="switch-sub">'+(on ? "On for "+esc(state.profiles[state.me||"A"]) : "Off")+'</span></span>'+
       '<span class="switch" aria-hidden="true"></span></button>'+
-    (on ? '<button type="button" class="btn small" id="btnPushTest">Send a test</button>' : '')+
-    '<p class="set-note" id="pushNote">'+(on ? "You\'ll get a nudge when "+partner+" logs a visit you haven\'t added to." : "Get a nudge when "+partner+" logs a visit, so you can add your side.")+'</p>';
+    (on ? '<div class="push-kinds">'+PUSH_KINDS.map(function(k){
+        var kOn = pushPrefs(myPushSub())[k.id];
+        return '<button type="button" class="switch-row sub'+(kOn?' on':'')+'" data-push-pref="'+k.id+'" role="switch" aria-checked="'+(kOn?"true":"false")+'">'+
+          '<span class="switch-text"><span class="switch-title">'+k.title+'</span><span class="switch-sub">'+esc(k.sub(state.profiles[partnerOf(state.me||"A")]))+'</span></span>'+
+          '<span class="switch" aria-hidden="true"></span></button>';
+      }).join('')+'</div>'+
+      '<button type="button" class="btn small" id="btnPushTest">Send a test</button>' : '')+
+    '<p class="set-note" id="pushNote">'+(on ? "" : "Get a nudge when "+partner+" logs a visit, pins a new place, or adds their side.")+'</p>';
 }
 function refreshPushSettings(note){
   var el = document.getElementById("pushSettings");
@@ -3270,6 +3335,13 @@ document.addEventListener("click", function(e){
   if(setAv){ saveAvatar(state.me||"A", setAv.getAttribute("data-set-avatar")); return; }
   if(t.closest("#btnAvatarUpload")){ document.getElementById("f_avatarInput").click(); return; }
   if(t.closest("#btnPushPromptNo")){ try{ localStorage.setItem("pp_push_prompt", "no"); }catch(err){} renderAll(); return; }
+  var pushPref = t.closest("[data-push-pref]");
+  if(pushPref){
+    var prefKind = pushPref.getAttribute("data-push-pref");
+    setPushPref(prefKind, !pushPrefs(myPushSub())[prefKind]).catch(function(err){ console.warn(err); toast("Couldn't save that. Try again."); });
+    refreshPushSettings();
+    return;
+  }
   if(t.closest("#btnPushTest")){
     refreshPushSettings("Sending…");
     refreshMyPush().then(function(sub){
@@ -3457,7 +3529,7 @@ document.addEventListener("click", function(e){
     var lid = t.closest("#btnSaveList").getAttribute("data-list-id");
     var name = document.getElementById("f_listname").value.trim(); if(!name) return;
     var desc = document.getElementById("f_listdesc").value.trim();
-    finishSave(saveList({name:name, description:desc}, lid||undefined));
+    finishSave(saveList({name:name, description:desc}, lid||undefined).then(function(r){ if(!lid) notifyPlans(myName()+" started a list: "+name, desc, "list-"+r); return r; }));
     return;
   }
   var openList = t.closest("[data-open-list]");
@@ -3482,13 +3554,15 @@ document.addEventListener("click", function(e){
       } else {
         updateRestaurant(ridPick, {tripId: cid});
       }
+      notifyAddedTo(kind4, cid, ridPick);
       closeModal(); modalRestaurantDetail(ridPick);
     }
     if(chosen==="__new__"){
       var newCollectionName = document.getElementById("f_new_collection_name").value.trim();
       if(!newCollectionName) return;
-      if(kind4==="list"){ saveList({name:newCollectionName, restaurantIds:[ridPick]}).then(function(){ closeModal(); modalRestaurantDetail(ridPick); }); }
-      else { saveTrip({destination:newCollectionName}).then(function(tid2){ updateRestaurant(ridPick,{tripId:tid2}); closeModal(); modalRestaurantDetail(ridPick); }); }
+      var pickedName = (state.restaurants[ridPick]||{}).name || "";
+      if(kind4==="list"){ saveList({name:newCollectionName, restaurantIds:[ridPick]}).then(function(lid3){ notifyPlans(myName()+" started a list: "+newCollectionName, pickedName ? "First on it: "+pickedName : "", "list-"+lid3); closeModal(); modalRestaurantDetail(ridPick); }); }
+      else { saveTrip({destination:newCollectionName}).then(function(tid2){ updateRestaurant(ridPick,{tripId:tid2}); notifyPlans(myName()+" is planning a trip: "+newCollectionName, pickedName ? "First stop: "+pickedName : "", "trip-"+tid2); closeModal(); modalRestaurantDetail(ridPick); }); }
     } else if(chosen){
       finishPick(chosen);
     }
@@ -3517,7 +3591,8 @@ document.addEventListener("click", function(e){
   if(t.closest("#btnSaveTrip")){
     var tid = t.closest("#btnSaveTrip").getAttribute("data-trip-id");
     var dest = document.getElementById("f_tripdest").value.trim(); if(!dest) return;
-    finishSave(saveTrip({destination:dest, startDate:document.getElementById("f_tripstart").value, endDate:document.getElementById("f_tripend").value, notes:document.getElementById("f_tripnotes").value.trim()}, tid||undefined));
+    finishSave(saveTrip({destination:dest, startDate:document.getElementById("f_tripstart").value, endDate:document.getElementById("f_tripend").value, notes:document.getElementById("f_tripnotes").value.trim()}, tid||undefined)
+      .then(function(r){ if(!tid) notifyPlans(myName()+" is planning a trip: "+dest, "", "trip-"+r); return r; }));
     return;
   }
   var openTrip = t.closest("[data-open-trip]");
@@ -3561,8 +3636,10 @@ document.addEventListener("click", function(e){
         var l = state.lists[cid]; var ids3 = (l.restaurantIds||[]).slice();
         if(ids3.indexOf(ridResolved)<0) ids3.push(ridResolved);
         updateList(cid, {restaurantIds:ids3});
+        notifyAddedTo("list", cid, ridResolved, newName);
       } else {
         updateRestaurant(ridResolved, {tripId: cid});
+        notifyAddedTo("trip", cid, ridResolved, newName);
       }
       closeModal(); renderAll();
     }
@@ -3723,7 +3800,8 @@ function doSaveRestaurantFromForm(){
     favorite: !!editingRestaurant.favorite,
     tripId: editingRestaurant.tripId || null
   };
-  finishSave(saveRestaurant(data, editingRestaurant.id));
+  var isNewPlace = !editingRestaurant.id;
+  finishSave(saveRestaurant(data, editingRestaurant.id).then(function(rid){ if(isNewPlace) notifyNewPlace(rid, data); return rid; }));
 }
 function doSaveVisitFromForm(){
   var isNewSelect = document.getElementById("f_visit_restaurant");
@@ -3765,6 +3843,9 @@ function doSaveVisitFromForm(){
     var partnerDone = toSave["rating"+partner]!=null || !!toSave["notes"+partner] || !!toSave["wouldReturn"+partner] || !!toSave["favDish"+partner];
     var placeName = (state.restaurants[rid]||{}).name || (document.getElementById("f_name")||{}).value || "a new place";
     var nudge = !editingVisit.id && !partnerDone;
+    // The other person had already written theirs and this is the first time mine is going in.
+    var me = state.me||"A", prior = sameDay || (editingVisit.id ? state.visits[editingVisit.id] : null);
+    var replied = sideDone(prior, partner) && !sideDone(prior, me) && sideDone(toSave, me);
     var savePromise = !sameDay ? saveVisit(toSave, editingVisit.id)
       : saveVisit(toSave, sameDay.id).then(function(r){
           if(!editingVisit.id) return r;
@@ -3772,6 +3853,7 @@ function doSaveVisitFromForm(){
         });
     savePromise = savePromise.then(function(visitId){ return syncVisitPhotos(visitId, rid).then(function(){ return visitId; }); });
     if(nudge) savePromise = savePromise.then(function(visitId){ nudgePartner(rid, placeName); return visitId; });
+    if(replied) savePromise = savePromise.then(function(visitId){ notifyReplied(rid, placeName, toSave["rating"+me]); return visitId; });
     if(editingRestaurant){
       savePromise = savePromise.then(function(r){ return updateRestaurant(rid, {favorite: !!editingRestaurant.favorite}).then(function(){ return r; }); });
     }
