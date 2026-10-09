@@ -2754,12 +2754,22 @@ function modalEditRestaurant(existing, prefill){
         field("Cuisine", '<div class="chip-select" id="f_cuisines">'+CUISINES.map(function(c){return '<button type="button" data-toggle-chip="cuisine" data-val="'+c+'" class="'+(e.cuisines.indexOf(c)>=0?"on":"")+'">'+c+'</button>';}).join('')+'</div>')+
         field("Price range", '<div class="chip-select">'+[1,2,3,4].map(function(p){return '<button type="button" data-set-price="'+p+'" class="'+(e.priceRange===p?"on":"")+'">'+PRICE_LABELS[p]+'</button>';}).join('')+'</div>')+
       '</div>'+
+      field("Trip", '<select id="f_trip"><option value="">Not part of a trip</option>'+
+        Object.keys(state.trips).map(function(k){ return state.trips[k]; }).sort(function(a,b){ return (b.startDate||"").localeCompare(a.startDate||"") || (a.destination||"").localeCompare(b.destination||""); })
+          .map(function(t){ return '<option value="'+t.id+'"'+(e.tripId===t.id?" selected":"")+'>'+esc(t.destination||"Untitled trip")+'</option>'; }).join('')+
+        '<option value="__new__">+ New trip…</option></select>'+
+        '<input type="text" id="f_trip_new" placeholder="Where to? e.g. Tokyo" style="display:none; margin-top:8px;">')+
       field("Notes",'<textarea id="f_notes" placeholder="Anything worth remembering about this place…">'+esc(e.notes||"")+'</textarea>')+
     '</div>'+
     '<div class="modal-foot">'+(existing?'<button class="btn danger" data-delete-restaurant="'+existing.id+'">Delete</button>':'')+'<button class="btn primary" id="btnSaveRestaurant">Save</button></div>'+
   '</div>';
   openModal(html);
   initPickerMap(); updateGeoHint();
+  document.getElementById("f_trip").addEventListener("change", function(){
+    var box = document.getElementById("f_trip_new");
+    box.style.display = this.value==="__new__" ? "block" : "none";
+    if(this.value==="__new__") box.focus();
+  });
   document.getElementById("f_category").addEventListener("change", function(){
     var newCat = categoryById(this.value);
     editingRestaurant.category = newCat.id;
@@ -3813,8 +3823,16 @@ function doSaveRestaurantFromForm(){
     favorite: !!editingRestaurant.favorite,
     tripId: editingRestaurant.tripId || null
   };
-  var isNewPlace = !editingRestaurant.id;
-  finishSave(saveRestaurant(data, editingRestaurant.id).then(function(rid){ if(isNewPlace) notifyNewPlace(rid, data); return rid; }));
+  var isNewPlace = !editingRestaurant.id, placeId = editingRestaurant.id;
+  var tripSel = document.getElementById("f_trip"), tripChoice = tripSel ? tripSel.value : (data.tripId||"");
+  var newTripName = tripChoice==="__new__" ? document.getElementById("f_trip_new").value.trim() : "";
+  if(tripChoice==="__new__" && !newTripName){ alert("Give the new trip a destination, or pick an existing one."); return; }
+  // A brand new trip has to exist before the place can point at it.
+  var tripReady = newTripName ? saveTrip({destination:newTripName}) : Promise.resolve(tripChoice || null);
+  finishSave(tripReady.then(function(tid){
+    data.tripId = tid;
+    return saveRestaurant(data, placeId);
+  }).then(function(rid){ if(isNewPlace) notifyNewPlace(rid, data); return rid; }));
 }
 function doSaveVisitFromForm(){
   var isNewSelect = document.getElementById("f_visit_restaurant");
