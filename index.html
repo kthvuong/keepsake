@@ -420,6 +420,11 @@ button.fav-badge{border:none; padding:0; cursor:pointer; font:inherit;}
 .stamp:hover{transform:scale(1.12) rotate(0deg);}
 .stamp-caption{font-family:'Caveat',cursive; font-size:20px; font-weight:600; color:var(--ink-soft); margin-top:8px;}
 .bucket-item{display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:8px; transition:transform .2s ease, box-shadow .2s ease, border-color .15s ease;}
+.bucket-group{margin-top:18px;}
+.section-row + .bucket-group{margin-top:14px;}
+.bucket-head{display:flex; align-items:center; gap:8px; margin-bottom:8px; font-family:'Fraunces',serif; font-size:17px; font-weight:600; color:var(--ink);}
+.bh-icon{font-size:17px;}
+.bh-count{font-family:'Nunito',sans-serif; font-size:11.5px; font-weight:800; color:var(--ink-soft); background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:1px 8px;}
 .bi-box{width:22px; height:22px; border:2px solid var(--line); border-radius:6px; flex-shrink:0;}
 .bi-main{flex:1; min-width:0; cursor:pointer;}
 .bi-name{font-family:'Fraunces',serif; font-size:16px; font-weight:500;}
@@ -2299,13 +2304,21 @@ function viewTripDetail(t){
   if(toTry.length){
     html += '<div class="section-row"><div class="section-title">Still to visit</div>'+
       (toTry.length > 1 ? '<button type="button" class="btn small" id="btnTripPick">🎲 Where to next?</button>' : '')+'</div>'+
-      toTry.map(function(r){
-        return '<div class="bucket-item" data-bucket="'+r.id+'">'+
-          '<span class="bi-box"></span>'+
-          '<div class="bi-main" data-open-restaurant="'+r.id+'"><div class="bi-name">'+categoryOf(r).icon+' '+esc(r.name)+'</div>'+
-          '<div class="bi-meta">'+esc([r.neighborhood, r.placeType].filter(Boolean).join(" · "))+'</div></div>'+
-          '<button type="button" class="btn small primary" data-log-visit-for="'+r.id+'" data-log-date="'+tripLogDate(t)+'">We went!</button>'+
-        '</div>';
+      // Grouped by kind of activity, and by type of place within each, so a long list reads in sections.
+      CATEGORIES.map(function(cat){
+        var group = toTry.filter(function(r){ return categoryOf(r).id===cat.id; }).sort(function(a,b){
+          return (a.placeType||"").localeCompare(b.placeType||"") || (a.name||"").localeCompare(b.name||"");
+        });
+        if(!group.length) return '';
+        return '<div class="bucket-group"><div class="bucket-head"><span class="bh-icon">'+cat.icon+'</span>'+esc(cat.label)+'<span class="bh-count">'+group.length+'</span></div>'+
+          group.map(function(r){
+            return '<div class="bucket-item" data-bucket="'+r.id+'">'+
+              '<span class="bi-box"></span>'+
+              '<div class="bi-main" data-open-restaurant="'+r.id+'"><div class="bi-name">'+esc(r.name)+'</div>'+
+              '<div class="bi-meta">'+esc([r.placeType && r.placeType!=="Other" ? r.placeType : "", r.neighborhood].filter(Boolean).join(" · "))+'</div></div>'+
+              '<button type="button" class="btn small primary" data-log-visit-for="'+r.id+'" data-log-date="'+tripLogDate(t)+'">We went!</button>'+
+            '</div>';
+          }).join('')+'</div>';
       }).join('');
   }
   var byDate = {};
